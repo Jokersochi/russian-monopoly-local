@@ -47,16 +47,29 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
+        board: {
+          green: "hsl(var(--board-green))",
+          dark: "hsl(var(--board-dark))",
         },
+        russia: {
+          red: "hsl(var(--russia-red))",
+          blue: "hsl(var(--russia-blue))",
+          gold: "hsl(var(--russia-gold))",
+          white: "hsl(var(--russia-white))",
+        },
+      },
+      backgroundImage: {
+        'gradient-russian': 'var(--gradient-russian)',
+        'gradient-gold': 'var(--gradient-gold)',
+        'gradient-board': 'var(--gradient-board)',
+      },
+      boxShadow: {
+        'strong': 'var(--shadow-strong)',
+        'board': 'var(--shadow-board)',
+      },
+      transitionProperty: {
+        'smooth': 'var(--transition-smooth)',
+        'bounce': 'var(--transition-bounce)',
       },
       borderRadius: {
         lg: "var(--radius)",
