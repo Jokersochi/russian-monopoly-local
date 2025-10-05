@@ -11,9 +11,12 @@ export const GameLog = () => {
   if (!gameState) return null;
 
   return (
-    <Card className="h-full">
-      <div className="p-3 border-b">
-        <h3 className="font-bold">{t('game.gameLog')}</h3>
+    <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20">
+      <div className="p-4 border-b border-russia-gold/20">
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <span className="text-russia-gold">📜</span>
+          {t('game.gameLog')}
+        </h3>
       </div>
       <ScrollArea className="h-[calc(100%-4rem)] p-3">
         <div className="space-y-2">
@@ -26,11 +29,11 @@ export const GameLog = () => {
               <div
                 key={entry.id}
                 className={cn(
-                  'text-sm p-2 rounded border-l-4',
-                  entry.type === 'success' && 'bg-green-50 dark:bg-green-950 border-green-500',
-                  entry.type === 'warning' && 'bg-yellow-50 dark:bg-yellow-950 border-yellow-500',
-                  entry.type === 'error' && 'bg-red-50 dark:bg-red-950 border-red-500',
-                  entry.type === 'info' && 'bg-blue-50 dark:bg-blue-950 border-blue-500'
+                  'text-sm p-3 rounded-lg border-l-4 shadow-sm backdrop-blur-sm transition-all hover:scale-102',
+                  entry.type === 'success' && 'bg-board-green/20 border-board-green shadow-board-green/20',
+                  entry.type === 'warning' && 'bg-russia-gold/20 border-russia-gold shadow-russia-gold/20',
+                  entry.type === 'error' && 'bg-russia-red/20 border-russia-red shadow-russia-red/20',
+                  entry.type === 'info' && 'bg-russia-blue/20 border-russia-blue shadow-russia-blue/20'
                 )}
               >
                 {t(entry.textKey, entry.params)}

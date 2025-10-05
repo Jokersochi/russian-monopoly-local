@@ -15,9 +15,10 @@ const GameContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 overflow-auto">
-      <div className="max-w-[1800px] mx-auto">
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px] gap-4">
+    <div className="min-h-screen p-4 overflow-auto relative">
+      <div className="absolute inset-0 bg-gradient-board opacity-10 pointer-events-none"></div>
+      <div className="max-w-[1800px] mx-auto relative z-10">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
           {/* Left side - Game Board */}
           <div className="flex items-center justify-center">
             <GameBoard />

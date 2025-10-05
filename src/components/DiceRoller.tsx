@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
@@ -20,40 +21,52 @@ export const DiceRoller = () => {
   const canRoll = gameState.phase === 'rolling';
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 bg-card rounded-lg shadow-md">
-      <div className="flex gap-4">
-        {gameState.lastRoll ? (
-          <>
-            <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
-            <DiceFace value={gameState.lastRoll[1]} rolling={rolling} />
-          </>
-        ) : (
-          <>
-            <DiceFace value={1} rolling={false} />
-            <DiceFace value={1} rolling={false} />
-          </>
-        )}
+    <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
+      <div className="p-4 border-b border-russia-red/20">
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <span className="text-russia-red">🎲</span>
+          {t('game.rollDice')}
+        </h3>
       </div>
+      <div className="p-6 space-y-4">
+        <div className="flex gap-4 justify-center">
+          {gameState.lastRoll ? (
+            <>
+              <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
+              <DiceFace value={gameState.lastRoll[1]} rolling={rolling} />
+            </>
+          ) : (
+            <>
+              <DiceFace value={1} rolling={false} />
+              <DiceFace value={1} rolling={false} />
+            </>
+          )}
+        </div>
 
-      <Button
-        onClick={handleRoll}
-        disabled={!canRoll || rolling}
-        size="lg"
-        className={cn(
-          'w-full bg-gradient-russian hover:opacity-90',
-          rolling && 'pointer-events-none'
+        {gameState.lastRoll && (
+          <div className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm">
+            <p className="text-sm text-muted-foreground">
+              Сумма: <span className="font-bold text-3xl text-russia-gold ml-2">{gameState.lastRoll[0] + gameState.lastRoll[1]}</span>
+            </p>
+            {gameState.lastRoll[0] === gameState.lastRoll[1] && (
+              <p className="text-xs text-russia-red font-bold mt-1">🎯 Дубль!</p>
+            )}
+          </div>
         )}
-      >
-        {rolling ? '🎲 Бросаем...' : t('game.rollDice')}
-      </Button>
 
-      {gameState.lastRoll && (
-        <p className="text-sm text-muted-foreground">
-          Сумма: {gameState.lastRoll[0] + gameState.lastRoll[1]}
-          {gameState.lastRoll[0] === gameState.lastRoll[1] && ' (Дубль!)'}
-        </p>
-      )}
-    </div>
+        <Button
+          onClick={handleRoll}
+          disabled={!canRoll || rolling}
+          size="lg"
+          className={cn(
+            'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
+            rolling && 'pointer-events-none animate-pulse'
+          )}
+        >
+          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+        </Button>
+      </div>
+    </Card>
   );
 };
 

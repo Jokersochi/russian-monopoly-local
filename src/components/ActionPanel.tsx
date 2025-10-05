@@ -19,70 +19,90 @@ export const ActionPanel = () => {
   const canPass = gameState.phase === 'landed' && currentCell.price;
 
   return (
-    <Card className="p-4 space-y-4">
-      <div className="text-center">
-        <h3 className="font-bold text-lg mb-2">{t('game.currentPlayer')}</h3>
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-3xl">{currentPlayer.token}</span>
-          <div>
-            <p className="font-semibold">{t(`players.${currentPlayer.nameKey}`)}</p>
-            <p className="text-sm text-russia-gold font-bold">
-              {(currentPlayer.money / 1000).toFixed(0)}K₽
-            </p>
+    <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-blue/20">
+      <div className="p-4 border-b border-russia-blue/20">
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <span className="text-russia-blue">⚡</span>
+          {t('game.actions')}
+        </h3>
+      </div>
+      <div className="p-4 space-y-4">
+        <div className="text-center p-3 bg-gradient-to-r from-russia-blue/10 to-russia-red/10 rounded-lg border border-russia-gold/30">
+          <p className="text-xs text-muted-foreground mb-1">{t('game.currentPlayer')}</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-4xl drop-shadow">{currentPlayer.token}</span>
+            <div>
+              <p className="font-bold text-lg">{t(`players.${currentPlayer.nameKey}`)}</p>
+              <p className="text-sm text-russia-gold font-bold">
+                💰 {(currentPlayer.money / 1000).toFixed(0)}K₽
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {gameState.phase === 'landed' && currentCell.price && (
-        <Card className="p-3 bg-muted">
-          <h4 className="font-semibold mb-2">{t(`cells.${currentCell.nameKey}`)}</h4>
-          <div className="space-y-1 text-sm">
-            <p>💰 Цена: {(currentCell.price / 1000).toFixed(0)}K₽</p>
-            {currentCell.rent && (
-              <p>🏠 Аренда: {(currentCell.rent[0] / 1000).toFixed(0)}K₽</p>
-            )}
-            {currentCell.category && (
-              <p>📂 {currentCell.category}</p>
-            )}
-          </div>
-        </Card>
-      )}
-
-      <div className="space-y-2">
-        {canBuy && (
-          <Button
-            onClick={buyProperty}
-            className="w-full bg-gradient-gold hover:opacity-90"
-            size="lg"
-          >
-            {t('game.buy')} ({(currentCell.price! / 1000).toFixed(0)}K₽)
-          </Button>
+        {gameState.phase === 'landed' && currentCell.price && (
+          <Card className="p-4 bg-gradient-to-br from-muted/80 to-muted/50 border-2 border-russia-gold/30 shadow-sm">
+            <h4 className="font-bold mb-3 text-base flex items-center gap-2">
+              <span className="text-russia-gold">🏛️</span>
+              {t(`cells.${currentCell.nameKey}`)}
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between p-2 bg-card/50 rounded">
+                <span>💰 Цена:</span>
+                <span className="font-bold text-russia-gold">{(currentCell.price / 1000).toFixed(0)}K₽</span>
+              </div>
+              {currentCell.rent && (
+                <div className="flex justify-between p-2 bg-card/50 rounded">
+                  <span>🏠 Аренда:</span>
+                  <span className="font-bold">{(currentCell.rent[0] / 1000).toFixed(0)}K₽</span>
+                </div>
+              )}
+              {currentCell.category && (
+                <div className="flex justify-between p-2 bg-card/50 rounded">
+                  <span>📂 Категория:</span>
+                  <span className="font-semibold">{currentCell.category}</span>
+                </div>
+              )}
+            </div>
+          </Card>
         )}
 
-        {canPass && (
-          <Button
-            onClick={passProperty}
-            variant="outline"
-            className="w-full"
-          >
-            {t('game.pass')}
-          </Button>
-        )}
+        <div className="space-y-2">
+          {canBuy && (
+            <Button
+              onClick={buyProperty}
+              className="w-full h-14 text-lg font-bold bg-gradient-gold hover:opacity-90 shadow-strong transition-all hover:scale-105"
+              size="lg"
+            >
+              💎 {t('game.buy')} ({(currentCell.price! / 1000).toFixed(0)}K₽)
+            </Button>
+          )}
 
-        {gameState.phase === 'landed' && !currentCell.price && (
-          <Button
-            onClick={endTurn}
-            variant="secondary"
-            className="w-full"
-            size="lg"
-          >
-            {t('game.endTurn')}
-          </Button>
-        )}
-      </div>
+          {canPass && (
+            <Button
+              onClick={passProperty}
+              variant="outline"
+              className="w-full h-12 border-2 hover:border-russia-red hover:bg-russia-red/10"
+            >
+              ❌ {t('game.pass')}
+            </Button>
+          )}
 
-      <div className="text-xs text-center text-muted-foreground pt-2 border-t">
-        Фаза: {gameState.phase} | Раунд: {gameState.round}
+          {gameState.phase === 'landed' && !currentCell.price && (
+            <Button
+              onClick={endTurn}
+              className="w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105"
+              size="lg"
+            >
+              ➡️ {t('game.endTurn')}
+            </Button>
+          )}
+        </div>
+
+        <div className="text-xs text-center text-muted-foreground pt-3 border-t border-border/50 space-y-1">
+          <div>⚙️ Фаза: <span className="font-semibold">{gameState.phase}</span></div>
+          <div>🔄 Раунд: <span className="font-semibold">{gameState.round}</span></div>
+        </div>
       </div>
     </Card>
   );

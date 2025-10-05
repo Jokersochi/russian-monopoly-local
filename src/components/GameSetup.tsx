@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useGame } from '@/contexts/GameContext';
+import { cn } from '@/lib/utils';
 
 export const GameSetup = () => {
   const [playerCount, setPlayerCount] = useState(4);
@@ -10,23 +11,33 @@ export const GameSetup = () => {
   const { initGame } = useGame();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-board">
-      <Card className="w-full max-w-md shadow-strong">
-        <CardHeader className="text-center">
-          <CardTitle className="text-4xl font-bold bg-gradient-russian bg-clip-text text-transparent">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      <div className="absolute inset-0 bg-gradient-board opacity-20"></div>
+      <Card className="w-full max-w-md shadow-strong backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 relative z-10">
+        <CardHeader className="text-center space-y-2">
+          <CardTitle className="text-5xl font-bold bg-gradient-russian bg-clip-text text-transparent drop-shadow-lg">
             {t('game.title')}
           </CardTitle>
+          <p className="text-muted-foreground text-sm">
+            {locale === 'ru' ? 'Настольная экономическая игра' : 'Board Economic Game'}
+          </p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <label className="text-sm font-medium">{t('game.playerCount')}</label>
+            <label className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-blue">👥</span>
+              {t('game.playerCount')}
+            </label>
             <div className="grid grid-cols-5 gap-2">
               {[2, 3, 4, 5, 6].map((count) => (
                 <Button
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
-                  className="transition-all"
+                  className={cn(
+                    "transition-all h-12 text-lg font-bold",
+                    playerCount === count && "bg-gradient-russian shadow-strong scale-110"
+                  )}
                 >
                   {count}
                 </Button>
@@ -35,16 +46,27 @@ export const GameSetup = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium">{t('game.language')}</label>
+            <label className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-gold">🌍</span>
+              {t('game.language')}
+            </label>
             <div className="grid grid-cols-4 gap-2">
-              {['ru', 'en', 'de', 'es'].map((lang) => (
+              {[
+                { code: 'ru', flag: '🇷🇺' },
+                { code: 'en', flag: '🇬🇧' },
+                { code: 'de', flag: '🇩🇪' },
+                { code: 'es', flag: '🇪🇸' }
+              ].map(({ code, flag }) => (
                 <Button
-                  key={lang}
-                  variant={locale === lang ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(lang as any)}
-                  className="transition-all"
+                  key={code}
+                  variant={locale === code ? 'secondary' : 'outline'}
+                  onClick={() => setLocale(code as any)}
+                  className={cn(
+                    "transition-all h-12 text-lg",
+                    locale === code && "bg-russia-blue text-white shadow-strong scale-110"
+                  )}
                 >
-                  {lang.toUpperCase()}
+                  {flag}
                 </Button>
               ))}
             </div>
@@ -52,10 +74,10 @@ export const GameSetup = () => {
 
           <Button
             onClick={() => initGame(playerCount)}
-            className="w-full bg-gradient-russian hover:opacity-90 text-lg py-6"
+            className="w-full bg-gradient-russian hover:opacity-90 text-lg py-7 shadow-strong transition-all hover:scale-105 font-bold"
             size="lg"
           >
-            {t('game.start')}
+            ✨ {t('game.start')}
           </Button>
         </CardContent>
       </Card>
