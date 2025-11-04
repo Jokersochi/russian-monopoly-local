@@ -1,73 +1,38 @@
-# Welcome to your Lovable project
+# 🇷🇺 Russian Monopoly Local
 
-## Project info
+Этот репозиторий содержит локальную версию проекта "Русская Монополия", созданного с использованием **Vite**, **React**, **TypeScript**, **shadcn-ui** и **Tailwind CSS**.
 
-**URL**: https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5
+## 🚀 Улучшения в этом Pull Request
 
-## How can I edit this code?
+*   **Улучшена структура проекта:** Добавлены файлы `.gitignore`, `.nvmrc` и `.npmrc` для лучшей совместимости и управления зависимостями.
+*   **Очистка зависимостей:** Удалена неиспользуемая зависимость `lovable-tagger` из `package.json`.
+*   **Актуализация документации:** Обновлены инструкции в `README.md`.
 
-There are several ways of editing your application.
+## 🛠 Запуск проекта локально
 
-**Use Lovable**
+**Предварительные требования:**
+*   [Node.js](https://nodejs.org/en/) (рекомендуется LTS)
+*   [npm](https://www.npmjs.com/) (или другой менеджер пакетов, например, Bun, если вы его используете)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5) and start prompting.
+1.  **Клонируйте репозиторий:**
+    ```bash
+    git clone https://github.com/Jokersochi/russian-monopoly-local.git
+    cd russian-monopoly-local
+    ```
 
-Changes made via Lovable will be committed automatically to this repo.
+2.  **Установите зависимости:**
+    ```bash
+    npm install
+    # или bun install, если вы используете Bun
+    ```
 
-**Use your preferred IDE**
+3.  **Запустите приложение:**
+    ```bash
+    npm run dev
+    # или bun run dev
+    ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Приложение будет доступно по адресу `http://localhost:5173` (или другому порту, указанному в консоли).
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+**Оригинальный проект Lovable:** [https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5](https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5)
