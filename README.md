@@ -1,73 +1,187 @@
-# Welcome to your Lovable project
+# 🎲 Русская Монополия Online
 
-## Project info
+<div align="center">
+  
+  [![Deploy](https://img.shields.io/github/deployments/Jokersochi/russian-monopoly-local/production?label=deployment&logo=vercel)](https://monopoly-ru.vercel.app)
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  
+  **Мультиплеерная онлайн-игра Монополия с российскими городами и улицами**
+  
+</div>
 
-**URL**: https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5
+## ✨ Особенности
 
-## How can I edit this code?
+- 🎮 **Онлайн-Мультиплеер** - Играйте с друзьями в реальном времени
+- 🇺🇸 **Российская Тематика** - Москва, Петербург, Сочи и другие города
+- 📱 **Мобильный Френдли** - Играйте на любом устройстве
+- 💬 **Чат в Игре** - Общайтесь с игроками
+- 🏆 **Рейтинговая Система** - Соревнуйтесь с лучшими
+- 🎨 **Кастомизация** - Создавайте свои правила
+- 🔄 **Автосохранение** - Не потеряйте прогресс
+- 🎵 **Звуковые Эффекты** - Погружайтесь в атмосферу
 
-There are several ways of editing your application.
+## 🚀 Быстрый Старт
 
-**Use Lovable**
+### Локальная Разработка
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+git clone https://github.com/Jokersochi/russian-monopoly-local.git
+cd russian-monopoly-local
+pnpm install
+pnpm run dev
 ```
 
-**Edit a file directly in GitHub**
+Откройте `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Production Деплой
 
-**Use GitHub Codespaces**
+**Vercel:**
+```bash
+npx vercel --prod
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+**Docker:**
+```bash
+docker-compose up -d
+```
 
-## What technologies are used for this project?
+## 🎮 Как Играть
 
-This project is built with:
+1. **Создайте комнату** или присоединитесь к существующей
+2. **Пригласите друзей** через ссылку или код комнаты
+3. **Выберите фишку** и начинайте игру!
+4. **Покупайте улицы**, стройте дома и отели
+5. **Станьте монополистом!**
 
+## 💼 Монетизация
+
+### Free-to-Play с Premium
+
+**Бесплатно:**
+- Стандартная игра
+- 2-4 игрока
+- Базовые фишки
+- Реклама
+
+**Premium (299₽/мес):**
+- 🚫 Без рекламы
+- 👥 До 8 игроков
+- 🎨 Эксклюзивные фишки и доски
+- 🏆 Приоритет в рейтинге
+- 📊 Детальная статистика
+- 🎲 Кастомные правила
+
+### Внутриигровые Покупки
+- Новые фишки (49-199₽)
+- Тематические доски (99-299₽)
+- Спецэффекты и анимации (79₽)
+
+## 📈 Бизнес-Модель
+
+### Целевая Аудитория
+1. **Семьи с детьми** (40%)
+2. **Друзья 18-35 лет** (35%)
+3. **Ностальгирующие 35+** (25%)
+
+### Финансовый Прогноз
+
+| Месяц | DAU | Premium | Доход | Реклама | Всего |
+|--------|-----|---------|--------|----------|-------|
+| 1 | 500 | 10 | 3K₽ | 500₽ | 3.5K₽ |
+| 3 | 2000 | 50 | 15K₽ | 3K₽ | 18K₽ |
+| 6 | 5000 | 150 | 45K₽ | 10K₽ | 55K₽ |
+| 12 | 15000 | 500 | 150K₽ | 40K₽ | 190K₽ |
+
+**Годовой доход:** ~2M₽
+
+## 🛠 Технологии
+
+- React 18 + TypeScript
 - Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- TailwindCSS + shadcn/ui
+- WebSocket (для мультиплеера)
+- React Query
+- Zustand (состояние)
 
-## How can I deploy this project?
+## 🎯 Маркетинговая Стратегия
 
-Simply open [Lovable](https://lovable.dev/projects/a1df60ec-edff-4716-b9fb-d3ce2b184db5) and click on Share -> Publish.
+### 1. Virality Loop
+- Приглашения через ссылки
+- Бонусы за привлечение друзей
+- Шаринг результатов
 
-## Can I connect a custom domain to my Lovable project?
+### 2. SEO & ASO
+- "монополия онлайн"
+- "игра монополия бесплатно"
+- "русская монополия"
 
-Yes, you can!
+### 3. Социальные Сети
+- TikTok challenges
+- YouTube Let's Play
+- VK сообщества
+- Telegram бот
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 4. Партнерства
+- Стримеры
+- Семейные блогеры
+- Игровые порталы
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🚀 Roadmap
+
+### Фаза 1 - MVP (Текущая)
+- [x] Базовый геймплей
+- [x] Мультиплеер (2-4 игрока)
+- [x] Российская тематика
+- [x] Production ready
+
+### Фаза 2 - Монетизация (Месяц 1-2)
+- [ ] Premium подписка
+- [ ] Внутриигровые покупки
+- [ ] Интеграция платежей
+
+### Фаза 3 - Рост (Месяц 3-6)
+- [ ] Мобильное приложение (React Native)
+- [ ] Рейтинговая система
+- [ ] Турниры
+- [ ] Сезонные события
+
+### Фаза 4 - Масштабирование (Месяц 6-12)
+- [ ] Другие тематики (США, Европа)
+- [ ] 3D визуализация
+- [ ] AI оппоненты
+- [ ] Брендированные доски
+
+## 📊 Key Metrics
+
+**Текущие:**
+- DAU: 0 (пре-ланч)
+- MAU: 0
+- Avg Session: Target 25 min
+- Retention D1: Target 40%
+- Retention D7: Target 20%
+
+**Цели на Месяц 3:**
+- DAU: 2,000
+- MAU: 10,000
+- Premium: 50 (конверсия 0.5%)
+
+## 🔗 Ссылки
+
+- **Live Demo:** https://monopoly-ru.vercel.app (скоро)
+- **Discord:** https://discord.gg/monopoly-ru
+- **VK Группа:** https://vk.com/monopoly_ru
+- **Support:** support@monopoly-ru.com
+
+## 🤝 Вклад
+
+Приветствуются! Откройте issue или PR.
+
+## 📄 Лицензия
+
+MIT License
+
+---
+
+<div align="center">
+  Made with ❤️ in Sochi | Play with 🎲 Friends
+</div>

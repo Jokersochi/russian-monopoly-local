@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  monopoly:
+    build: .
+    ports:
+      - "3002:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
