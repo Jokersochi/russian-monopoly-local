@@ -1,0 +1,3 @@
+## 2024-05-18 - [Accessible Button Groups for Emojis]
+**Learning:** Raw emojis acting as UI elements (like flags for language selection) are confusing for screen readers as they read the literal emoji description instead of the intended meaning (e.g., "flag for Russia" instead of "Russian"). Furthermore, a group of buttons acting like radio inputs (mutually exclusive choices) needs structural context.
+**Action:** When creating custom radio-like button groups using emojis or icons: 1. Wrap the buttons in a `role="group"` container labeled by the group title. 2. Use `aria-pressed` on the buttons to convey state. 3. Hide the raw emoji from assistive tech using `aria-hidden="true"` and apply the intended meaning using `aria-label` and `title` on the button itself.
