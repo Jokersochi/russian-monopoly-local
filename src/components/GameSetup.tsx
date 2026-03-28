@@ -24,16 +24,18 @@ export const GameSetup = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-blue">👥</span>
+            <label id="player-count-label" className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-blue" aria-hidden="true">👥</span>
               {t('game.playerCount')}
             </label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-2" role="group" aria-labelledby="player-count-label">
               {[2, 3, 4, 5, 6].map((count) => (
                 <Button
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-pressed={playerCount === count}
+                  aria-label={`${count} ${t('game.players') || 'players'}`}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -46,27 +48,31 @@ export const GameSetup = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-gold">🌍</span>
+            <label id="language-label" className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-gold" aria-hidden="true">🌍</span>
               {t('game.language')}
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { code: 'ru', flag: '🇷🇺' },
-                { code: 'en', flag: '🇬🇧' },
-                { code: 'de', flag: '🇩🇪' },
-                { code: 'es', flag: '🇪🇸' }
-              ].map(({ code, flag }) => (
+            <div className="grid grid-cols-4 gap-2" role="group" aria-labelledby="language-label">
+              {(
+                [
+                  { code: 'ru', flag: '🇷🇺', label: 'Русский' },
+                  { code: 'en', flag: '🇬🇧', label: 'English' },
+                  { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
+                  { code: 'es', flag: '🇪🇸', label: 'Español' }
+                ] as const
+              ).map(({ code, flag, label }) => (
                 <Button
                   key={code}
                   variant={locale === code ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(code as any)}
+                  onClick={() => setLocale(code)}
+                  aria-pressed={locale === code}
+                  aria-label={label}
                   className={cn(
                     "transition-all h-12 text-lg",
                     locale === code && "bg-russia-blue text-white shadow-strong scale-110"
                   )}
                 >
-                  {flag}
+                  <span aria-hidden="true">{flag}</span>
                 </Button>
               ))}
             </div>
