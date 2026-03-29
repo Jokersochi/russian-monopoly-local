@@ -1,0 +1,3 @@
+## 2024-05-18 - Accessibility for Standalone Button Groups
+**Learning:** In this project, there is a pattern of using grid layout buttons for mutually exclusive selections (like Player Count or Language) instead of native radio inputs or standard toggle group components. Screen readers don't natively understand these are related mutually exclusive options.
+**Action:** When encountering a custom button group used for selection, always wrap the buttons in a container with `role="group"` and an `aria-labelledby` referencing a clear label ID, and use `aria-pressed={condition}` on the individual buttons to announce their selected state.
