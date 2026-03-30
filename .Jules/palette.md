@@ -1,0 +1,3 @@
+## 2024-12-05 - Accessibility for Mutually Exclusive Button Groups
+**Learning:** This app frequently uses custom button layouts (e.g., in `GameSetup.tsx`) acting as mutually exclusive selections (radio buttons/toggles) without using native HTML elements. This requires manual implementation of `role="group"`, `aria-labelledby`, and `aria-pressed` to communicate the relationships and active states to screen readers.
+**Action:** Whenever introducing or modifying custom button-based selection groups in this codebase, immediately wrap them in a `role="group"` with an `aria-labelledby` pointing to the section label, and ensure individual buttons have accurate `aria-pressed` states.
