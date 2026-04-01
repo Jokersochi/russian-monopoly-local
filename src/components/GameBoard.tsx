@@ -1,32 +1,104 @@
+import React, { useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
+import { Cell, Player } from '@/types/game';
+
+interface BoardCellProps {
+  cell: Cell;
+  owner?: Player;
+  playersHere: Player[];
+  t: (key: string, params?: Record<string, string | number>) => string;
+}
+
+/**
+ * ⚡ Bolt: Memoized individual board cell to prevent unnecessary re-renders.
+ * Only re-renders if the cell's owner or players on it change.
+ */
+const BoardCell = React.memo(({ cell, owner, playersHere, t }: BoardCellProps) => {
+  // Memoize positioning style as it's constant for each cell position
+  const cellStyle = useMemo(() => {
+    const size = 80;
+    const gap = 2;
+    return {
+      position: 'absolute' as const,
+      left: `${cell.position.x * (size + gap)}px`,
+      top: `${cell.position.y * (size + gap)}px`,
+      width: `${size}px`,
+      height: `${size}px`,
+      ...(cell.color && { borderTopColor: cell.color }),
+    };
+  }, [cell.position.x, cell.position.y, cell.color]);
+
+  return (
+    <div
+      style={cellStyle}
+      className={cn(
+        'border-2 rounded-lg bg-card/95 backdrop-blur-sm flex flex-col items-center justify-center p-1.5 text-center transition-all hover:scale-110 hover:shadow-strong hover:z-10',
+        owner && 'ring-4 ring-russia-gold shadow-strong',
+        !owner && 'border-foreground/20 hover:border-russia-blue/50',
+        cell.color && 'border-t-[10px]'
+      )}
+    >
+      <div className="text-[10px] font-bold leading-tight overflow-hidden">
+        {t(`cells.${cell.nameKey}`)}
+      </div>
+      {cell.price && (
+        <div className="text-[9px] text-russia-gold font-bold mt-1">
+          💰 {(cell.price / 1000).toFixed(0)}K
+        </div>
+      )}
+      {owner && (
+        <div className="text-[8px] mt-0.5 text-russia-gold">
+          👤 {owner.token}
+        </div>
+      )}
+      {playersHere.length > 0 && (
+        <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30">
+          {playersHere.map((player) => (
+            <span key={player.id} className="text-base drop-shadow">
+              {player.token}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
 
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
 
+  /**
+   * ⚡ Bolt: Pre-calculate owners and player positions to avoid O(N^2) lookups during render.
+   * This reduces work from O(Cells * Players) to O(Cells).
+   */
+  const ownersMap = useMemo(() => {
+    const map = new Map<number, Player>();
+    if (!gameState) return map;
+
+    gameState.players.forEach(player => {
+      player.properties.forEach(propId => {
+        map.set(propId, player);
+      });
+    });
+    return map;
+  }, [gameState]);
+
+  const playersOnCellsMap = useMemo(() => {
+    const map = new Map<number, Player[]>();
+    if (!gameState) return map;
+
+    gameState.players.forEach(player => {
+      if (player.bankrupt) return;
+      const current = map.get(player.position) || [];
+      map.set(player.position, [...current, player]);
+    });
+    return map;
+  }, [gameState]);
+
   if (!gameState) return null;
-
-  const getCellStyle = (position: { x: number; y: number }) => {
-    const size = 80;
-    const gap = 2;
-    return {
-      position: 'absolute' as const,
-      left: `${position.x * (size + gap)}px`,
-      top: `${position.y * (size + gap)}px`,
-      width: `${size}px`,
-      height: `${size}px`,
-    };
-  };
-
-  const isOwnedBy = (cellId: number) => {
-    return gameState.players.find(p => p.properties.includes(cellId));
-  };
-
-  const getPlayersOnCell = (cellId: number) => {
-    return gameState.players.filter(p => p.position === cellId && !p.bankrupt);
-  };
 
   return (
     <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
@@ -37,51 +109,15 @@ export const GameBoard = () => {
       <div className="absolute bottom-2 right-2 w-12 h-12 border-b-4 border-r-4 border-russia-gold/80 rounded-br-xl"></div>
       
       <div className="relative" style={{ width: '902px', height: '902px' }}>
-        {cells.map((cell) => {
-          const owner = isOwnedBy(cell.id);
-          const playersHere = getPlayersOnCell(cell.id);
-
-          const cellStyle = {
-            ...getCellStyle(cell.position),
-            ...(cell.color && { borderTopColor: cell.color }),
-          };
-
-          return (
-            <div
-              key={cell.id}
-              style={cellStyle}
-              className={cn(
-                'border-2 rounded-lg bg-card/95 backdrop-blur-sm flex flex-col items-center justify-center p-1.5 text-center transition-all hover:scale-110 hover:shadow-strong hover:z-10',
-                owner && 'ring-4 ring-russia-gold shadow-strong',
-                !owner && 'border-foreground/20 hover:border-russia-blue/50',
-                cell.color && 'border-t-[10px]'
-              )}
-            >
-              <div className="text-[10px] font-bold leading-tight overflow-hidden">
-                {t(`cells.${cell.nameKey}`)}
-              </div>
-              {cell.price && (
-                <div className="text-[9px] text-russia-gold font-bold mt-1">
-                  💰 {(cell.price / 1000).toFixed(0)}K
-                </div>
-              )}
-              {owner && (
-                <div className="text-[8px] mt-0.5 text-russia-gold">
-                  👤 {owner.token}
-                </div>
-              )}
-              {playersHere.length > 0 && (
-                <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30">
-                  {playersHere.map((player) => (
-                    <span key={player.id} className="text-base drop-shadow">
-                      {player.token}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {cells.map((cell) => (
+          <BoardCell
+            key={cell.id}
+            cell={cell}
+            owner={ownersMap.get(cell.id)}
+            playersHere={playersOnCellsMap.get(cell.id) || []}
+            t={t}
+          />
+        ))}
 
         {/* Center area with game info */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md rounded-2xl shadow-board border-4 border-russia-gold/30 flex items-center justify-center">
