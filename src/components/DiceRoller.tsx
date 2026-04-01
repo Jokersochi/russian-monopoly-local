@@ -18,7 +18,7 @@ export const DiceRoller = () => {
     setTimeout(() => setRolling(false), 600);
   };
 
-  const canRoll = gameState.phase === 'rolling';
+  const { canRoll } = useGame();
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
@@ -62,8 +62,9 @@ export const DiceRoller = () => {
             'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
             rolling && 'pointer-events-none animate-pulse'
           )}
+          title={canRoll ? t('game.shortcutHint', { key: 'Space', action: t('game.rollDice').toLowerCase() }) : ''}
         >
-          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')} [Space]`}
         </Button>
       </div>
     </Card>

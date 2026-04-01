@@ -11,6 +11,10 @@ interface GameContextType {
   passProperty: () => void;
   endTurn: () => void;
   cells: Cell[];
+  canRoll: boolean;
+  canBuy: boolean;
+  canPass: boolean;
+  canEndTurn: boolean;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -185,6 +189,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [gameState]);
 
+  const currentPlayer = gameState?.players[gameState.currentPlayer];
+  const currentCell = gameState ? BOARD_CELLS[currentPlayer!.position] : null;
+
+  const canRoll = gameState?.phase === 'rolling';
+  const canBuy = !!(gameState?.phase === 'landed' &&
+                 currentCell?.price &&
+                 !gameState.players.some(p => p.properties.includes(currentCell.id)) &&
+                 currentPlayer!.money >= currentCell.price);
+  const canPass = !!(gameState?.phase === 'landed' && currentCell?.price);
+  const canEndTurn = !!(gameState?.phase === 'landed' && currentCell && !currentCell.price);
+
   return (
     <GameContext.Provider
       value={{
@@ -195,6 +210,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         passProperty,
         endTurn,
         cells: BOARD_CELLS,
+        canRoll,
+        canBuy,
+        canPass,
+        canEndTurn,
       }}
     >
       {children}

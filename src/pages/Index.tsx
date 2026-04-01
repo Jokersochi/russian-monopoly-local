@@ -6,9 +6,11 @@ import { PlayerPanel } from '@/components/PlayerPanel';
 import { DiceRoller } from '@/components/DiceRoller';
 import { ActionPanel } from '@/components/ActionPanel';
 import { GameLog } from '@/components/GameLog';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 const GameContent = () => {
   const { gameState } = useGame();
+  useKeyboardShortcuts();
 
   if (!gameState) {
     return <GameSetup />;

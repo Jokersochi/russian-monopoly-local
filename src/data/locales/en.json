@@ -15,6 +15,7 @@
     "gameLog": "Game Log",
     "settings": "Settings",
     "language": "Language",
+    "shortcutHint": "Press {{key}} to {{action}}",
     "playerCount": "Number of Players",
     "startMoney": "Starting Money",
     "maxRounds": "Max Rounds",

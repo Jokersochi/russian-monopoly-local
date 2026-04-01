@@ -15,6 +15,7 @@
     "gameLog": "Журнал игры",
     "settings": "Настройки",
     "language": "Язык",
+    "shortcutHint": "Нажмите {{key}}, чтобы {{action}}",
     "playerCount": "Количество игроков",
     "startMoney": "Стартовый капитал",
     "maxRounds": "Максимум раундов",
