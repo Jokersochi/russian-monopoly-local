@@ -1,0 +1,3 @@
+## 2025-04-02 - Grid Layout Button Groups Accessibility
+**Learning:** Found a common UX pattern where standard buttons in a CSS grid are used as mutually exclusive selection inputs (like radio buttons). These "standalone grid layout buttons" are inaccessible to screen readers without explicit ARIA associations linking the group to its label and tracking state.
+**Action:** When using grid-based button groups for selection, always assign an `id` to the `<label>`, wrap the buttons in a container with `role="group"` and `aria-labelledby="[label-id]"`, and apply `aria-pressed={[condition]}` to the individual buttons to announce their active state.
