@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { Card } from '@/components/ui/card';
@@ -5,8 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const PlayerPanel = () => {
-  const { gameState, cells } = useGame();
+  const { gameState } = useGame();
   const { t } = useLocale();
+
+  // Optimization: Pre-calculate property counts for each player to avoid O(N*M) filtering in render loop
+  const propertyCounts = useMemo(() => {
+    const map = new Map<number, number>();
+    if (!gameState) return map;
+
+    gameState.players.forEach(player => {
+      map.set(player.id, player.properties.length);
+    });
+    return map;
+  }, [gameState]);
 
   if (!gameState) return null;
 
@@ -21,7 +33,7 @@ export const PlayerPanel = () => {
       <div className="p-3 space-y-2">
         {gameState.players.map((player, idx) => {
           const isCurrentPlayer = idx === gameState.currentPlayer;
-          const ownedCells = cells.filter(c => player.properties.includes(c.id));
+          const propertyCount = propertyCounts.get(player.id) || 0;
 
           return (
             <Card
@@ -59,7 +71,7 @@ export const PlayerPanel = () => {
                       💰 {(player.money / 1000).toFixed(0)}K₽
                     </span>
                     <span className="text-muted-foreground">
-                      🏠 {ownedCells.length} {t('game.properties')}
+                      🏠 {propertyCount} {t('game.properties')}
                     </span>
                   </div>
                   {player.hasResidence && (

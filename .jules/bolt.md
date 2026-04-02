@@ -1,0 +1,3 @@
+## 2026-04-02 - Memoized Lookups for Board State
+**Learning:** In game logic components like `GameBoard` and `PlayerPanel`, lookups for property ownership or player positions often result in O(N*M) complexity (where N is the number of cells and M is the number of players) when performed directly inside a render loop's `.map()` or `.filter()`.
+**Action:** Always pre-calculate these relationships into constant-time lookups (using `Map` or objects) within `useMemo` before the render loop. This ensures that even as the number of players or board size grows, rendering remains efficient and doesn't scale quadratically with state updates.
