@@ -29,7 +29,15 @@ export const DiceRoller = () => {
         </h3>
       </div>
       <div className="p-6 space-y-4">
-        <div className="flex gap-4 justify-center">
+        <div
+          className="flex gap-4 justify-center"
+          aria-label={gameState.lastRoll ? t('game.diceRollResult', {
+            d1: gameState.lastRoll[0],
+            d2: gameState.lastRoll[1],
+            sum: gameState.lastRoll[0] + gameState.lastRoll[1]
+          }) : undefined}
+          role="img"
+        >
           {gameState.lastRoll ? (
             <>
               <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
@@ -44,7 +52,10 @@ export const DiceRoller = () => {
         </div>
 
         {gameState.lastRoll && (
-          <div className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm">
+          <div
+            className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm"
+            aria-hidden="true"
+          >
             <p className="text-sm text-muted-foreground">
               Сумма: <span className="font-bold text-3xl text-russia-gold ml-2">{gameState.lastRoll[0] + gameState.lastRoll[1]}</span>
             </p>
@@ -75,6 +86,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
 
   return (
     <div
+      aria-hidden="true"
       className={cn(
         'w-20 h-20 bg-russia-white border-4 border-foreground rounded-xl shadow-lg flex items-center justify-center transition-transform',
         rolling && 'dice-rolling'

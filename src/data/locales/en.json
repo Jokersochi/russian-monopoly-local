@@ -19,6 +19,8 @@
     "startMoney": "Starting Money",
     "maxRounds": "Max Rounds",
     "start": "Start Game",
+    "playerCountValue": "{{count}} players",
+    "diceRollResult": "Dice roll: {{d1}} and {{d2}}. Total: {{sum}}",
     "currentPlayer": "Current Player",
     "yourTurn": "Your turn!",
     "bankrupt": "Bankrupt",

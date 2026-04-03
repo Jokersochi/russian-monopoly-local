@@ -19,6 +19,8 @@
     "startMoney": "Стартовый капитал",
     "maxRounds": "Максимум раундов",
     "start": "Начать игру",
+    "playerCountValue": "{{count}} игроков",
+    "diceRollResult": "Результат броска: {{d1}} и {{d2}}. Сумма: {{sum}}",
     "currentPlayer": "Текущий игрок",
     "yourTurn": "Ваш ход!",
     "bankrupt": "Банкрот",
