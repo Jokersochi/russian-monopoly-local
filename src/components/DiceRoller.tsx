@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -10,15 +10,28 @@ export const DiceRoller = () => {
   const { t } = useLocale();
   const [rolling, setRolling] = useState(false);
 
-  if (!gameState) return null;
+  const canRoll = gameState?.phase === 'rolling';
 
-  const handleRoll = () => {
+  const handleRoll = useCallback(() => {
+    if (!canRoll || rolling) return;
     setRolling(true);
     rollDice();
     setTimeout(() => setRolling(false), 600);
-  };
+  }, [canRoll, rolling, rollDice]);
 
-  const canRoll = gameState.phase === 'rolling';
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.code === 'Space' || e.code === 'Enter') && canRoll && !rolling) {
+        e.preventDefault();
+        handleRoll();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canRoll, rolling, handleRoll]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
@@ -29,7 +42,13 @@ export const DiceRoller = () => {
         </h3>
       </div>
       <div className="p-6 space-y-4">
-        <div className="flex gap-4 justify-center">
+        <div
+          className="flex gap-4 justify-center"
+          role="img"
+          aria-label={gameState.lastRoll
+            ? `Dice roll: ${gameState.lastRoll[0]} and ${gameState.lastRoll[1]}. Total: ${gameState.lastRoll[0] + gameState.lastRoll[1]}`
+            : 'Dice ready to roll'}
+        >
           {gameState.lastRoll ? (
             <>
               <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
@@ -58,6 +77,7 @@ export const DiceRoller = () => {
           onClick={handleRoll}
           disabled={!canRoll || rolling}
           size="lg"
+          title={t('game.shortcutHint', { key: 'Space/Enter' })}
           className={cn(
             'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
             rolling && 'pointer-events-none animate-pulse'
@@ -75,6 +95,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
 
   return (
     <div
+      aria-hidden="true"
       className={cn(
         'w-20 h-20 bg-russia-white border-4 border-foreground rounded-xl shadow-lg flex items-center justify-center transition-transform',
         rolling && 'dice-rolling'

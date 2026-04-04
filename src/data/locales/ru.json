@@ -23,7 +23,9 @@
     "yourTurn": "Ваш ход!",
     "bankrupt": "Банкрот",
     "winner": "Победитель",
-    "gameOver": "Игра окончена"
+    "gameOver": "Игра окончена",
+    "shortcutHint": "Клавиша: {{key}}",
+    "actions": "Действия"
   },
   "cells": {
     "start": "Старт",
@@ -102,6 +104,7 @@
     "playerBankrupt": "{{player}} обанкротился!",
     "gameWon": "{{player}} победил с капиталом {{money}}₽!",
     "passedStart": "{{player}} прошёл Старт и получил 200000₽",
-    "drewCard": "{{player}} вытянул карту: {{card}}"
+    "drewCard": "{{player}} вытянул карту: {{card}}",
+    "empty": "Журнал событий пуст"
   }
 }

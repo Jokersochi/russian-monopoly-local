@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -7,16 +8,36 @@ export const ActionPanel = () => {
   const { gameState, buyProperty, passProperty, endTurn, cells } = useGame();
   const { t } = useLocale();
 
-  if (!gameState) return null;
+  const currentPlayer = gameState?.players[gameState.currentPlayer];
+  const currentCell = currentPlayer ? cells[currentPlayer.position] : null;
 
-  const currentPlayer = gameState.players[gameState.currentPlayer];
-  const currentCell = cells[currentPlayer.position];
-  const canBuy = gameState.phase === 'landed' && 
-                 currentCell.price && 
+  const canBuy = gameState?.phase === 'landed' &&
+                 currentCell?.price &&
                  !gameState.players.some(p => p.properties.includes(currentCell.id)) &&
-                 currentPlayer.money >= (currentCell.price || 0);
+                 currentPlayer && currentPlayer.money >= (currentCell.price || 0);
 
-  const canPass = gameState.phase === 'landed' && currentCell.price;
+  const canPass = gameState?.phase === 'landed' && currentCell?.price;
+  const canEndTurn = gameState?.phase === 'landed' && !currentCell?.price;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (canBuy && e.code === 'KeyB') {
+        e.preventDefault();
+        buyProperty();
+      } else if (canPass && e.code === 'KeyP') {
+        e.preventDefault();
+        passProperty();
+      } else if (canEndTurn && (e.code === 'Space' || e.code === 'Enter')) {
+        e.preventDefault();
+        endTurn();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canBuy, canPass, canEndTurn, buyProperty, passProperty, endTurn]);
+
+  if (!gameState || !currentPlayer || !currentCell) return null;
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-blue/20">
@@ -73,6 +94,7 @@ export const ActionPanel = () => {
               onClick={buyProperty}
               className="w-full h-14 text-lg font-bold bg-gradient-gold hover:opacity-90 shadow-strong transition-all hover:scale-105"
               size="lg"
+              title={t('game.shortcutHint', { key: 'B' })}
             >
               💎 {t('game.buy')} ({(currentCell.price! / 1000).toFixed(0)}K₽)
             </Button>
@@ -83,16 +105,18 @@ export const ActionPanel = () => {
               onClick={passProperty}
               variant="outline"
               className="w-full h-12 border-2 hover:border-russia-red hover:bg-russia-red/10"
+              title={t('game.shortcutHint', { key: 'P' })}
             >
               ❌ {t('game.pass')}
             </Button>
           )}
 
-          {gameState.phase === 'landed' && !currentCell.price && (
+          {canEndTurn && (
             <Button
               onClick={endTurn}
               className="w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105"
               size="lg"
+              title={t('game.shortcutHint', { key: 'Space/Enter' })}
             >
               ➡️ {t('game.endTurn')}
             </Button>
