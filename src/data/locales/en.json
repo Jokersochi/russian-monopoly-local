@@ -23,7 +23,8 @@
     "yourTurn": "Your turn!",
     "bankrupt": "Bankrupt",
     "winner": "Winner",
-    "gameOver": "Game Over"
+    "gameOver": "Game Over",
+    "shortcutHint": "[{{key}}]"
   },
   "cells": {
     "start": "Start",
@@ -102,6 +103,7 @@
     "playerBankrupt": "{{player}} went bankrupt!",
     "gameWon": "{{player}} won with {{money}}₽!",
     "passedStart": "{{player}} passed Start and collected 200000₽",
-    "drewCard": "{{player}} drew card: {{card}}"
+    "drewCard": "{{player}} drew card: {{card}}",
+    "empty": "Event log is empty"
   }
 }

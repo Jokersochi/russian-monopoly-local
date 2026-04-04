@@ -1,0 +1,3 @@
+## 2025-05-14 - Keyboard Shortcut Discoverability and Localization
+**Learning:** Adding keyboard shortcuts significantly improves the "power user" experience in turn-based games, but they must be discoverable. Using a consistent `game.shortcutHint` localized string (e.g., `[{{key}}]`) allows for a clean, non-intrusive way to show these shortcuts on hover, maintaining UI cleanliness for casual players.
+**Action:** When adding keyboard shortcuts to interactive elements, always include a discoverable hint (like a hover tooltip or a small label) and use a centralized localization key for the hint format to ensure consistency across the app.

@@ -23,7 +23,8 @@
     "yourTurn": "¡Tu turno!",
     "bankrupt": "En bancarrota",
     "winner": "Ganador",
-    "gameOver": "Juego Terminado"
+    "gameOver": "Juego Terminado",
+    "shortcutHint": "[{{key}}]"
   },
   "cells": {
     "start": "Inicio",
@@ -102,6 +103,7 @@
     "playerBankrupt": "¡{{player}} se declaró en bancarrota!",
     "gameWon": "¡{{player}} ganó con {{money}}₽!",
     "passedStart": "{{player}} pasó por Inicio y cobró 200000₽",
-    "drewCard": "{{player}} sacó carta: {{card}}"
+    "drewCard": "{{player}} sacó carta: {{card}}",
+    "empty": "El registro de eventos está vacío"
   }
 }

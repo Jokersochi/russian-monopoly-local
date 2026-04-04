@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -7,16 +8,35 @@ export const ActionPanel = () => {
   const { gameState, buyProperty, passProperty, endTurn, cells } = useGame();
   const { t } = useLocale();
 
-  if (!gameState) return null;
-
-  const currentPlayer = gameState.players[gameState.currentPlayer];
-  const currentCell = cells[currentPlayer.position];
-  const canBuy = gameState.phase === 'landed' && 
-                 currentCell.price && 
+  const currentPlayer = gameState?.players[gameState.currentPlayer];
+  const currentCell = currentPlayer ? cells[currentPlayer.position] : null;
+  const canBuy = gameState?.phase === 'landed' &&
+                 currentCell?.price &&
                  !gameState.players.some(p => p.properties.includes(currentCell.id)) &&
                  currentPlayer.money >= (currentCell.price || 0);
 
-  const canPass = gameState.phase === 'landed' && currentCell.price;
+  const canPass = gameState?.phase === 'landed' && currentCell?.price;
+  const canEndTurn = gameState?.phase === 'landed' && !currentCell?.price;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'b' && canBuy) {
+        e.preventDefault();
+        buyProperty();
+      } else if (e.key.toLowerCase() === 'p' && canPass) {
+        e.preventDefault();
+        passProperty();
+      } else if ((e.code === 'Space' || e.code === 'Enter') && canEndTurn) {
+        e.preventDefault();
+        endTurn();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canBuy, canPass, canEndTurn, buyProperty, passProperty, endTurn]);
+
+  if (!gameState || !currentPlayer || !currentCell) return null;
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-blue/20">
@@ -71,10 +91,13 @@ export const ActionPanel = () => {
           {canBuy && (
             <Button
               onClick={buyProperty}
-              className="w-full h-14 text-lg font-bold bg-gradient-gold hover:opacity-90 shadow-strong transition-all hover:scale-105"
+              className="w-full h-14 text-lg font-bold bg-gradient-gold hover:opacity-90 shadow-strong transition-all hover:scale-105 relative group"
               size="lg"
             >
               💎 {t('game.buy')} ({(currentCell.price! / 1000).toFixed(0)}K₽)
+              <span className="absolute right-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 px-1.5 py-0.5 rounded font-mono">
+                {t('game.shortcutHint', { key: 'B' })}
+              </span>
             </Button>
           )}
 
@@ -82,19 +105,25 @@ export const ActionPanel = () => {
             <Button
               onClick={passProperty}
               variant="outline"
-              className="w-full h-12 border-2 hover:border-russia-red hover:bg-russia-red/10"
+              className="w-full h-12 border-2 hover:border-russia-red hover:bg-russia-red/10 relative group"
             >
               ❌ {t('game.pass')}
+              <span className="absolute right-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 px-1.5 py-0.5 rounded font-mono">
+                {t('game.shortcutHint', { key: 'P' })}
+              </span>
             </Button>
           )}
 
-          {gameState.phase === 'landed' && !currentCell.price && (
+          {canEndTurn && (
             <Button
               onClick={endTurn}
-              className="w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105"
+              className="w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105 relative group"
               size="lg"
             >
               ➡️ {t('game.endTurn')}
+              <span className="absolute right-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 px-1.5 py-0.5 rounded font-mono">
+                {t('game.shortcutHint', { key: 'Space' })}
+              </span>
             </Button>
           )}
         </div>

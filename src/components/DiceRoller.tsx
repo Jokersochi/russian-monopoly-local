@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -10,15 +10,28 @@ export const DiceRoller = () => {
   const { t } = useLocale();
   const [rolling, setRolling] = useState(false);
 
-  if (!gameState) return null;
+  const canRoll = gameState?.phase === 'rolling';
 
-  const handleRoll = () => {
+  const handleRoll = useCallback(() => {
+    if (!canRoll || rolling) return;
     setRolling(true);
     rollDice();
     setTimeout(() => setRolling(false), 600);
-  };
+  }, [canRoll, rolling, rollDice]);
 
-  const canRoll = gameState.phase === 'rolling';
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.code === 'Space' || e.code === 'Enter') && canRoll && !rolling) {
+        e.preventDefault();
+        handleRoll();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canRoll, rolling, handleRoll]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
@@ -59,11 +72,16 @@ export const DiceRoller = () => {
           disabled={!canRoll || rolling}
           size="lg"
           className={cn(
-            'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
+            'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105 relative group',
             rolling && 'pointer-events-none animate-pulse'
           )}
         >
           {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+          {canRoll && !rolling && (
+            <span className="absolute right-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 px-1.5 py-0.5 rounded font-mono">
+              {t('game.shortcutHint', { key: 'Space' })}
+            </span>
+          )}
         </Button>
       </div>
     </Card>
