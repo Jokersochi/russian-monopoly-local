@@ -1,10 +1,39 @@
+import { useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
+import { Player } from '@/types/game';
 
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
+
+  // Performance Optimization: Pre-calculate property ownership and player positions
+  // to avoid O(N*M) lookups inside the render loop.
+  // Reduces complexity from O(Cells * Players) to O(Cells + Players).
+  const ownershipMap = useMemo(() => {
+    const map = new Map<number, Player>();
+    if (!gameState) return map;
+
+    gameState.players.forEach(player => {
+      player.properties.forEach(propId => {
+        map.set(propId, player);
+      });
+    });
+    return map;
+  }, [gameState?.players]);
+
+  const playerPositionMap = useMemo(() => {
+    const map = new Map<number, Player[]>();
+    if (!gameState) return map;
+
+    gameState.players.forEach(player => {
+      if (player.bankrupt) return;
+      const current = map.get(player.position) || [];
+      map.set(player.position, [...current, player]);
+    });
+    return map;
+  }, [gameState?.players]);
 
   if (!gameState) return null;
 
@@ -20,14 +49,6 @@ export const GameBoard = () => {
     };
   };
 
-  const isOwnedBy = (cellId: number) => {
-    return gameState.players.find(p => p.properties.includes(cellId));
-  };
-
-  const getPlayersOnCell = (cellId: number) => {
-    return gameState.players.filter(p => p.position === cellId && !p.bankrupt);
-  };
-
   return (
     <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
       {/* Decorative corners */}
@@ -38,8 +59,8 @@ export const GameBoard = () => {
       
       <div className="relative" style={{ width: '902px', height: '902px' }}>
         {cells.map((cell) => {
-          const owner = isOwnedBy(cell.id);
-          const playersHere = getPlayersOnCell(cell.id);
+          const owner = ownershipMap.get(cell.id);
+          const playersHere = playerPositionMap.get(cell.id) || [];
 
           const cellStyle = {
             ...getCellStyle(cell.position),
