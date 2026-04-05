@@ -1,0 +1,3 @@
+## 2024-05-18 - Grid Button Group Accessibility
+**Learning:** In the GameSetup component, standalone grid layout buttons were used for mutually exclusive selections (Player Count, Language) without native radio/toggle components. Screen readers would read these as isolated buttons, causing confusion about their relationship and current selection state.
+**Action:** When implementing custom button groups for mutually exclusive choices, always wrap the group in an element with `role="group"` and `aria-labelledby` pointing to the section label. Add `aria-pressed={selectedValue === value}` to individual buttons to indicate active state, and apply `aria-label` to buttons containing only visual content (like flags) while hiding decorative icons with `aria-hidden="true"`.
