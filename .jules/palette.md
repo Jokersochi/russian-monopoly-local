@@ -1,0 +1,3 @@
+## 2025-04-06 - Improve accessibility of button grids
+**Learning:** Mutually exclusive standalone buttons arranged in grid layouts (instead of standard radio buttons) present an accessibility challenge as their relationship is not inherently clear to screen readers.
+**Action:** When implementing standalone grid layout buttons for mutually exclusive selections (like Language or Player Count), always wrap the button group with `role="group"` and `aria-labelledby`, and apply `aria-pressed` to the individual buttons to provide proper context and state information to assistive technologies.
