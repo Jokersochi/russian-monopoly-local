@@ -29,7 +29,21 @@ export const DiceRoller = () => {
         </h3>
       </div>
       <div className="p-6 space-y-4">
-        <div className="flex gap-4 justify-center">
+        <div
+          className="flex gap-4 justify-center"
+          role="img"
+          aria-label={
+            rolling
+              ? t('game.rolling')
+              : gameState.lastRoll
+                ? t('game.rollResult', {
+                    dice1: gameState.lastRoll[0],
+                    dice2: gameState.lastRoll[1],
+                    total: gameState.lastRoll[0] + gameState.lastRoll[1]
+                  })
+                : t('game.diceWaiting')
+          }
+        >
           {gameState.lastRoll ? (
             <>
               <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
@@ -44,7 +58,7 @@ export const DiceRoller = () => {
         </div>
 
         {gameState.lastRoll && (
-          <div className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm">
+          <div aria-hidden="true" className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm">
             <p className="text-sm text-muted-foreground">
               Сумма: <span className="font-bold text-3xl text-russia-gold ml-2">{gameState.lastRoll[0] + gameState.lastRoll[1]}</span>
             </p>
@@ -63,7 +77,7 @@ export const DiceRoller = () => {
             rolling && 'pointer-events-none animate-pulse'
           )}
         >
-          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+          {rolling ? `🎲 ${t('game.rolling')}` : `🎲 ${t('game.rollDice')}`}
         </Button>
       </div>
     </Card>
@@ -75,6 +89,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
 
   return (
     <div
+      aria-hidden="true"
       className={cn(
         'w-20 h-20 bg-russia-white border-4 border-foreground rounded-xl shadow-lg flex items-center justify-center transition-transform',
         rolling && 'dice-rolling'

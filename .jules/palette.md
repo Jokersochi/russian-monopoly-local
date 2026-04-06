@@ -1,0 +1,3 @@
+## 2025-05-15 - [Accessible Selection Groups & Dynamic Game State]
+**Learning:** Using standalone buttons for mutually exclusive selections (like player count or language) lacks semantic context for screen readers. Grouping them with `role="group"` and `aria-labelledby` ensures the relationship is clear. Additionally, game-critical visual results (like dice rolls) must be communicated through dynamic `aria-label` updates on a container with `role="img"` or `aria-live`.
+**Action:** Always wrap custom button-based selectors in a group with a label. For dynamic results, provide a consolidated string summary in an ARIA label instead of relying on individual visual elements.
