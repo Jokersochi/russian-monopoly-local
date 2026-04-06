@@ -21,7 +21,8 @@ export const PlayerPanel = () => {
       <div className="p-3 space-y-2">
         {gameState.players.map((player, idx) => {
           const isCurrentPlayer = idx === gameState.currentPlayer;
-          const ownedCells = cells.filter(c => player.properties.includes(c.id));
+          // Bolt: Use direct property length for O(1) count instead of filtering O(N) cells list
+          const propertiesCount = player.properties.length;
 
           return (
             <Card
@@ -59,7 +60,7 @@ export const PlayerPanel = () => {
                       💰 {(player.money / 1000).toFixed(0)}K₽
                     </span>
                     <span className="text-muted-foreground">
-                      🏠 {ownedCells.length} {t('game.properties')}
+                      🏠 {propertiesCount} {t('game.properties')}
                     </span>
                   </div>
                   {player.hasResidence && (
