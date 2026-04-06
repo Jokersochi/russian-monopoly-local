@@ -172,7 +172,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('russianMonopolyState');
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        // Simple validation to ensure the loaded state has necessary properties
+        if (
+          parsed &&
+          Array.isArray(parsed.players) &&
+          typeof parsed.currentPlayer === 'number' &&
+          typeof parsed.phase === 'string'
+        ) {
+          setGameState(parsed);
+        } else {
+          console.warn('Invalid game state in localStorage');
+        }
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
