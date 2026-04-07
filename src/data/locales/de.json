@@ -9,6 +9,10 @@
     "endTurn": "Zug beenden",
     "payRent": "Miete zahlen",
     "bid": "Bieten",
+    "actions": "Aktionen",
+    "shortcutHint": "[{{key}}]",
+    "and": "und",
+    "total": "Gesamt",
     "players": "Spieler",
     "money": "Geld",
     "properties": "Besitz",
@@ -93,6 +97,7 @@
     "rocket": "Rakete"
   },
   "log": {
+    "empty": "Das Spielprotokoll ist leer",
     "playerRolled": "{{player}} würfelte {{dice}}",
     "playerBought": "{{player}} kaufte {{property}} für {{price}}₽",
     "playerPaidRent": "{{player}} zahlte {{amount}}₽ Miete an {{owner}}",

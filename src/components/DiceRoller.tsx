@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -10,15 +10,33 @@ export const DiceRoller = () => {
   const { t } = useLocale();
   const [rolling, setRolling] = useState(false);
 
-  if (!gameState) return null;
+  const canRoll = gameState?.phase === 'rolling';
 
-  const handleRoll = () => {
+  const handleRoll = useCallback(() => {
+    if (!canRoll || rolling) return;
     setRolling(true);
     rollDice();
     setTimeout(() => setRolling(false), 600);
-  };
+  }, [canRoll, rolling, rollDice]);
 
-  const canRoll = gameState.phase === 'rolling';
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.code === 'Space' || e.code === 'Enter') && canRoll && !rolling) {
+        // Prevent scrolling with Space
+        if (e.code === 'Space') e.preventDefault();
+        handleRoll();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canRoll, rolling, handleRoll]);
+
+  if (!gameState) return null;
+
+  const rollResultLabel = gameState.lastRoll
+    ? `${t('game.rollDice')}: ${gameState.lastRoll[0]} ${t('game.and')} ${gameState.lastRoll[1]}. ${t('game.total')}: ${gameState.lastRoll[0] + gameState.lastRoll[1]}`
+    : t('game.rollDice');
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
@@ -29,7 +47,11 @@ export const DiceRoller = () => {
         </h3>
       </div>
       <div className="p-6 space-y-4">
-        <div className="flex gap-4 justify-center">
+        <div
+          className="flex gap-4 justify-center"
+          role="img"
+          aria-label={rollResultLabel}
+        >
           {gameState.lastRoll ? (
             <>
               <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
@@ -63,7 +85,14 @@ export const DiceRoller = () => {
             rolling && 'pointer-events-none animate-pulse'
           )}
         >
-          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+          {rolling ? '🎲 Бросаем...' : (
+            <span className="flex items-center gap-2">
+              🎲 {t('game.rollDice')}
+              <span className="text-xs opacity-70 font-normal">
+                {t('game.shortcutHint', { key: 'Space' })}
+              </span>
+            </span>
+          )}
         </Button>
       </div>
     </Card>
@@ -71,14 +100,13 @@ export const DiceRoller = () => {
 };
 
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
-
   return (
     <div
       className={cn(
         'w-20 h-20 bg-russia-white border-4 border-foreground rounded-xl shadow-lg flex items-center justify-center transition-transform',
         rolling && 'dice-rolling'
       )}
+      aria-hidden="true"
     >
       <div className="grid grid-cols-3 gap-1 w-full h-full p-2">
         {[...Array(9)].map((_, idx) => {

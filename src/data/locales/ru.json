@@ -9,6 +9,10 @@
     "endTurn": "Завершить ход",
     "payRent": "Оплатить аренду",
     "bid": "Сделать ставку",
+    "actions": "Действия",
+    "shortcutHint": "[{{key}}]",
+    "and": "и",
+    "total": "Всего",
     "players": "Игроки",
     "money": "Деньги",
     "properties": "Владения",
@@ -93,6 +97,7 @@
     "rocket": "Ракета"
   },
   "log": {
+    "empty": "Журнал событий пуст",
     "playerRolled": "{{player}} выбросил {{dice}}",
     "playerBought": "{{player}} купил {{property}} за {{price}}₽",
     "playerPaidRent": "{{player}} заплатил {{amount}}₽ аренды игроку {{owner}}",

@@ -9,6 +9,10 @@
     "endTurn": "End Turn",
     "payRent": "Pay Rent",
     "bid": "Place Bid",
+    "actions": "Actions",
+    "shortcutHint": "[{{key}}]",
+    "and": "and",
+    "total": "Total",
     "players": "Players",
     "money": "Money",
     "properties": "Properties",
@@ -93,6 +97,7 @@
     "rocket": "Rocket"
   },
   "log": {
+    "empty": "Game log is empty",
     "playerRolled": "{{player}} rolled {{dice}}",
     "playerBought": "{{player}} bought {{property}} for {{price}}₽",
     "playerPaidRent": "{{player}} paid {{amount}}₽ rent to {{owner}}",

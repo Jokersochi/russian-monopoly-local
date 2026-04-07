@@ -22,7 +22,7 @@ export const GameLog = () => {
         <div className="space-y-2">
           {gameState.gameLog.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Журнал событий пуст
+              {t('log.empty')}
             </p>
           ) : (
             gameState.gameLog.slice().reverse().map((entry) => (

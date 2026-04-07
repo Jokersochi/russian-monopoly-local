@@ -9,6 +9,10 @@
     "endTurn": "Finalizar Turno",
     "payRent": "Pagar Alquiler",
     "bid": "Hacer Oferta",
+    "actions": "Acciones",
+    "shortcutHint": "[{{key}}]",
+    "and": "y",
+    "total": "Total",
     "players": "Jugadores",
     "money": "Dinero",
     "properties": "Propiedades",
@@ -93,6 +97,7 @@
     "rocket": "Cohete"
   },
   "log": {
+    "empty": "El registro del juego está vacío",
     "playerRolled": "{{player}} lanzó {{dice}}",
     "playerBought": "{{player}} compró {{property}} por {{price}}₽",
     "playerPaidRent": "{{player}} pagó {{amount}}₽ de alquiler a {{owner}}",
