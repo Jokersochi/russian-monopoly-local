@@ -71,7 +71,8 @@ export const DiceRoller = () => {
 };
 
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
+  // Optimization: Calculate the pattern once per render instead of 9 times inside the loop
+  const pattern = getDotPattern(value);
 
   return (
     <div
@@ -82,7 +83,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
     >
       <div className="grid grid-cols-3 gap-1 w-full h-full p-2">
         {[...Array(9)].map((_, idx) => {
-          const showDot = getDotPattern(value)[idx];
+          const showDot = pattern[idx];
           return (
             <div
               key={idx}
