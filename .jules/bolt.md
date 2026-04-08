@@ -1,0 +1,3 @@
+## 2024-05-20 - [Optimizing GameBoard with O(1) Lookups]
+**Learning:** Rendering a 40-cell board with nested $O(N)$ searches for player positions and property ownership inside the `cells.map` loop can lead to performance degradation as players acquire more properties. Using `useMemo` to pre-calculate these into `Map` objects reduces lookup complexity to $O(1)$.
+**Action:** Always pre-calculate many-to-one or many-to-many relationships into `Map` or `Set` objects before entering large render loops. Ensure hooks are placed before early returns and have correct dependency arrays to satisfy ESLint and React rules.
