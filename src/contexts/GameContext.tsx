@@ -65,8 +65,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const rollDice = useCallback(() => {
     if (!gameState || gameState.phase !== 'rolling') return;
 
-    const dice1 = Math.floor(Math.random() * 6) + 1;
-    const dice2 = Math.floor(Math.random() * 6) + 1;
+    // Use cryptographically secure random values for dice rolls with rejection sampling to avoid modulo bias
+    const getSecureDiceRoll = () => {
+      const array = new Uint8Array(1);
+      while (true) {
+        crypto.getRandomValues(array);
+        if (array[0] < 252) return (array[0] % 6) + 1;
+      }
+    };
+
+    const dice1 = getSecureDiceRoll();
+    const dice2 = getSecureDiceRoll();
     const sum = dice1 + dice2;
     const isDouble = dice1 === dice2;
 
