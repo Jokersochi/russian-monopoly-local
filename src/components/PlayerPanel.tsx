@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const PlayerPanel = () => {
-  const { gameState, cells } = useGame();
+  const { gameState } = useGame();
   const { t } = useLocale();
 
   if (!gameState) return null;
@@ -21,7 +21,8 @@ export const PlayerPanel = () => {
       <div className="p-3 space-y-2">
         {gameState.players.map((player, idx) => {
           const isCurrentPlayer = idx === gameState.currentPlayer;
-          const ownedCells = cells.filter(c => player.properties.includes(c.id));
+          // Optimization: Using property array length (O(1)) instead of filtering all cells (O(N)).
+          const ownedCount = player.properties.length;
 
           return (
             <Card
@@ -59,7 +60,7 @@ export const PlayerPanel = () => {
                       💰 {(player.money / 1000).toFixed(0)}K₽
                     </span>
                     <span className="text-muted-foreground">
-                      🏠 {ownedCells.length} {t('game.properties')}
+                      🏠 {ownedCount} {t('game.properties')}
                     </span>
                   </div>
                   {player.hasResidence && (
