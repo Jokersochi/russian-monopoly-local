@@ -71,7 +71,8 @@ export const DiceRoller = () => {
 };
 
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
+  // Optimization: Pre-calculate the dot pattern once per render instead of 9 times inside the loop
+  const pattern = getDotPattern(value);
 
   return (
     <div
@@ -81,8 +82,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
       )}
     >
       <div className="grid grid-cols-3 gap-1 w-full h-full p-2">
-        {[...Array(9)].map((_, idx) => {
-          const showDot = getDotPattern(value)[idx];
+        {pattern.map((showDot, idx) => {
           return (
             <div
               key={idx}
@@ -98,14 +98,15 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
   );
 };
 
+const DOT_PATTERNS: Record<number, boolean[]> = {
+  1: [false, false, false, false, true, false, false, false, false],
+  2: [true, false, false, false, false, false, false, false, true],
+  3: [true, false, false, false, true, false, false, false, true],
+  4: [true, false, true, false, false, false, true, false, true],
+  5: [true, false, true, false, true, false, true, false, true],
+  6: [true, false, true, true, false, true, true, false, true],
+};
+
 const getDotPattern = (value: number): boolean[] => {
-  const patterns: Record<number, boolean[]> = {
-    1: [false, false, false, false, true, false, false, false, false],
-    2: [true, false, false, false, false, false, false, false, true],
-    3: [true, false, false, false, true, false, false, false, true],
-    4: [true, false, true, false, false, false, true, false, true],
-    5: [true, false, true, false, true, false, true, false, true],
-    6: [true, false, true, true, false, true, true, false, true],
-  };
-  return patterns[value] || patterns[1];
+  return DOT_PATTERNS[value] || DOT_PATTERNS[1];
 };
