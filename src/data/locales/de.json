@@ -23,7 +23,10 @@
     "yourTurn": "Du bist dran!",
     "bankrupt": "Bankrott",
     "winner": "Gewinner",
-    "gameOver": "Spiel vorbei"
+    "gameOver": "Spiel vorbei",
+    "and": "und",
+    "total": "Summe",
+    "double": "Pasch!"
   },
   "cells": {
     "start": "Start",
@@ -102,6 +105,7 @@
     "playerBankrupt": "{{player}} ging bankrott!",
     "gameWon": "{{player}} gewann mit {{money}}₽!",
     "passedStart": "{{player}} passierte Start und erhielt 200000₽",
-    "drewCard": "{{player}} zog Karte: {{card}}"
+    "drewCard": "{{player}} zog Karte: {{card}}",
+    "empty": "Das Spielprotokoll ist leer"
   }
 }

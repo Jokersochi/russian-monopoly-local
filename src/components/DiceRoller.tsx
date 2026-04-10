@@ -20,16 +20,21 @@ export const DiceRoller = () => {
 
   const canRoll = gameState.phase === 'rolling';
 
+  const isDouble = gameState.lastRoll && gameState.lastRoll[0] === gameState.lastRoll[1];
+  const rollLabel = gameState.lastRoll
+    ? `${t('game.rollDice')}: ${gameState.lastRoll[0]} ${t('game.and')} ${gameState.lastRoll[1]}. ${t('game.total')}: ${gameState.lastRoll[0] + gameState.lastRoll[1]}${isDouble ? `. ${t('game.double')}` : ''}`
+    : t('game.rollDice');
+
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
       <div className="p-4 border-b border-russia-red/20">
         <h3 className="text-xl font-bold flex items-center gap-2">
-          <span className="text-russia-red">🎲</span>
+          <span className="text-russia-red" aria-hidden="true">🎲</span>
           {t('game.rollDice')}
         </h3>
       </div>
       <div className="p-6 space-y-4">
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center" role="img" aria-label={rollLabel}>
           {gameState.lastRoll ? (
             <>
               <DiceFace value={gameState.lastRoll[0]} rolling={rolling} />
@@ -44,12 +49,12 @@ export const DiceRoller = () => {
         </div>
 
         {gameState.lastRoll && (
-          <div className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm">
+          <div className="text-center p-3 bg-russia-gold/10 rounded-lg border-2 border-russia-gold/30 shadow-sm" aria-hidden="true">
             <p className="text-sm text-muted-foreground">
-              Сумма: <span className="font-bold text-3xl text-russia-gold ml-2">{gameState.lastRoll[0] + gameState.lastRoll[1]}</span>
+              {t('game.total')}: <span className="font-bold text-3xl text-russia-gold ml-2">{gameState.lastRoll[0] + gameState.lastRoll[1]}</span>
             </p>
-            {gameState.lastRoll[0] === gameState.lastRoll[1] && (
-              <p className="text-xs text-russia-red font-bold mt-1">🎯 Дубль!</p>
+            {isDouble && (
+              <p className="text-xs text-russia-red font-bold mt-1">🎯 {t('game.double')}</p>
             )}
           </div>
         )}
@@ -75,6 +80,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
 
   return (
     <div
+      aria-hidden="true"
       className={cn(
         'w-20 h-20 bg-russia-white border-4 border-foreground rounded-xl shadow-lg flex items-center justify-center transition-transform',
         rolling && 'dice-rolling'

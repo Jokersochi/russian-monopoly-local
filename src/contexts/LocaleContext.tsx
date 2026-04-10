@@ -4,7 +4,7 @@ import enLocale from '@/data/locales/en.json';
 import deLocale from '@/data/locales/de.json';
 import esLocale from '@/data/locales/es.json';
 
-type Locale = 'ru' | 'en' | 'de' | 'es';
+export type Locale = 'ru' | 'en' | 'de' | 'es';
 
 interface LocaleContextType {
   locale: Locale;
