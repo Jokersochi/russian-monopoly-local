@@ -1,0 +1,3 @@
+## 2024-04-10 - Accessible Mutually Exclusive Selection Groups
+**Learning:** Using `div` and `Button` combinations for mutually exclusive selections (like grid-layout player counts or languages) breaks accessibility since they aren't native radio inputs. Without explicit attributes, screen readers only announce individual buttons without their grouping context or selection state.
+**Action:** When implementing custom visual selections that act like radios, always wrap the buttons in a container with `role="group"` and `aria-labelledby`, and ensure the individual buttons utilize `aria-pressed={boolean}` to correctly announce their active state. Also ensure decorative text (like flag emojis) is supplemented with proper `aria-label` descriptions.
