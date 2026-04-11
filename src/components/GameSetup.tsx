@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLocale } from '@/contexts/LocaleContext';
+import { useLocale, Locale } from '@/contexts/LocaleContext';
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
 
@@ -24,16 +24,17 @@ export const GameSetup = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-blue">👥</span>
+            <label id="player-count-label" className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-blue" aria-hidden="true">👥</span>
               {t('game.playerCount')}
             </label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-2" role="group" aria-labelledby="player-count-label">
               {[2, 3, 4, 5, 6].map((count) => (
                 <Button
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-pressed={playerCount === count}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -46,27 +47,29 @@ export const GameSetup = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-gold">🌍</span>
+            <label id="language-label" className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-gold" aria-hidden="true">🌍</span>
               {t('game.language')}
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2" role="group" aria-labelledby="language-label">
               {[
-                { code: 'ru', flag: '🇷🇺' },
-                { code: 'en', flag: '🇬🇧' },
-                { code: 'de', flag: '🇩🇪' },
-                { code: 'es', flag: '🇪🇸' }
-              ].map(({ code, flag }) => (
+                { code: 'ru', flag: '🇷🇺', label: 'Русский' },
+                { code: 'en', flag: '🇬🇧', label: 'English' },
+                { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
+                { code: 'es', flag: '🇪🇸', label: 'Español' }
+              ].map(({ code, flag, label }) => (
                 <Button
                   key={code}
                   variant={locale === code ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(code as any)}
+                  onClick={() => setLocale(code as Locale)}
+                  aria-pressed={locale === code}
+                  aria-label={label}
                   className={cn(
                     "transition-all h-12 text-lg",
                     locale === code && "bg-russia-blue text-white shadow-strong scale-110"
                   )}
                 >
-                  {flag}
+                  <span aria-hidden="true">{flag}</span>
                 </Button>
               ))}
             </div>
@@ -77,7 +80,7 @@ export const GameSetup = () => {
             className="w-full bg-gradient-russian hover:opacity-90 text-lg py-7 shadow-strong transition-all hover:scale-105 font-bold"
             size="lg"
           >
-            ✨ {t('game.start')}
+            <span aria-hidden="true">✨</span> {t('game.start')}
           </Button>
         </CardContent>
       </Card>
