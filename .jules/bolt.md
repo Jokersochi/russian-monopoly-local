@@ -1,0 +1,3 @@
+## 2025-05-15 - Optimize GameBoard render loop with O(1) lookups
+**Learning:** In React components with complex state (like a Monopoly board with 40 cells and multiple players), performing O(N) or O(N*M) searches (like `players.find` or `players.filter`) inside a `.map()` render loop leads to significant performance degradation as the board or player count grows. Pre-calculating lookups using `useMemo` and `Map` reduces this to O(1) per iteration.
+**Action:** Always identify nested search patterns in render loops and refactor them to use pre-calculated Maps or objects with `useMemo`. Ensure the entire state object (e.g., `gameState`) is in the dependency array to satisfy ESLint and ensure reactivity.
