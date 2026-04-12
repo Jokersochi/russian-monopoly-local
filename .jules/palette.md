@@ -1,0 +1,3 @@
+## 2024-05-18 - Icon-only buttons lacking labels
+**Learning:** In the GameSetup component, language selection buttons were purely icon-based (flags) without any `aria-label` or `title`. This makes them completely opaque to screen readers and potentially confusing to users who don't recognize the flags. We also needed `aria-pressed` for both language and player count buttons since they function as radio groups/toggles.
+**Action:** Always ensure icon-only buttons have an `aria-label` and preferably a `title` attribute for native tooltips. Use `aria-pressed` or `aria-selected` when buttons behave as stateful toggles.

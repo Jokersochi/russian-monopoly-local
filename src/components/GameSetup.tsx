@@ -34,6 +34,8 @@ export const GameSetup = () => {
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-label={`${count} ${t('game.players')}`}
+                  aria-pressed={playerCount === count}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -52,15 +54,18 @@ export const GameSetup = () => {
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { code: 'ru', flag: '🇷🇺' },
-                { code: 'en', flag: '🇬🇧' },
-                { code: 'de', flag: '🇩🇪' },
-                { code: 'es', flag: '🇪🇸' }
-              ].map(({ code, flag }) => (
+                { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+                { code: 'en', flag: '🇬🇧', name: 'English' },
+                { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+                { code: 'es', flag: '🇪🇸', name: 'Español' }
+              ].map(({ code, flag, name }) => (
                 <Button
                   key={code}
                   variant={locale === code ? 'secondary' : 'outline'}
                   onClick={() => setLocale(code as any)}
+                  aria-label={name}
+                  title={name}
+                  aria-pressed={locale === code}
                   className={cn(
                     "transition-all h-12 text-lg",
                     locale === code && "bg-russia-blue text-white shadow-strong scale-110"
