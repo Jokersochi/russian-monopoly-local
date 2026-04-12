@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocale } from '@/contexts/LocaleContext';
-import { useGame } from '@/contexts/GameContext';
+import { useGameStore } from '@/store/useGameStore';
 import { cn } from '@/lib/utils';
 
 export const GameSetup = () => {
   const [playerCount, setPlayerCount] = useState(4);
   const { t, locale, setLocale } = useLocale();
-  const { initGame } = useGame();
+  const { initGame } = useGameStore();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">

@@ -1,10 +1,35 @@
-import { useGame } from '@/contexts/GameContext';
+import { useMemo } from 'react';
+import { useGameStore } from '@/store/useGameStore';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
+import { BOARD_CELLS } from '@/data/board';
+import { Player } from '@/types/game';
 
 export const GameBoard = () => {
-  const { cells, gameState } = useGame();
+  const { gameState } = useGameStore();
   const { t } = useLocale();
+
+  const propertyOwners = useMemo(() => {
+    const owners = new Map<number, Player>();
+    if (!gameState) return owners;
+    gameState.players.forEach(player => {
+      player.properties.forEach(cellId => {
+        owners.set(cellId, player);
+      });
+    });
+    return owners;
+  }, [gameState]);
+
+  const playerPositions = useMemo(() => {
+    const positions = new Map<number, Player[]>();
+    if (!gameState) return positions;
+    gameState.players.forEach(player => {
+      if (player.bankrupt) return;
+      const players = positions.get(player.position) || [];
+      positions.set(player.position, [...players, player]);
+    });
+    return positions;
+  }, [gameState]);
 
   if (!gameState) return null;
 
@@ -17,29 +42,17 @@ export const GameBoard = () => {
       top: `${position.y * (size + gap)}px`,
       width: `${size}px`,
       height: `${size}px`,
+      boxShadow: 'inset 0 0 10px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.3)',
+      backgroundColor: '#f5e6d3', // Light parchment/wood color
     };
   };
 
-  const isOwnedBy = (cellId: number) => {
-    return gameState.players.find(p => p.properties.includes(cellId));
-  };
-
-  const getPlayersOnCell = (cellId: number) => {
-    return gameState.players.filter(p => p.position === cellId && !p.bankrupt);
-  };
-
   return (
-    <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
-      {/* Decorative corners */}
-      <div className="absolute top-2 left-2 w-12 h-12 border-t-4 border-l-4 border-russia-gold/80 rounded-tl-xl"></div>
-      <div className="absolute top-2 right-2 w-12 h-12 border-t-4 border-r-4 border-russia-gold/80 rounded-tr-xl"></div>
-      <div className="absolute bottom-2 left-2 w-12 h-12 border-b-4 border-l-4 border-russia-gold/80 rounded-bl-xl"></div>
-      <div className="absolute bottom-2 right-2 w-12 h-12 border-b-4 border-r-4 border-russia-gold/80 rounded-br-xl"></div>
-      
+    <div className="relative bg-wood-texture rounded-3xl shadow-2xl p-6 border-[12px] border-wood-light ring-[1px] ring-white/10">
       <div className="relative" style={{ width: '902px', height: '902px' }}>
-        {cells.map((cell) => {
-          const owner = isOwnedBy(cell.id);
-          const playersHere = getPlayersOnCell(cell.id);
+        {BOARD_CELLS.map((cell) => {
+          const owner = propertyOwners.get(cell.id);
+          const playersHere = playerPositions.get(cell.id) || [];
 
           const cellStyle = {
             ...getCellStyle(cell.position),
@@ -51,10 +64,9 @@ export const GameBoard = () => {
               key={cell.id}
               style={cellStyle}
               className={cn(
-                'border-2 rounded-lg bg-card/95 backdrop-blur-sm flex flex-col items-center justify-center p-1.5 text-center transition-all hover:scale-110 hover:shadow-strong hover:z-10',
-                owner && 'ring-4 ring-russia-gold shadow-strong',
-                !owner && 'border-foreground/20 hover:border-russia-blue/50',
-                cell.color && 'border-t-[10px]'
+                'border-[1px] border-black/10 rounded-sm flex flex-col items-center justify-center p-1.5 text-center transition-all hover:scale-110 hover:z-10',
+                owner && 'ring-2 ring-russia-gold',
+                cell.color && 'border-t-[12px]'
               )}
             >
               <div className="text-[10px] font-bold leading-tight overflow-hidden">
@@ -71,9 +83,9 @@ export const GameBoard = () => {
                 </div>
               )}
               {playersHere.length > 0 && (
-                <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30">
+                <div className="absolute -bottom-3 flex gap-0.5 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-lg border border-black/10 z-20">
                   {playersHere.map((player) => (
-                    <span key={player.id} className="text-base drop-shadow">
+                    <span key={player.id} className="text-xl drop-shadow-md animate-bounce" style={{ animationDuration: '2s' }}>
                       {player.token}
                     </span>
                   ))}
@@ -83,45 +95,41 @@ export const GameBoard = () => {
           );
         })}
 
-        {/* Center area with game info */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md rounded-2xl shadow-board border-4 border-russia-gold/30 flex items-center justify-center">
-          <div className="text-center space-y-4 p-8">
-            <div className="mb-4">
-              <h2 className="text-5xl font-bold bg-gradient-russian bg-clip-text text-transparent drop-shadow-lg mb-2">
-                {t('game.title')}
-              </h2>
-              <div className="h-1 w-32 mx-auto bg-gradient-gold rounded-full"></div>
-            </div>
-            
-            <div className="space-y-3 p-4 bg-gradient-to-r from-russia-blue/10 to-russia-red/10 rounded-xl border border-russia-gold/20">
-              <p className="text-sm text-muted-foreground font-semibold">
-                {t('game.currentPlayer')}:
-              </p>
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-5xl drop-shadow-lg glow-effect">
-                  {gameState.players[gameState.currentPlayer].token}
-                </span>
-                <div className="text-left">
-                  <p className="text-xl font-bold text-russia-gold">
-                    {t(`players.${gameState.players[gameState.currentPlayer].nameKey}`)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    💰 {(gameState.players[gameState.currentPlayer].money / 1000).toFixed(0)}K₽
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground pt-2">
-              <div className="flex items-center gap-1">
-                <span className="text-russia-gold">🔄</span>
-                <span>Раунд {gameState.round}</span>
-              </div>
-              <div className="w-1 h-1 rounded-full bg-muted-foreground"></div>
-              <div className="flex items-center gap-1">
-                <span className="text-russia-blue">⚙️</span>
-                <span>{gameState.phase}</span>
-              </div>
+        {/* Center area - Curved Metal Display for Log */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[720px] flex flex-col items-center justify-center pointer-events-none">
+          <div className="relative w-full h-full bg-metal-texture rounded-[60px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.5),0_20px_40px_rgba(0,0,0,0.4)] border-x-[15px] border-metal-dark overflow-hidden flex flex-col">
+            <div className="flex-1 p-10 flex flex-col items-center pointer-events-auto">
+               <div className="w-full text-center mb-8 border-b border-black/10 pb-4">
+                  <h2 className="text-2xl font-serif italic text-metal-dark tracking-widest opacity-80 uppercase">
+                    Monopoly Club
+                  </h2>
+               </div>
+               <div className="flex-1 w-full overflow-hidden">
+                  <div className="h-full flex flex-col items-center justify-center space-y-6 text-center font-serif">
+                     <div className="p-4 bg-white/50 backdrop-blur-sm rounded-lg shadow-inner w-full">
+                        <p className="text-lg italic text-black/70">Вы вошли в качестве зрителя</p>
+                        <p className="text-sm text-black/50 tracking-tighter">...</p>
+                        <p className="text-base font-bold text-black/80">Ход игрока {t(`players.${gameState.players[gameState.currentPlayer].nameKey}`)}</p>
+                        <p className="text-sm text-black/50 tracking-tighter">...</p>
+                        <p className="text-base text-black/80">Выброшено: {gameState.dice[0]} и {gameState.dice[1]}</p>
+                     </div>
+                     <div className="flex-1 overflow-y-auto w-full px-4 space-y-2 py-4 scrollbar-hide">
+                        {[...gameState.gameLog].reverse().slice(0, 5).map((entry) => (
+                           <p key={entry.id} className="text-sm italic text-black/60 border-b border-black/5 pb-1">
+                              {t(entry.textKey, entry.params)}
+                           </p>
+                        ))}
+                     </div>
+                  </div>
+               </div>
+               <div className="mt-8">
+                  <button
+                    onClick={() => useGameStore.getState().resetGame()}
+                    className="px-8 py-3 bg-[#4CAF50] hover:bg-[#45a049] text-white font-bold rounded-lg shadow-lg border-2 border-black/20 transition-transform hover:scale-105 active:scale-95"
+                  >
+                    ПОКИНУТЬ ИГРОВОЙ ЗАЛ
+                  </button>
+               </div>
             </div>
           </div>
         </div>

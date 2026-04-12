@@ -1,4 +1,3 @@
-import { GameProvider, useGame } from '@/contexts/GameContext';
 import { LocaleProvider } from '@/contexts/LocaleContext';
 import { GameSetup } from '@/components/GameSetup';
 import { GameBoard } from '@/components/GameBoard';
@@ -6,31 +5,32 @@ import { PlayerPanel } from '@/components/PlayerPanel';
 import { DiceRoller } from '@/components/DiceRoller';
 import { ActionPanel } from '@/components/ActionPanel';
 import { GameLog } from '@/components/GameLog';
+import { useGameStore } from '@/store/useGameStore';
 
 const GameContent = () => {
-  const { gameState } = useGame();
+  const { gameState } = useGameStore();
 
   if (!gameState) {
     return <GameSetup />;
   }
 
   return (
-    <div className="min-h-screen p-4 overflow-auto relative">
-      <div className="absolute inset-0 bg-gradient-board opacity-10 pointer-events-none"></div>
-      <div className="max-w-[1800px] mx-auto relative z-10">
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
+    <div className="min-h-screen bg-[#1a1a1a] p-8 overflow-hidden relative">
+      <div className="max-w-[1920px] mx-auto h-full relative z-10">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_450px] gap-12 h-full">
           {/* Left side - Game Board */}
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center bg-black/40 rounded-[60px] p-12 shadow-inner border border-white/5">
             <GameBoard />
           </div>
 
-          {/* Right side - Controls */}
-          <div className="space-y-4">
-            <PlayerPanel />
-            <DiceRoller />
-            <ActionPanel />
-            <div className="h-64">
-              <GameLog />
+          {/* Right side - Player Panel (Leather) */}
+          <div className="flex flex-col gap-6">
+            <div className="flex-1">
+              <PlayerPanel />
+            </div>
+            <div className="space-y-4">
+              <DiceRoller />
+              <ActionPanel />
             </div>
           </div>
         </div>
@@ -42,9 +42,7 @@ const GameContent = () => {
 const Index = () => {
   return (
     <LocaleProvider>
-      <GameProvider>
-        <GameContent />
-      </GameProvider>
+      <GameContent />
     </LocaleProvider>
   );
 };

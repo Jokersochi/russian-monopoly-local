@@ -1,16 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useGame } from '@/contexts/GameContext';
+import { useGameStore } from '@/store/useGameStore';
 import { useLocale } from '@/contexts/LocaleContext';
+import { BOARD_CELLS } from '@/data/board';
 
 export const ActionPanel = () => {
-  const { gameState, buyProperty, passProperty, endTurn, cells } = useGame();
+  const { gameState, buyProperty, passProperty, endTurn } = useGameStore();
   const { t } = useLocale();
 
   if (!gameState) return null;
 
   const currentPlayer = gameState.players[gameState.currentPlayer];
-  const currentCell = cells[currentPlayer.position];
+  const currentCell = BOARD_CELLS[currentPlayer.position];
   const canBuy = gameState.phase === 'landed' && 
                  currentCell.price && 
                  !gameState.players.some(p => p.properties.includes(currentCell.id)) &&

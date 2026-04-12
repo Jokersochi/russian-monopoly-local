@@ -102,6 +102,10 @@
     "playerBankrupt": "{{player}} обанкротился!",
     "gameWon": "{{player}} победил с капиталом {{money}}₽!",
     "passedStart": "{{player}} прошёл Старт и получил 200000₽",
-    "drewCard": "{{player}} вытянул карту: {{card}}"
+    "drewCard": "{{player}} вытянул карту: {{card}}",
+    "gameStarted": "Игра началась! Игроков: {{count}}",
+    "diceRoll": "{{player}} выбросил: {{dice1}} и {{dice2}}. Всего: {{sum}}",
+    "propertyBought": "{{player}} купил {{property}} за {{price}}₽",
+    "propertyPassed": "{{player}} пропустил покупку"
   }
 }

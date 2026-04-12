@@ -95,7 +95,7 @@ export interface AuctionState {
   currentBid: number;
   currentBidder: number | null;
   participants: number[];
-  passedPlayers: Set<number>;
+  passedPlayers: number[];
 }
 
 export interface LogEntry {

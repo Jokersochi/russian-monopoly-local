@@ -1,36 +1,34 @@
-import { useGame } from '@/contexts/GameContext';
+import { useGameStore } from '@/store/useGameStore';
 import { useLocale } from '@/contexts/LocaleContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const PlayerPanel = () => {
-  const { gameState, cells } = useGame();
+  const { gameState } = useGameStore();
   const { t } = useLocale();
 
   if (!gameState) return null;
 
   return (
-    <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20">
-      <div className="p-4 border-b border-russia-gold/20">
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          <span className="text-russia-gold">👥</span>
+    <div className="h-full bg-leather-texture rounded-[40px] shadow-2xl border-[10px] border-leather ring-[1px] ring-white/5 overflow-hidden flex flex-col">
+      <div className="p-6 border-b border-white/10 bg-black/20">
+        <h3 className="text-2xl font-serif italic text-leather-light tracking-widest uppercase">
           {t('game.players')}
         </h3>
       </div>
-      <div className="p-3 space-y-2">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-hide">
         {gameState.players.map((player, idx) => {
           const isCurrentPlayer = idx === gameState.currentPlayer;
-          const ownedCells = cells.filter(c => player.properties.includes(c.id));
 
           return (
-            <Card
+            <div
               key={player.id}
               className={cn(
-                'p-3 transition-all border-2',
-                isCurrentPlayer && 'border-russia-gold bg-gradient-gold/10 shadow-strong scale-105 glow-effect',
-                !isCurrentPlayer && 'border-border/30 hover:border-russia-blue/30',
-                player.bankrupt && 'opacity-50'
+                'p-6 rounded-[20px] transition-all relative overflow-hidden',
+                isCurrentPlayer && 'bg-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.1),0_10px_20px_rgba(0,0,0,0.3)] border border-white/20',
+                !isCurrentPlayer && 'opacity-60 grayscale-[0.5]',
+                player.bankrupt && 'opacity-30'
               )}
             >
               <div className="flex items-center gap-3">
@@ -38,7 +36,7 @@ export const PlayerPanel = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className={cn(
-                      "font-bold truncate text-base",
+                      "font-bold truncate text-lg text-white/90 font-serif",
                       isCurrentPlayer && "text-russia-gold"
                     )}>
                       {t(`players.${player.nameKey}`)}
@@ -59,7 +57,7 @@ export const PlayerPanel = () => {
                       💰 {(player.money / 1000).toFixed(0)}K₽
                     </span>
                     <span className="text-muted-foreground">
-                      🏠 {ownedCells.length} {t('game.properties')}
+                      🏠 {player.properties.length} {t('game.properties')}
                     </span>
                   </div>
                   {player.hasResidence && (
@@ -69,10 +67,10 @@ export const PlayerPanel = () => {
                   )}
                 </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
-    </Card>
+    </div>
   );
 };

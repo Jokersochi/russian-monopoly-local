@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useGame } from '@/contexts/GameContext';
+import { useGameStore } from '@/store/useGameStore';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
 
 export const DiceRoller = () => {
-  const { gameState, rollDice } = useGame();
+  const { gameState, rollDice } = useGameStore();
   const { t } = useLocale();
   const [rolling, setRolling] = useState(false);
 
@@ -71,7 +71,7 @@ export const DiceRoller = () => {
 };
 
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
+  const dotPattern = useMemo(() => getDotPattern(value), [value]);
 
   return (
     <div
@@ -81,8 +81,7 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
       )}
     >
       <div className="grid grid-cols-3 gap-1 w-full h-full p-2">
-        {[...Array(9)].map((_, idx) => {
-          const showDot = getDotPattern(value)[idx];
+        {dotPattern.map((showDot, idx) => {
           return (
             <div
               key={idx}

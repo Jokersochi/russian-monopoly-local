@@ -51,6 +51,13 @@ All colors MUST be HSL.
     
     --shadow-strong: 0 20px 40px -10px hsl(var(--russia-red) / 0.3);
     --shadow-board: 0 10px 30px -5px hsl(140 45% 25% / 0.5);
+
+    --wood: 35 44% 15%;
+    --wood-light: 35 44% 25%;
+    --leather: 15 45% 15%;
+    --leather-light: 15 45% 25%;
+    --metal: 200 5% 70%;
+    --metal-dark: 200 5% 30%;
     
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);

@@ -57,11 +57,26 @@ export default {
           gold: "hsl(var(--russia-gold))",
           white: "hsl(var(--russia-white))",
         },
+        wood: {
+          DEFAULT: "hsl(var(--wood))",
+          light: "hsl(var(--wood-light))",
+        },
+        leather: {
+          DEFAULT: "hsl(var(--leather))",
+          light: "hsl(var(--leather-light))",
+        },
+        metal: {
+          DEFAULT: "hsl(var(--metal))",
+          dark: "hsl(var(--metal-dark))",
+        },
       },
       backgroundImage: {
         'gradient-russian': 'var(--gradient-russian)',
         'gradient-gold': 'var(--gradient-gold)',
         'gradient-board': 'var(--gradient-board)',
+        'wood-texture': "linear-gradient(45deg, hsl(var(--wood)) 0%, hsl(var(--wood-light)) 100%)",
+        'leather-texture': "linear-gradient(135deg, hsl(var(--leather)) 0%, hsl(var(--leather-light)) 100%)",
+        'metal-texture': "linear-gradient(to bottom, hsl(var(--metal)) 0%, hsl(var(--metal-dark)) 100%)",
       },
       boxShadow: {
         'strong': 'var(--shadow-strong)',
