@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
@@ -34,6 +35,8 @@ export const GameSetup = () => {
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-pressed={playerCount === count}
+                  aria-label={`${count} ${t('game.players')}`}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -52,22 +55,30 @@ export const GameSetup = () => {
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { code: 'ru', flag: '🇷🇺' },
-                { code: 'en', flag: '🇬🇧' },
-                { code: 'de', flag: '🇩🇪' },
-                { code: 'es', flag: '🇪🇸' }
-              ].map(({ code, flag }) => (
-                <Button
-                  key={code}
-                  variant={locale === code ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(code as any)}
-                  className={cn(
-                    "transition-all h-12 text-lg",
-                    locale === code && "bg-russia-blue text-white shadow-strong scale-110"
-                  )}
-                >
-                  {flag}
-                </Button>
+                { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+                { code: 'en', flag: '🇬🇧', name: 'English' },
+                { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+                { code: 'es', flag: '🇪🇸', name: 'Español' }
+              ].map(({ code, flag, name }) => (
+                <Tooltip key={code}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={locale === code ? 'secondary' : 'outline'}
+                      onClick={() => setLocale(code as any)}
+                      aria-pressed={locale === code}
+                      aria-label={name}
+                      className={cn(
+                        "transition-all h-12 text-lg",
+                        locale === code && "bg-russia-blue text-white shadow-strong scale-110"
+                      )}
+                    >
+                      <span aria-hidden="true">{flag}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{name}</p>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
           </div>
