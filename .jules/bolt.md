@@ -1,0 +1,3 @@
+## 2025-01-24 - Optimization of Game Board and Player Lookups
+**Learning:** The game board rendering was previously performing $O(N \times M)$ searches (filtering all players for every cell) and $O(N)$ filtering for property counts on every render. By using `useMemo` to pre-calculate `Map`-based lookups, these operations were reduced to $O(1)$ during the actual render loop, significantly improving performance as the number of players or board size grows.
+**Action:** Always prefer `Map` or `Set` for lookups inside loops or render paths. Use `useMemo` to transform arrays into these structures when the source data changes, ensuring the render loop remains $O(N)$ instead of $O(N^2)$.
