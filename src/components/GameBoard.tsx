@@ -1,6 +1,11 @@
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
@@ -66,16 +71,36 @@ export const GameBoard = () => {
                 </div>
               )}
               {owner && (
-                <div className="text-[8px] mt-0.5 text-russia-gold">
-                  👤 {owner.token}
-                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="text-[8px] mt-0.5 text-russia-gold cursor-help"
+                      aria-label={`${t('game.owner')}: ${t(`players.${owner.nameKey}`)}`}
+                    >
+                      <span aria-hidden="true">👤</span> {owner.token}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t(`players.${owner.nameKey}`)}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
               {playersHere.length > 0 && (
                 <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30">
                   {playersHere.map((player) => (
-                    <span key={player.id} className="text-base drop-shadow">
-                      {player.token}
-                    </span>
+                    <Tooltip key={player.id}>
+                      <TooltipTrigger asChild>
+                        <span
+                          className="text-base drop-shadow cursor-help"
+                          aria-label={t(`players.${player.nameKey}`)}
+                        >
+                          {player.token}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t(`players.${player.nameKey}`)}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   ))}
                 </div>
               )}

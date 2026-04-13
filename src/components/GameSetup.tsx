@@ -25,15 +25,17 @@ export const GameSetup = () => {
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-blue">👥</span>
+              <span className="text-russia-blue" aria-hidden="true">👥</span>
               {t('game.playerCount')}
             </label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-2" role="group" aria-label={t('game.playerCount')}>
               {[2, 3, 4, 5, 6].map((count) => (
                 <Button
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-label={`${count} ${t('game.players').toLowerCase()}`}
+                  aria-pressed={playerCount === count}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -47,20 +49,23 @@ export const GameSetup = () => {
 
           <div className="space-y-3">
             <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-gold">🌍</span>
+              <span className="text-russia-gold" aria-hidden="true">🌍</span>
               {t('game.language')}
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2" role="group" aria-label={t('game.language')}>
               {[
-                { code: 'ru', flag: '🇷🇺' },
-                { code: 'en', flag: '🇬🇧' },
-                { code: 'de', flag: '🇩🇪' },
-                { code: 'es', flag: '🇪🇸' }
-              ].map(({ code, flag }) => (
+                { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+                { code: 'en', flag: '🇬🇧', name: 'English' },
+                { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+                { code: 'es', flag: '🇪🇸', name: 'Español' }
+              ].map(({ code, flag, name }) => (
                 <Button
                   key={code}
                   variant={locale === code ? 'secondary' : 'outline'}
                   onClick={() => setLocale(code as any)}
+                  aria-label={name}
+                  aria-pressed={locale === code}
+                  title={name}
                   className={cn(
                     "transition-all h-12 text-lg",
                     locale === code && "bg-russia-blue text-white shadow-strong scale-110"
@@ -77,7 +82,7 @@ export const GameSetup = () => {
             className="w-full bg-gradient-russian hover:opacity-90 text-lg py-7 shadow-strong transition-all hover:scale-105 font-bold"
             size="lg"
           >
-            ✨ {t('game.start')}
+            <span aria-hidden="true">✨</span> {t('game.start')}
           </Button>
         </CardContent>
       </Card>

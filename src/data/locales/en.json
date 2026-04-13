@@ -23,7 +23,8 @@
     "yourTurn": "Your turn!",
     "bankrupt": "Bankrupt",
     "winner": "Winner",
-    "gameOver": "Game Over"
+    "gameOver": "Game Over",
+    "owner": "Owner"
   },
   "cells": {
     "start": "Start",
