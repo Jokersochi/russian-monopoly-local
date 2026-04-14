@@ -2,31 +2,50 @@ import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
 
+import { useMemo } from 'react';
+import { Player } from '@/types/game';
+
+const getCellStyle = (position: { x: number; y: number }) => {
+  const size = 80;
+  const gap = 2;
+  return {
+    position: 'absolute' as const,
+    left: `${position.x * (size + gap)}px`,
+    top: `${position.y * (size + gap)}px`,
+    width: `${size}px`,
+    height: `${size}px`,
+  };
+};
+
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
 
+  // Optimization: Pre-calculate lookups to reduce render loop complexity from O(N*M) to O(N+M)
+  const { propertyOwners, playersByCell } = useMemo(() => {
+    const owners = new Map<number, Player>();
+    const byCell = new Map<number, Player[]>();
+
+    if (!gameState) return { propertyOwners: owners, playersByCell: byCell };
+
+    gameState.players.forEach(player => {
+      // Map property ownership
+      player.properties.forEach(propId => {
+        owners.set(propId, player);
+      });
+
+      // Map player positions
+      if (!player.bankrupt) {
+        const playersOnCell = byCell.get(player.position) || [];
+        playersOnCell.push(player);
+        byCell.set(player.position, playersOnCell);
+      }
+    });
+
+    return { propertyOwners: owners, playersByCell: byCell };
+  }, [gameState]);
+
   if (!gameState) return null;
-
-  const getCellStyle = (position: { x: number; y: number }) => {
-    const size = 80;
-    const gap = 2;
-    return {
-      position: 'absolute' as const,
-      left: `${position.x * (size + gap)}px`,
-      top: `${position.y * (size + gap)}px`,
-      width: `${size}px`,
-      height: `${size}px`,
-    };
-  };
-
-  const isOwnedBy = (cellId: number) => {
-    return gameState.players.find(p => p.properties.includes(cellId));
-  };
-
-  const getPlayersOnCell = (cellId: number) => {
-    return gameState.players.filter(p => p.position === cellId && !p.bankrupt);
-  };
 
   return (
     <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
@@ -38,8 +57,8 @@ export const GameBoard = () => {
       
       <div className="relative" style={{ width: '902px', height: '902px' }}>
         {cells.map((cell) => {
-          const owner = isOwnedBy(cell.id);
-          const playersHere = getPlayersOnCell(cell.id);
+          const owner = propertyOwners.get(cell.id);
+          const playersHere = playersByCell.get(cell.id) || [];
 
           const cellStyle = {
             ...getCellStyle(cell.position),
