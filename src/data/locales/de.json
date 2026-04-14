@@ -1,4 +1,10 @@
 {
+  "languages": {
+    "ru": "Russisch",
+    "en": "Englisch",
+    "de": "Deutsch",
+    "es": "Spanisch"
+  },
   "game": {
     "title": "Russisches Monopoly",
     "newGame": "Neues Spiel",

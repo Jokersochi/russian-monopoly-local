@@ -1,4 +1,10 @@
 {
+  "languages": {
+    "ru": "Ruso",
+    "en": "Inglés",
+    "de": "Alemán",
+    "es": "Español"
+  },
   "game": {
     "title": "Monopolio Ruso",
     "newGame": "Nuevo Juego",
