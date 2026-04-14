@@ -15,7 +15,9 @@
     "gameLog": "Spielprotokoll",
     "settings": "Einstellungen",
     "language": "Sprache",
+    "selectLanguage": "Sprache wählen: {{language}}",
     "playerCount": "Spieleranzahl",
+    "selectPlayerCount": "{{count}} Spieler wählen",
     "startMoney": "Startkapital",
     "maxRounds": "Max. Runden",
     "start": "Spiel starten",
@@ -91,6 +93,12 @@
     "bear": "Bär",
     "ushanka": "Uschanka",
     "rocket": "Rakete"
+  },
+  "languages": {
+    "ru": "Russisch",
+    "en": "Englisch",
+    "de": "Deutsch",
+    "es": "Spanisch"
   },
   "log": {
     "playerRolled": "{{player}} würfelte {{dice}}",

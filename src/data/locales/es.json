@@ -15,7 +15,9 @@
     "gameLog": "Registro del Juego",
     "settings": "Configuración",
     "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma: {{language}}",
     "playerCount": "Número de Jugadores",
+    "selectPlayerCount": "Seleccionar {{count}} jugadores",
     "startMoney": "Dinero Inicial",
     "maxRounds": "Rondas Máximas",
     "start": "Comenzar Juego",
@@ -91,6 +93,12 @@
     "bear": "Oso",
     "ushanka": "Ushanka",
     "rocket": "Cohete"
+  },
+  "languages": {
+    "ru": "Ruso",
+    "en": "Inglés",
+    "de": "Alemán",
+    "es": "Español"
   },
   "log": {
     "playerRolled": "{{player}} lanzó {{dice}}",

@@ -15,7 +15,9 @@
     "gameLog": "Game Log",
     "settings": "Settings",
     "language": "Language",
+    "selectLanguage": "Select language: {{language}}",
     "playerCount": "Number of Players",
+    "selectPlayerCount": "Select {{count}} players",
     "startMoney": "Starting Money",
     "maxRounds": "Max Rounds",
     "start": "Start Game",
@@ -91,6 +93,12 @@
     "bear": "Bear",
     "ushanka": "Ushanka",
     "rocket": "Rocket"
+  },
+  "languages": {
+    "ru": "Russian",
+    "en": "English",
+    "de": "German",
+    "es": "Spanish"
   },
   "log": {
     "playerRolled": "{{player}} rolled {{dice}}",

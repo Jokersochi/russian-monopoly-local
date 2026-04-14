@@ -15,7 +15,9 @@
     "gameLog": "Журнал игры",
     "settings": "Настройки",
     "language": "Язык",
+    "selectLanguage": "Выбрать язык: {{language}}",
     "playerCount": "Количество игроков",
+    "selectPlayerCount": "Выбрать {{count}} игроков",
     "startMoney": "Стартовый капитал",
     "maxRounds": "Максимум раундов",
     "start": "Начать игру",
@@ -91,6 +93,12 @@
     "bear": "Медведь",
     "ushanka": "Ушанка",
     "rocket": "Ракета"
+  },
+  "languages": {
+    "ru": "Русский",
+    "en": "Английский",
+    "de": "Немецкий",
+    "es": "Испанский"
   },
   "log": {
     "playerRolled": "{{player}} выбросил {{dice}}",
