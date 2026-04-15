@@ -1,0 +1,3 @@
+## 2026-04-14 - Map-based lookups in GameBoard
+**Learning:** The GameBoard component was performing O(Cells * Players) lookups (linear searches) inside the render loop for property ownership and player positions. For a standard 40-cell board with 4 players, this resulted in ~160 lookups per render, which can become a bottleneck as state updates frequently.
+**Action:** Use `useMemo` to pre-calculate `Map` lookups (O(1)) for ownership and positions. This reduces the complexity to O(Cells + Players) and ensures the render loop is as lean as possible. Always look for nested array searches in render loops of grid-based or list-based components.
