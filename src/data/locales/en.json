@@ -103,5 +103,11 @@
     "gameWon": "{{player}} won with {{money}}₽!",
     "passedStart": "{{player}} passed Start and collected 200000₽",
     "drewCard": "{{player}} drew card: {{card}}"
+  },
+  "languages": {
+    "ru": "Russian",
+    "en": "English",
+    "de": "German",
+    "es": "Spanish"
   }
 }

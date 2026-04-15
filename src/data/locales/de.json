@@ -103,5 +103,11 @@
     "gameWon": "{{player}} gewann mit {{money}}₽!",
     "passedStart": "{{player}} passierte Start und erhielt 200000₽",
     "drewCard": "{{player}} zog Karte: {{card}}"
+  },
+  "languages": {
+    "ru": "Russisch",
+    "en": "Englisch",
+    "de": "Deutsch",
+    "es": "Spanisch"
   }
 }

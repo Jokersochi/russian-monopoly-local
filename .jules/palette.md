@@ -1,0 +1,3 @@
+## 2026-04-14 - Accessible Language Selection
+**Learning:** Icon-only language selection buttons (flags) are completely opaque to screen readers if they lack `aria-label`s. Furthermore, because these buttons act as a single-select group (toggling languages), they need `aria-pressed` or `aria-selected` to convey state. The use of Shadcn's Tooltip component paired with the `TooltipProvider` ensures sighted users also understand the button's purpose, satisfying both visual and non-visual accessibility needs.
+**Action:** When implementing flag or icon-based selectors, always wrap them in a Tooltip, add an `aria-label` describing the specific option, use `aria-pressed` for the active state, and apply `aria-hidden="true"` to the decorative icon itself.

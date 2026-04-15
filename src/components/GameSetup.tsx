@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -57,17 +58,25 @@ export const GameSetup = () => {
                 { code: 'de', flag: '🇩🇪' },
                 { code: 'es', flag: '🇪🇸' }
               ].map(({ code, flag }) => (
-                <Button
-                  key={code}
-                  variant={locale === code ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(code as any)}
-                  className={cn(
-                    "transition-all h-12 text-lg",
-                    locale === code && "bg-russia-blue text-white shadow-strong scale-110"
-                  )}
-                >
-                  {flag}
-                </Button>
+                <Tooltip key={code}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={locale === code ? 'secondary' : 'outline'}
+                      onClick={() => setLocale(code as any)}
+                      className={cn(
+                        "transition-all h-12 text-lg",
+                        locale === code && "bg-russia-blue text-white shadow-strong scale-110"
+                      )}
+                      aria-label={t(`languages.${code}`)}
+                      aria-pressed={locale === code}
+                    >
+                      <span aria-hidden="true">{flag}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t(`languages.${code}`)}</p>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
           </div>
