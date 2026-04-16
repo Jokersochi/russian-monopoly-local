@@ -15,6 +15,12 @@
     "gameLog": "Game Log",
     "settings": "Settings",
     "language": "Language",
+    "languages": {
+      "en": "English",
+      "ru": "Russian",
+      "de": "German",
+      "es": "Spanish"
+    },
     "playerCount": "Number of Players",
     "startMoney": "Starting Money",
     "maxRounds": "Max Rounds",

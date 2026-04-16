@@ -15,6 +15,12 @@
     "gameLog": "Spielprotokoll",
     "settings": "Einstellungen",
     "language": "Sprache",
+    "languages": {
+      "en": "Englisch",
+      "ru": "Russisch",
+      "de": "Deutsch",
+      "es": "Spanisch"
+    },
     "playerCount": "Spieleranzahl",
     "startMoney": "Startkapital",
     "maxRounds": "Max. Runden",

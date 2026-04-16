@@ -15,6 +15,12 @@
     "gameLog": "Registro del Juego",
     "settings": "Configuración",
     "language": "Idioma",
+    "languages": {
+      "en": "Inglés",
+      "ru": "Ruso",
+      "de": "Alemán",
+      "es": "Español"
+    },
     "playerCount": "Número de Jugadores",
     "startMoney": "Dinero Inicial",
     "maxRounds": "Rondas Máximas",
