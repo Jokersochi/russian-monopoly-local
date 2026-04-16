@@ -1,0 +1,3 @@
+## 2026-04-14 - Accessible Icon-Only Language Selector
+**Learning:** Icon-only language selectors with flag emojis require special attention to accessibility. Screen readers cannot interpret flags natively and the action requires an explicit label and state representation. In this app, wrapping Shadcn UI tooltips around aria-labeled buttons handles this elegantly.
+**Action:** Always ensure icon-only buttons (like flag emojis) have an `aria-label`, a tooltip to clarify meaning for visual users, and `aria-pressed` for explicit active state feedback. Also, make sure that `languages.*` translation keys exist for each corresponding code to avoid missing text.

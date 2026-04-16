@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useGame } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const GameSetup = () => {
   const [playerCount, setPlayerCount] = useState(4);
@@ -31,6 +32,7 @@ export const GameSetup = () => {
             <div className="grid grid-cols-5 gap-2">
               {[2, 3, 4, 5, 6].map((count) => (
                 <Button
+                  aria-pressed={playerCount === count}
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
@@ -57,17 +59,25 @@ export const GameSetup = () => {
                 { code: 'de', flag: '🇩🇪' },
                 { code: 'es', flag: '🇪🇸' }
               ].map(({ code, flag }) => (
-                <Button
-                  key={code}
-                  variant={locale === code ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(code as any)}
-                  className={cn(
-                    "transition-all h-12 text-lg",
-                    locale === code && "bg-russia-blue text-white shadow-strong scale-110"
-                  )}
-                >
-                  {flag}
-                </Button>
+                <Tooltip key={code}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={locale === code ? 'secondary' : 'outline'}
+                      onClick={() => setLocale(code as any)}
+                      aria-label={t(`languages.${code}`)}
+                      aria-pressed={locale === code}
+                      className={cn(
+                        "transition-all h-12 text-lg",
+                        locale === code && "bg-russia-blue text-white shadow-strong scale-110"
+                      )}
+                    >
+                      {flag}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t(`languages.${code}`)}</p>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
           </div>
