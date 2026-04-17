@@ -23,7 +23,16 @@
     "yourTurn": "¡Tu turno!",
     "bankrupt": "En bancarrota",
     "winner": "Ganador",
-    "gameOver": "Juego Terminado"
+    "gameOver": "Juego Terminado",
+    "emptyLog": "El registro del juego está vacío",
+    "titleDescription": "Juego de mesa económico",
+    "playersLabel": "{{count}} jugadores"
+  },
+  "languages": {
+    "ru": "Ruso",
+    "en": "Inglés",
+    "de": "Alemán",
+    "es": "Español"
   },
   "cells": {
     "start": "Inicio",

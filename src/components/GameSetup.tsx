@@ -19,13 +19,13 @@ export const GameSetup = () => {
             {t('game.title')}
           </CardTitle>
           <p className="text-muted-foreground text-sm">
-            {locale === 'ru' ? 'Настольная экономическая игра' : 'Board Economic Game'}
+            {t('game.titleDescription', { defaultValue: locale === 'ru' ? 'Настольная экономическая игра' : 'Board Economic Game' })}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-blue">👥</span>
+              <span className="text-russia-blue" aria-hidden="true">👥</span>
               {t('game.playerCount')}
             </label>
             <div className="grid grid-cols-5 gap-2">
@@ -34,6 +34,8 @@ export const GameSetup = () => {
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-label={t('game.playersLabel', { count })}
+                  aria-pressed={playerCount === count}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -47,7 +49,7 @@ export const GameSetup = () => {
 
           <div className="space-y-3">
             <label className="text-sm font-semibold flex items-center gap-2">
-              <span className="text-russia-gold">🌍</span>
+              <span className="text-russia-gold" aria-hidden="true">🌍</span>
               {t('game.language')}
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -60,13 +62,15 @@ export const GameSetup = () => {
                 <Button
                   key={code}
                   variant={locale === code ? 'secondary' : 'outline'}
-                  onClick={() => setLocale(code as any)}
+                  onClick={() => setLocale(code as 'ru' | 'en' | 'de' | 'es')}
+                  aria-label={t(`languages.${code}`)}
+                  aria-pressed={locale === code}
                   className={cn(
                     "transition-all h-12 text-lg",
                     locale === code && "bg-russia-blue text-white shadow-strong scale-110"
                   )}
                 >
-                  {flag}
+                  <span aria-hidden="true">{flag}</span>
                 </Button>
               ))}
             </div>

@@ -23,7 +23,16 @@
     "yourTurn": "Your turn!",
     "bankrupt": "Bankrupt",
     "winner": "Winner",
-    "gameOver": "Game Over"
+    "gameOver": "Game Over",
+    "emptyLog": "Game log is empty",
+    "titleDescription": "Board Economic Game",
+    "playersLabel": "{{count}} players"
+  },
+  "languages": {
+    "ru": "Russian",
+    "en": "English",
+    "de": "German",
+    "es": "Spanish"
   },
   "cells": {
     "start": "Start",

@@ -23,7 +23,16 @@
     "yourTurn": "Du bist dran!",
     "bankrupt": "Bankrott",
     "winner": "Gewinner",
-    "gameOver": "Spiel vorbei"
+    "gameOver": "Spiel vorbei",
+    "emptyLog": "Spielprotokoll ist leer",
+    "titleDescription": "Wirtschafts-Brettspiel",
+    "playersLabel": "{{count}} Spieler"
+  },
+  "languages": {
+    "ru": "Russisch",
+    "en": "Englisch",
+    "de": "Deutsch",
+    "es": "Spanisch"
   },
   "cells": {
     "start": "Start",
