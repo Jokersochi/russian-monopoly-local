@@ -70,9 +70,16 @@ export const DiceRoller = () => {
   );
 };
 
-const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
+const DICE_PATTERNS: Record<number, boolean[]> = {
+  1: [false, false, false, false, true, false, false, false, false],
+  2: [true, false, false, false, false, false, false, false, true],
+  3: [true, false, false, false, true, false, false, false, true],
+  4: [true, false, true, false, false, false, true, false, true],
+  5: [true, false, true, false, true, false, true, false, true],
+  6: [true, false, true, true, false, true, true, false, true],
+};
 
+const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
   return (
     <div
       className={cn(
@@ -99,13 +106,5 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
 };
 
 const getDotPattern = (value: number): boolean[] => {
-  const patterns: Record<number, boolean[]> = {
-    1: [false, false, false, false, true, false, false, false, false],
-    2: [true, false, false, false, false, false, false, false, true],
-    3: [true, false, false, false, true, false, false, false, true],
-    4: [true, false, true, false, false, false, true, false, true],
-    5: [true, false, true, false, true, false, true, false, true],
-    6: [true, false, true, true, false, true, true, false, true],
-  };
-  return patterns[value] || patterns[1];
+  return DICE_PATTERNS[value] || DICE_PATTERNS[1];
 };

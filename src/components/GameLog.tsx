@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGame } from '@/contexts/GameContext';
@@ -7,6 +8,11 @@ import { cn } from '@/lib/utils';
 export const GameLog = () => {
   const { gameState } = useGame();
   const { t } = useLocale();
+
+  // Memoize reversed log to avoid O(N) reverse() on every render
+  const reversedLog = useMemo(() => {
+    return gameState?.gameLog ? [...gameState.gameLog].reverse() : [];
+  }, [gameState?.gameLog]);
 
   if (!gameState) return null;
 
@@ -20,12 +26,12 @@ export const GameLog = () => {
       </div>
       <ScrollArea className="h-[calc(100%-4rem)] p-3">
         <div className="space-y-2">
-          {gameState.gameLog.length === 0 ? (
+          {reversedLog.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               Журнал событий пуст
             </p>
           ) : (
-            gameState.gameLog.slice().reverse().map((entry) => (
+            reversedLog.map((entry) => (
               <div
                 key={entry.id}
                 className={cn(
