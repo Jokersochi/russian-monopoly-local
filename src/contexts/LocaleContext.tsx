@@ -38,10 +38,10 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const t = useCallback(
     (key: string, params?: Record<string, string | number>): string => {
       const keys = key.split('.');
-      let value: any = locales[locale];
+      let value: Record<string, any> | string = locales[locale];
 
       for (const k of keys) {
-        value = value?.[k];
+        value = (value as any)?.[k];
         if (value === undefined) break;
       }
 
