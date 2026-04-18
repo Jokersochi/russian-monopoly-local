@@ -73,7 +73,12 @@ export const GameBoard = () => {
               {playersHere.length > 0 && (
                 <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30">
                   {playersHere.map((player) => (
-                    <span key={player.id} className="text-base drop-shadow">
+                    <span
+                      key={player.id}
+                      className="text-base drop-shadow"
+                      role="img"
+                      aria-label={t(`players.${player.nameKey}`)}
+                    >
                       {player.token}
                     </span>
                   ))}
