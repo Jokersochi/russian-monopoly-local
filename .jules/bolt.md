@@ -1,0 +1,3 @@
+## 2026-04-14 - Map-based Game State Lookups
+**Learning:** In React applications with large collections (like a game board with 40 cells and multiple players), performing O(N) or O(N*M) lookups inside a render loop (e.g., using `array.find` or `array.filter` for each cell) can lead to significant frame drops as state complexity grows. Switching to Map-based pre-calculations in `useMemo` reduces the rendering complexity from quadratic to linear.
+**Action:** Always prefer Map-based lookups for entity collections when mapping one set of entities (e.g., players) to another (e.g., board cells) within a high-frequency render path.
