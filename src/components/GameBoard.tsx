@@ -1,10 +1,33 @@
+import { useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
+import { Player } from '@/types/game';
 
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
+
+  // Memoize property owners and players on cells to avoid O(N*M) lookups during render
+  const propertyOwners = useMemo(() => {
+    const ownersMap = new Map<number, Player>();
+    gameState?.players?.forEach(player => {
+      player.properties.forEach(cellId => {
+        ownersMap.set(cellId, player);
+      });
+    });
+    return ownersMap;
+  }, [gameState?.players]);
+
+  const playersOnCells = useMemo(() => {
+    const playersMap = new Map<number, Player[]>();
+    gameState?.players?.forEach(player => {
+      if (player.bankrupt) return;
+      const existing = playersMap.get(player.position) || [];
+      playersMap.set(player.position, [...existing, player]);
+    });
+    return playersMap;
+  }, [gameState?.players]);
 
   if (!gameState) return null;
 
@@ -20,14 +43,6 @@ export const GameBoard = () => {
     };
   };
 
-  const isOwnedBy = (cellId: number) => {
-    return gameState.players.find(p => p.properties.includes(cellId));
-  };
-
-  const getPlayersOnCell = (cellId: number) => {
-    return gameState.players.filter(p => p.position === cellId && !p.bankrupt);
-  };
-
   return (
     <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
       {/* Decorative corners */}
@@ -38,8 +53,8 @@ export const GameBoard = () => {
       
       <div className="relative" style={{ width: '902px', height: '902px' }}>
         {cells.map((cell) => {
-          const owner = isOwnedBy(cell.id);
-          const playersHere = getPlayersOnCell(cell.id);
+          const owner = propertyOwners.get(cell.id);
+          const playersHere = playersOnCells.get(cell.id) || [];
 
           const cellStyle = {
             ...getCellStyle(cell.position),
