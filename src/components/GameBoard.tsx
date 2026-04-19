@@ -1,10 +1,38 @@
+import { useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
+import { Player } from '@/types/game';
 
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
+
+  // PERFORMANCE OPTIMIZATION: Use Maps for O(1) lookups instead of O(N) array searches
+  // This reduces complexity from O(Cells * (Players + Properties)) to O(Cells + Players + Properties) per render
+  const propertyOwners = useMemo(() => {
+    const ownersMap = new Map<number, Player>();
+    gameState?.players?.forEach(player => {
+      if (!player.bankrupt) {
+        player.properties.forEach(propertyId => {
+          ownersMap.set(propertyId, player);
+        });
+      }
+    });
+    return ownersMap;
+  }, [gameState?.players]);
+
+  // PERFORMANCE OPTIMIZATION: Pre-calculate player positions to avoid O(N) searches inside the board loop
+  const playersOnCells = useMemo(() => {
+    const playersMap = new Map<number, Player[]>();
+    gameState?.players?.forEach(player => {
+      if (!player.bankrupt) {
+        const current = playersMap.get(player.position) || [];
+        playersMap.set(player.position, [...current, player]);
+      }
+    });
+    return playersMap;
+  }, [gameState?.players]);
 
   if (!gameState) return null;
 
@@ -21,11 +49,11 @@ export const GameBoard = () => {
   };
 
   const isOwnedBy = (cellId: number) => {
-    return gameState.players.find(p => p.properties.includes(cellId));
+    return propertyOwners.get(cellId);
   };
 
   const getPlayersOnCell = (cellId: number) => {
-    return gameState.players.filter(p => p.position === cellId && !p.bankrupt);
+    return playersOnCells.get(cellId) || [];
   };
 
   return (
