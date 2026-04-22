@@ -28,7 +28,14 @@ const locales: Record<Locale, any> = {
 };
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [locale, setLocaleState] = useState<Locale>('ru');
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return 'ru';
+
+    const savedLocale = localStorage.getItem('monopolyLocale');
+    if (savedLocale && savedLocale in locales) return savedLocale as Locale;
+
+    return 'ru';
+  });
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
