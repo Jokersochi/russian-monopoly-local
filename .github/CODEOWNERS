@@ -1,0 +1,10 @@
+# CODEOWNERS
+
+# Specify ownership for critical architecture files
+CLAUDE.md       @Jokersochi
+GameContext.tsx  @Jokersochi
+LocaleContext.tsx @Jokersochi
+game.ts          @Jokersochi
+
+# Default ownership for all files
+*                @Jokersochi
