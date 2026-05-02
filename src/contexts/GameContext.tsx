@@ -16,6 +16,7 @@ interface GameContextType {
   payBail: () => void;
   useJailCard: () => void;
   dismissCard: () => void;
+  buyHouse: (cellId: number) => void;
   cells: Cell[];
 }
 
@@ -42,7 +43,7 @@ function makeLog(
   return { id: Date.now() + Math.random(), textKey, params, type, timestamp: Date.now() };
 }
 
-function calcRent(cell: Cell, owner: Player, diceSum: number): number {
+function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<number, number>): number {
   if (!cell.rent) return 0;
 
   if (cell.type === 'transport') {
@@ -53,6 +54,12 @@ function calcRent(cell: Cell, owner: Player, diceSum: number): number {
   if (cell.type === 'utility') {
     const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'utility').length;
     return count >= 2 ? diceSum * 100_000 : diceSum * 40_000;
+  }
+
+  const houseCount = houses[cell.id] || 0;
+  if (houseCount > 0) {
+    const rentIdx = Math.min(houseCount, (cell.rent.length || 1) - 1);
+    return cell.rent[rentIdx];
   }
 
   const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
@@ -130,6 +137,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       gameLog: [],
       round: 1,
       maxRounds: 50,
+      houses: {},
     });
 
     toast({ title: 'Игра началась!', description: `${playerCount} игроков. Удачи!` });
@@ -328,7 +336,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (ownerIdx >= 0 && ownerIdx !== state.currentPlayer) {
         const owner = state.players[ownerIdx];
-        const rent = calcRent(cell, owner, diceSum);
+        const rent = calcRent(cell, owner, diceSum, state.houses);
         log('log.playerPaidRent', {
           player: pname(player),
           amount: rent.toLocaleString('ru-RU'),
@@ -680,8 +688,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (effect.moveToCell !== undefined) {
       newPosition = effect.moveToCell;
+      const targetCell = BOARD_CELLS[newPosition];
+      const jailByCard = targetCell?.type === 'jail';
       updatedPlayers = updatedPlayers.map((p, i) =>
-        i === gameState.currentPlayer ? { ...p, position: newPosition } : p
+        i === gameState.currentPlayer
+          ? { ...p, position: newPosition, inJail: jailByCard ? true : p.inJail, jailTurns: jailByCard ? 0 : p.jailTurns }
+          : p
       );
     }
 
@@ -713,6 +725,55 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const buyHouse = useCallback((cellId: number) => {
+    if (!gameState || gameState.phase !== 'rolling') return;
+
+    const player = gameState.players[gameState.currentPlayer];
+    if (!player.properties.includes(cellId)) return;
+
+    const cell = BOARD_CELLS[cellId];
+    if (!cell.houseCost || cell.type !== 'city') return;
+
+    const currentHouses = gameState.houses[cellId] || 0;
+    if (currentHouses >= 5) {
+      toast({ title: 'Максимум домов достигнут (5 = отель)', variant: 'destructive' });
+      return;
+    }
+
+    const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
+    const ownsAll = sameColor.every(c => player.properties.includes(c.id));
+    if (!ownsAll) {
+      toast({ title: 'Нужно владеть всеми объектами цвета!', variant: 'destructive' });
+      return;
+    }
+
+    if (player.money < cell.houseCost) {
+      toast({ title: 'Недостаточно денег для строительства!', variant: 'destructive' });
+      return;
+    }
+
+    const newHouseCount = currentHouses + 1;
+    const label = newHouseCount === 5 ? 'отель' : `${newHouseCount} ${newHouseCount === 1 ? 'дом' : 'дома'}`;
+    const log = makeLog('log.playerBought', {
+      player: pname(player),
+      property: `${t(`cells.${cell.nameKey}`)} (${label})`,
+      price: cell.houseCost.toLocaleString('ru-RU'),
+    }, 'success');
+
+    const updatedPlayers = gameState.players.map((p, i) =>
+      i === gameState.currentPlayer ? { ...p, money: p.money - cell.houseCost! } : p
+    );
+
+    setGameState({
+      ...gameState,
+      players: updatedPlayers,
+      houses: { ...gameState.houses, [cellId]: newHouseCount },
+      gameLog: [...gameState.gameLog, log],
+    });
+
+    toast({ title: `🏠 Построено!`, description: `${t(`cells.${cell.nameKey}`)}: ${label}` });
+  }, [gameState, t]);
+
   useEffect(() => {
     if (gameState) {
       localStorage.setItem('russianMonopolyState', JSON.stringify(gameState));
@@ -733,6 +794,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payBail,
         useJailCard,
         dismissCard,
+        buyHouse,
         cells: BOARD_CELLS,
       }}
     >

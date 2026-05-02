@@ -76,6 +76,7 @@ export interface GameState {
   gameLog: LogEntry[];
   round: number;
   maxRounds: number;
+  houses: Record<number, number>;
   currentEvent?: MicroEvent;
 }
 
