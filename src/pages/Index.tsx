@@ -6,12 +6,17 @@ import { PlayerPanel } from '@/components/PlayerPanel';
 import { DiceRoller } from '@/components/DiceRoller';
 import { ActionPanel } from '@/components/ActionPanel';
 import { GameLog } from '@/components/GameLog';
+import { GameOver } from '@/components/GameOver';
 
 const GameContent = () => {
   const { gameState } = useGame();
 
   if (!gameState) {
     return <GameSetup />;
+  }
+
+  if (gameState.phase === 'game-over') {
+    return <GameOver />;
   }
 
   return (
