@@ -98,10 +98,22 @@
     "playerPaidRent": "{{player}} paid {{amount}}₽ rent to {{owner}}",
     "playerPassed": "{{player}} passed on {{property}}",
     "auctionStarted": "Auction started for {{property}}",
-    "auctionWon": "{{player}} won auction for {{price}}₽",
+    "auctionBid": "{{player}} bids {{amount}}₽ on {{property}}",
+    "auctionPassedBid": "{{player}} passed in auction",
+    "auctionWon": "{{player}} won auction for {{property}} at {{price}}₽",
+    "auctionNoBids": "No bids on {{property}} — returned to bank",
     "playerBankrupt": "{{player}} went bankrupt!",
     "gameWon": "{{player}} won with {{money}}₽!",
-    "passedStart": "{{player}} passed Start and collected 200000₽",
-    "drewCard": "{{player}} drew card: {{card}}"
+    "passedStart": "{{player}} passed Start and collected {{amount}}₽",
+    "drewCard": "{{player}} drew card: {{card}}",
+    "playerJailed": "{{player}} sent to jail",
+    "playerReleasedFromJail": "{{player}} rolled doubles and left jail!",
+    "playerForcedBail": "{{player}} forced to pay bail and move",
+    "playerPaysBail": "{{player}} paid bail {{amount}}₽",
+    "playerStillInJail": "{{player}} stays in jail ({{turns}}/3)",
+    "playerDouble": "{{player}} rolled doubles — rolls again!",
+    "playerThreeDoubles": "{{player}} — three doubles! Off to jail!",
+    "playerPaidTax": "{{player}} paid tax {{amount}}₽",
+    "rentOwnProperty": "{{player}} landed on own property — no rent"
   }
 }

@@ -98,10 +98,22 @@
     "playerPaidRent": "{{player}} pagó {{amount}}₽ de alquiler a {{owner}}",
     "playerPassed": "{{player}} pasó en {{property}}",
     "auctionStarted": "Subasta iniciada para {{property}}",
-    "auctionWon": "{{player}} ganó la subasta por {{price}}₽",
+    "auctionBid": "{{player}} oferta {{amount}}₽ por {{property}}",
+    "auctionPassedBid": "{{player}} pasó en la subasta",
+    "auctionWon": "{{player}} ganó la subasta de {{property}} por {{price}}₽",
+    "auctionNoBids": "Sin ofertas por {{property}} — devuelto al banco",
     "playerBankrupt": "¡{{player}} se declaró en bancarrota!",
     "gameWon": "¡{{player}} ganó con {{money}}₽!",
-    "passedStart": "{{player}} pasó por Inicio y cobró 200000₽",
-    "drewCard": "{{player}} sacó carta: {{card}}"
+    "passedStart": "{{player}} pasó por Inicio y cobró {{amount}}₽",
+    "drewCard": "{{player}} sacó carta: {{card}}",
+    "playerJailed": "{{player}} enviado a la cárcel",
+    "playerReleasedFromJail": "¡{{player}} sacó dobles y salió de la cárcel!",
+    "playerForcedBail": "{{player}} obligado a pagar fianza y moverse",
+    "playerPaysBail": "{{player}} pagó fianza {{amount}}₽",
+    "playerStillInJail": "{{player}} sigue en la cárcel ({{turns}}/3)",
+    "playerDouble": "¡{{player}} sacó dobles — tira de nuevo!",
+    "playerThreeDoubles": "¡{{player}} — tres dobles! ¡A la cárcel!",
+    "playerPaidTax": "{{player}} pagó impuesto {{amount}}₽",
+    "rentOwnProperty": "{{player}} en su propiedad — no paga alquiler"
   }
 }

@@ -18,7 +18,7 @@ export const DiceRoller = () => {
     setTimeout(() => setRolling(false), 600);
   };
 
-  const canRoll = gameState.phase === 'rolling';
+  const canRoll = gameState.phase === 'rolling' || gameState.phase === 'jail';
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">

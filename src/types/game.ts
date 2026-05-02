@@ -70,6 +70,7 @@ export interface GameState {
   dice: [number, number];
   phase: GamePhase;
   auctionState?: AuctionState;
+  currentCard?: ChanceCard;
   lastRoll: [number, number] | null;
   doubleCount: number;
   gameLog: LogEntry[];
@@ -93,9 +94,10 @@ export type GamePhase =
 export interface AuctionState {
   cellId: number;
   currentBid: number;
-  currentBidder: number | null;
+  highBidder: number | null;
+  currentBidder: number;
   participants: number[];
-  passedPlayers: Set<number>;
+  passedPlayers: number[];
 }
 
 export interface LogEntry {

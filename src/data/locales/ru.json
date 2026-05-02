@@ -98,10 +98,22 @@
     "playerPaidRent": "{{player}} заплатил {{amount}}₽ аренды игроку {{owner}}",
     "playerPassed": "{{player}} пропустил покупку {{property}}",
     "auctionStarted": "Начался аукцион на {{property}}",
-    "auctionWon": "{{player}} выиграл аукцион за {{price}}₽",
+    "auctionBid": "{{player}} ставит {{amount}}₽ на {{property}}",
+    "auctionPassedBid": "{{player}} пас на аукционе",
+    "auctionWon": "{{player}} выиграл аукцион {{property}} за {{price}}₽",
+    "auctionNoBids": "Никто не ставил на {{property}} — возвращено банку",
     "playerBankrupt": "{{player}} обанкротился!",
     "gameWon": "{{player}} победил с капиталом {{money}}₽!",
-    "passedStart": "{{player}} прошёл Старт и получил 200000₽",
-    "drewCard": "{{player}} вытянул карту: {{card}}"
+    "passedStart": "{{player}} прошёл Старт и получил {{amount}}₽",
+    "drewCard": "{{player}} вытянул карту: {{card}}",
+    "playerJailed": "{{player}} отправлен в тюрьму",
+    "playerReleasedFromJail": "{{player}} вышел из тюрьмы — дубль!",
+    "playerForcedBail": "{{player}} принудительно заплатил залог и вышел",
+    "playerPaysBail": "{{player}} заплатил залог {{amount}}₽",
+    "playerStillInJail": "{{player}} остался в тюрьме ({{turns}}/3)",
+    "playerDouble": "{{player}} выбросил дубль — ходит снова!",
+    "playerThreeDoubles": "{{player}} — три дубля! В тюрьму!",
+    "playerPaidTax": "{{player}} заплатил налог {{amount}}₽",
+    "rentOwnProperty": "{{player}} на своей земле — аренда не платится"
   }
 }

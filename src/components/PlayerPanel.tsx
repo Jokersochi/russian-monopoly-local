@@ -48,6 +48,11 @@ export const PlayerPanel = () => {
                         ⭐ {t('game.yourTurn')}
                       </Badge>
                     )}
+                    {player.inJail && (
+                      <Badge variant="destructive" className="text-xs bg-orange-700 border-orange-600">
+                        🔒 Тюрьма
+                      </Badge>
+                    )}
                     {player.bankrupt && (
                       <Badge variant="destructive" className="text-xs">
                         💸 {t('game.bankrupt')}

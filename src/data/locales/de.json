@@ -98,10 +98,22 @@
     "playerPaidRent": "{{player}} zahlte {{amount}}₽ Miete an {{owner}}",
     "playerPassed": "{{player}} passte bei {{property}}",
     "auctionStarted": "Auktion gestartet für {{property}}",
-    "auctionWon": "{{player}} gewann Auktion für {{price}}₽",
+    "auctionBid": "{{player}} bietet {{amount}}₽ auf {{property}}",
+    "auctionPassedBid": "{{player}} passte bei der Auktion",
+    "auctionWon": "{{player}} gewann Auktion {{property}} für {{price}}₽",
+    "auctionNoBids": "Keine Gebote auf {{property}} — an die Bank zurück",
     "playerBankrupt": "{{player}} ging bankrott!",
     "gameWon": "{{player}} gewann mit {{money}}₽!",
-    "passedStart": "{{player}} passierte Start und erhielt 200000₽",
-    "drewCard": "{{player}} zog Karte: {{card}}"
+    "passedStart": "{{player}} passierte Start und erhielt {{amount}}₽",
+    "drewCard": "{{player}} zog Karte: {{card}}",
+    "playerJailed": "{{player}} ins Gefängnis geschickt",
+    "playerReleasedFromJail": "{{player}} würfelte Pasch und verließ das Gefängnis!",
+    "playerForcedBail": "{{player}} musste Kaution zahlen und weiterziehen",
+    "playerPaysBail": "{{player}} zahlte Kaution {{amount}}₽",
+    "playerStillInJail": "{{player}} bleibt im Gefängnis ({{turns}}/3)",
+    "playerDouble": "{{player}} würfelte Pasch — nochmal würfeln!",
+    "playerThreeDoubles": "{{player}} — dreimal Pasch! Ins Gefängnis!",
+    "playerPaidTax": "{{player}} zahlte Steuer {{amount}}₽",
+    "rentOwnProperty": "{{player}} auf eigenem Grundstück — keine Miete"
   }
 }
