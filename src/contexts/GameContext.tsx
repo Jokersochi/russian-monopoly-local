@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { GameState, Player, Cell, GamePhase } from '@/types/game';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { GameState, Player, Cell, GamePhase, LogEntry } from '@/types/game';
 import { BOARD_CELLS, PLAYER_TOKENS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface GameContextType {
   gameState: GameState | null;
@@ -27,6 +28,19 @@ const START_BONUS = 2000000;
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const { toast } = useToast();
+  const { t } = useLocale();
+  const logIdRef = useRef(0);
+
+  const makeLog = useCallback(
+    (textKey: string, type: LogEntry['type'], params?: LogEntry['params']): LogEntry => ({
+      id: Date.now() * 1000 + (logIdRef.current++ % 1000),
+      textKey,
+      params,
+      type,
+      timestamp: Date.now(),
+    }),
+    []
+  );
 
   const initGame = useCallback((playerCount: number) => {
     const players: Player[] = Array.from({ length: playerCount }, (_, i) => ({
@@ -71,10 +85,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isDouble = dice1 === dice2;
 
     const currentPlayer = gameState.players[gameState.currentPlayer];
+    const playerName = t(`players.${currentPlayer.nameKey}`);
     const newPosition = (currentPlayer.position + sum) % 40;
     const passedStart = newPosition < currentPlayer.position;
+    const landedCell = BOARD_CELLS[newPosition];
 
-    const updatedPlayers = gameState.players.map((p, idx) => {
+    const ownerIdx = gameState.players.findIndex(
+      (p, idx) =>
+        idx !== gameState.currentPlayer &&
+        !p.bankrupt &&
+        p.properties.includes(landedCell.id)
+    );
+
+    let updatedPlayers = gameState.players.map((p, idx) => {
       if (idx === gameState.currentPlayer) {
         return {
           ...p,
@@ -85,12 +108,62 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return p;
     });
 
+    const newLog: LogEntry[] = [
+      ...gameState.gameLog,
+      makeLog('log.playerRolled', 'info', {
+        player: playerName,
+        dice: `${dice1}+${dice2}=${sum}`,
+      }),
+    ];
+
+    if (passedStart) {
+      newLog.push(
+        makeLog('log.passedStart', 'success', {
+          player: playerName,
+          amount: START_BONUS,
+        })
+      );
+    }
+
+    let nextPhase: GamePhase = 'landed';
+    let nextCurrentPlayer = gameState.currentPlayer;
+
+    if (ownerIdx >= 0 && landedCell.rent && landedCell.rent[0] > 0) {
+      const rentAmount = landedCell.rent[0];
+      const owner = gameState.players[ownerIdx];
+      const ownerName = t(`players.${owner.nameKey}`);
+
+      updatedPlayers = updatedPlayers.map((p, idx) => {
+        if (idx === gameState.currentPlayer) return { ...p, money: p.money - rentAmount };
+        if (idx === ownerIdx) return { ...p, money: p.money + rentAmount };
+        return p;
+      });
+
+      newLog.push(
+        makeLog('log.playerPaidRent', 'warning', {
+          player: playerName,
+          amount: rentAmount,
+          owner: ownerName,
+        })
+      );
+
+      toast({
+        title: t('game.payRent'),
+        description: `${playerName} → ${rentAmount.toLocaleString()}₽ → ${ownerName}`,
+      });
+
+      nextPhase = 'rolling';
+      nextCurrentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+    }
+
     setGameState({
       ...gameState,
       dice: [dice1, dice2],
       lastRoll: [dice1, dice2],
       players: updatedPlayers,
-      phase: 'landed',
+      gameLog: newLog,
+      phase: nextPhase,
+      currentPlayer: nextCurrentPlayer,
       doubleCount: isDouble ? gameState.doubleCount + 1 : 0,
     });
 
@@ -98,7 +171,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: `Выброшено: ${dice1} + ${dice2} = ${sum}`,
       description: isDouble ? "Дубль!" : undefined,
     });
-  }, [gameState, toast]);
+  }, [gameState, toast, t, makeLog]);
 
   const buyProperty = useCallback(() => {
     if (!gameState || gameState.phase !== 'landed') return;
@@ -120,16 +193,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return p;
       });
 
+      const playerName = t(`players.${currentPlayer.nameKey}`);
+      const propertyName = t(`cells.${cell.nameKey}`);
+
       setGameState({
         ...gameState,
         players: updatedPlayers,
         phase: 'rolling',
         currentPlayer: (gameState.currentPlayer + 1) % gameState.players.length,
+        gameLog: [
+          ...gameState.gameLog,
+          makeLog('log.playerBought', 'success', {
+            player: playerName,
+            property: propertyName,
+            price: cell.price,
+          }),
+        ],
       });
 
       toast({
         title: "Куплено!",
-        description: `Вы купили ${cell.nameKey} за ${cell.price}₽`,
+        description: `${propertyName} — ${cell.price.toLocaleString()}₽`,
       });
     } else {
       toast({
@@ -137,22 +221,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive",
       });
     }
-  }, [gameState, toast]);
+  }, [gameState, toast, t, makeLog]);
 
   const passProperty = useCallback(() => {
     if (!gameState || gameState.phase !== 'landed') return;
+
+    const currentPlayer = gameState.players[gameState.currentPlayer];
+    const cell = BOARD_CELLS[currentPlayer.position];
+    const playerName = t(`players.${currentPlayer.nameKey}`);
+    const propertyName = cell.nameKey ? t(`cells.${cell.nameKey}`) : '';
 
     setGameState({
       ...gameState,
       phase: 'rolling',
       currentPlayer: (gameState.currentPlayer + 1) % gameState.players.length,
+      gameLog: [
+        ...gameState.gameLog,
+        makeLog('log.playerPassed', 'info', {
+          player: playerName,
+          property: propertyName,
+        }),
+      ],
     });
 
     toast({
       title: "Пропуск",
       description: "Вы пропустили покупку",
     });
-  }, [gameState, toast]);
+  }, [gameState, toast, t, makeLog]);
 
   const endTurn = useCallback(() => {
     if (!gameState) return;

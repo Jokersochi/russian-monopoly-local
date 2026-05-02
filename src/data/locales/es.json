@@ -101,7 +101,7 @@
     "auctionWon": "{{player}} ganó la subasta por {{price}}₽",
     "playerBankrupt": "¡{{player}} se declaró en bancarrota!",
     "gameWon": "¡{{player}} ganó con {{money}}₽!",
-    "passedStart": "{{player}} pasó por Inicio y cobró 200000₽",
+    "passedStart": "{{player}} pasó por Inicio y cobró {{amount}}₽",
     "drewCard": "{{player}} sacó carta: {{card}}"
   }
 }
