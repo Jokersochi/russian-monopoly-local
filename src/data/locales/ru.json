@@ -25,7 +25,12 @@
     "winner": "Победитель",
     "gameOver": "Игра окончена",
     "inJail": "В тюрьме",
-    "payJailFine": "Заплатить залог (500K₽)"
+    "payJailFine": "Заплатить залог (500K₽)",
+    "buildHouse": "Построить дом",
+    "buildHotel": "Построить отель",
+    "yourProperties": "Ваши владения",
+    "houses": "Дома",
+    "hotel": "Отель"
   },
   "cells": {
     "start": "Старт",
@@ -110,6 +115,7 @@
     "wentToJailDoubles": "{{player}} выбросил 3 дубля подряд и попал в тюрьму!",
     "stayedInJail": "{{player}} остался в тюрьме (попытка {{turn}} из 3)",
     "exitedJailDoubles": "{{player}} выбросил дубль и вышел из тюрьмы!",
-    "paidJailFine": "{{player}} заплатил залог {{amount}}₽ и вышел из тюрьмы"
+    "paidJailFine": "{{player}} заплатил залог {{amount}}₽ и вышел из тюрьмы",
+    "builtHouse": "{{player}} построил дом ({{count}}) на {{property}} за {{price}}₽"
   }
 }

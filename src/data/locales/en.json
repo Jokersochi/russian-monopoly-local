@@ -25,7 +25,12 @@
     "winner": "Winner",
     "gameOver": "Game Over",
     "inJail": "In Jail",
-    "payJailFine": "Pay Bail (500K₽)"
+    "payJailFine": "Pay Bail (500K₽)",
+    "buildHouse": "Build House",
+    "buildHotel": "Build Hotel",
+    "yourProperties": "Your Properties",
+    "houses": "Houses",
+    "hotel": "Hotel"
   },
   "cells": {
     "start": "Start",
@@ -110,6 +115,7 @@
     "wentToJailDoubles": "{{player}} rolled 3 doubles in a row and went to jail!",
     "stayedInJail": "{{player}} stayed in jail (attempt {{turn}} of 3)",
     "exitedJailDoubles": "{{player}} rolled doubles and got out of jail!",
-    "paidJailFine": "{{player}} paid bail of {{amount}}₽ and got out of jail"
+    "paidJailFine": "{{player}} paid bail of {{amount}}₽ and got out of jail",
+    "builtHouse": "{{player}} built a house ({{count}}) on {{property}} for {{price}}₽"
   }
 }

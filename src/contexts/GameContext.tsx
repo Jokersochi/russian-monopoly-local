@@ -13,8 +13,11 @@ interface GameContextType {
   endTurn: () => void;
   resetGame: () => void;
   payJailFine: () => void;
+  buildHouse: (cellId: number) => void;
   cells: Cell[];
 }
+
+const MAX_HOUSES = 5;
 
 interface AdvanceResult {
   players: Player[];
@@ -30,7 +33,11 @@ const computeNetWorth = (player: Player, cells: Cell[]): number => {
     (sum, cellId) => sum + (cells[cellId]?.price ?? 0),
     0
   );
-  return player.money + propertyValue;
+  const houseValue = Object.entries(player.houses ?? {}).reduce(
+    (sum, [cellId, count]) => sum + (cells[Number(cellId)]?.houseCost ?? 0) * count,
+    0
+  );
+  return player.money + propertyValue + houseValue;
 };
 
 const findNextActivePlayer = (players: Player[], fromIdx: number): number => {
@@ -83,7 +90,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ): AdvanceResult => {
       const nextPlayers = players.map((p) => {
         if (p.bankrupt || p.money >= 0) return p;
-        return { ...p, bankrupt: true, properties: [], money: 0 };
+        return { ...p, bankrupt: true, properties: [], houses: {}, money: 0 };
       });
       let nextLog = log;
       players.forEach((p, i) => {
@@ -164,6 +171,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       money: STARTING_MONEY,
       position: 0,
       properties: [],
+      houses: {},
       getOutOfJailCards: 0,
       inJail: false,
       jailTurns: 0,
@@ -381,8 +389,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     if (ownerIdx >= 0 && landedCell.rent && landedCell.rent[0] > 0) {
-      const rentAmount = landedCell.rent[0];
       const owner = gameState.players[ownerIdx];
+      const houseCount = owner.houses?.[landedCell.id] ?? 0;
+      const rentIdx = Math.min(houseCount, landedCell.rent.length - 1);
+      const rentAmount = landedCell.rent[rentIdx];
       const ownerName = t(`players.${owner.nameKey}`);
 
       workingPlayers = workingPlayers.map((p, idx) => {
@@ -443,6 +453,57 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setGameState({ ...gameState, players: updatedPlayers, gameLog: newLog });
     toast({ title: 'Залог оплачен', description: `${JAIL_FINE.toLocaleString()}₽ — теперь бросайте кубики` });
+  }, [gameState, toast, t, makeLog]);
+
+  const buildHouse = useCallback((cellId: number) => {
+    if (!gameState) return;
+    const currentPlayer = gameState.players[gameState.currentPlayer];
+    if (!currentPlayer.properties.includes(cellId)) return;
+
+    const cell = BOARD_CELLS[cellId];
+    if (!cell.houseCost) return;
+
+    const currentCount = currentPlayer.houses?.[cellId] ?? 0;
+    if (currentCount >= MAX_HOUSES) {
+      toast({ title: 'Максимум построек', variant: 'destructive' });
+      return;
+    }
+
+    if (currentPlayer.money < cell.houseCost) {
+      toast({ title: 'Недостаточно денег', variant: 'destructive' });
+      return;
+    }
+
+    const playerName = t(`players.${currentPlayer.nameKey}`);
+    const propertyName = t(`cells.${cell.nameKey}`);
+    const newCount = currentCount + 1;
+
+    const updatedPlayers = gameState.players.map((p, idx) =>
+      idx === gameState.currentPlayer
+        ? {
+            ...p,
+            money: p.money - cell.houseCost!,
+            houses: { ...(p.houses ?? {}), [cellId]: newCount },
+          }
+        : p
+    );
+
+    const newLog: LogEntry[] = [
+      ...gameState.gameLog,
+      makeLog('log.builtHouse', 'success', {
+        player: playerName,
+        property: propertyName,
+        count: newCount,
+        price: cell.houseCost,
+      }),
+    ];
+
+    setGameState({ ...gameState, players: updatedPlayers, gameLog: newLog });
+
+    toast({
+      title: newCount === MAX_HOUSES ? '🏨 Отель построен!' : `🏠 Дом ${newCount}/4 построен`,
+      description: `${propertyName} — ${cell.houseCost.toLocaleString()}₽`,
+    });
   }, [gameState, toast, t, makeLog]);
 
   const buyProperty = useCallback(() => {
@@ -575,7 +636,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('russianMonopolyState');
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const parsed = JSON.parse(saved) as GameState;
+        // Migrate stale saves: ensure each player has a `houses` map.
+        parsed.players = parsed.players.map((p) =>
+          p.houses ? p : { ...p, houses: {} }
+        );
+        setGameState(parsed);
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
@@ -599,6 +665,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         endTurn,
         resetGame,
         payJailFine,
+        buildHouse,
         cells: BOARD_CELLS,
       }}
     >

@@ -25,7 +25,12 @@
     "winner": "Gewinner",
     "gameOver": "Spiel vorbei",
     "inJail": "Im Gefängnis",
-    "payJailFine": "Kaution zahlen (500K₽)"
+    "payJailFine": "Kaution zahlen (500K₽)",
+    "buildHouse": "Haus bauen",
+    "buildHotel": "Hotel bauen",
+    "yourProperties": "Dein Besitz",
+    "houses": "Häuser",
+    "hotel": "Hotel"
   },
   "cells": {
     "start": "Start",
@@ -110,6 +115,7 @@
     "wentToJailDoubles": "{{player}} würfelte 3 Mal hintereinander Pasch und kam ins Gefängnis!",
     "stayedInJail": "{{player}} blieb im Gefängnis (Versuch {{turn}} von 3)",
     "exitedJailDoubles": "{{player}} würfelte Pasch und kam frei!",
-    "paidJailFine": "{{player}} zahlte Kaution {{amount}}₽ und kam frei"
+    "paidJailFine": "{{player}} zahlte Kaution {{amount}}₽ und kam frei",
+    "builtHouse": "{{player}} baute ein Haus ({{count}}) auf {{property}} für {{price}}₽"
   }
 }

@@ -25,7 +25,12 @@
     "winner": "Ganador",
     "gameOver": "Juego Terminado",
     "inJail": "En la Cárcel",
-    "payJailFine": "Pagar Fianza (500K₽)"
+    "payJailFine": "Pagar Fianza (500K₽)",
+    "buildHouse": "Construir Casa",
+    "buildHotel": "Construir Hotel",
+    "yourProperties": "Tus Propiedades",
+    "houses": "Casas",
+    "hotel": "Hotel"
   },
   "cells": {
     "start": "Inicio",
@@ -110,6 +115,7 @@
     "wentToJailDoubles": "¡{{player}} sacó 3 dobles seguidos y fue a la cárcel!",
     "stayedInJail": "{{player}} permaneció en la cárcel (intento {{turn}} de 3)",
     "exitedJailDoubles": "¡{{player}} sacó dobles y salió de la cárcel!",
-    "paidJailFine": "{{player}} pagó fianza de {{amount}}₽ y salió de la cárcel"
+    "paidJailFine": "{{player}} pagó fianza de {{amount}}₽ y salió de la cárcel",
+    "builtHouse": "{{player}} construyó una casa ({{count}}) en {{property}} por {{price}}₽"
   }
 }

@@ -39,6 +39,7 @@ export interface Player {
   money: number;
   position: number;
   properties: number[];
+  houses: Record<number, number>;
   getOutOfJailCards: number;
   inJail: boolean;
   jailTurns: number;

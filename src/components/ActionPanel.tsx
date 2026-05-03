@@ -4,7 +4,7 @@ import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 
 export const ActionPanel = () => {
-  const { gameState, buyProperty, passProperty, endTurn, payJailFine, cells } = useGame();
+  const { gameState, buyProperty, passProperty, endTurn, payJailFine, buildHouse, cells } = useGame();
   const { t } = useLocale();
 
   if (!gameState) return null;
@@ -17,6 +17,10 @@ export const ActionPanel = () => {
                  currentPlayer.money >= (currentCell.price || 0);
 
   const canPass = gameState.phase === 'landed' && currentCell.price;
+
+  const buildableProperties = currentPlayer.properties
+    .map((id) => cells[id])
+    .filter((c) => c?.houseCost && (currentPlayer.houses?.[c.id] ?? 0) < 5);
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-blue/20">
@@ -56,6 +60,47 @@ export const ActionPanel = () => {
             >
               💰 {t('game.payJailFine')}
             </Button>
+          </div>
+        )}
+
+        {gameState.phase === 'rolling' && !currentPlayer.inJail && buildableProperties.length > 0 && (
+          <div className="p-3 bg-russia-gold/10 rounded-lg border border-russia-gold/30 space-y-2">
+            <p className="text-sm font-bold text-russia-gold flex items-center gap-2">
+              🏗️ {t('game.yourProperties')}
+            </p>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {buildableProperties.map((cell) => {
+                const count = currentPlayer.houses?.[cell.id] ?? 0;
+                const cost = cell.houseCost!;
+                const disabled = currentPlayer.money < cost;
+                return (
+                  <div
+                    key={cell.id}
+                    className="flex items-center justify-between gap-2 p-2 bg-card/50 rounded text-sm"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">
+                        {t(`cells.${cell.nameKey}`)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {count === 5
+                          ? `🏨 ${t('game.hotel')}`
+                          : `🏠 ${count}/4 · ${(cost / 1000).toFixed(0)}K₽`}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => buildHouse(cell.id)}
+                      disabled={disabled}
+                      size="sm"
+                      variant="outline"
+                      className="border-russia-gold/50 hover:bg-russia-gold/20 shrink-0"
+                    >
+                      {count === 4 ? '🏨' : '🏠'} +
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
