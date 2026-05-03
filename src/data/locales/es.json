@@ -23,7 +23,9 @@
     "yourTurn": "¡Tu turno!",
     "bankrupt": "En bancarrota",
     "winner": "Ganador",
-    "gameOver": "Juego Terminado"
+    "gameOver": "Juego Terminado",
+    "inJail": "En la Cárcel",
+    "payJailFine": "Pagar Fianza (500K₽)"
   },
   "cells": {
     "start": "Inicio",
@@ -102,6 +104,12 @@
     "playerBankrupt": "¡{{player}} se declaró en bancarrota!",
     "gameWon": "¡{{player}} ganó con {{money}}₽!",
     "passedStart": "{{player}} pasó por Inicio y cobró {{amount}}₽",
-    "drewCard": "{{player}} sacó carta: {{card}}"
+    "drewCard": "{{player}} sacó carta: {{card}}",
+    "paidTax": "{{player}} pagó {{cell}} {{amount}}₽",
+    "wentToJail": "¡{{player}} fue a la cárcel!",
+    "wentToJailDoubles": "¡{{player}} sacó 3 dobles seguidos y fue a la cárcel!",
+    "stayedInJail": "{{player}} permaneció en la cárcel (intento {{turn}} de 3)",
+    "exitedJailDoubles": "¡{{player}} sacó dobles y salió de la cárcel!",
+    "paidJailFine": "{{player}} pagó fianza de {{amount}}₽ y salió de la cárcel"
   }
 }

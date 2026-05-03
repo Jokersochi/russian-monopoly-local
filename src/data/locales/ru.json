@@ -23,7 +23,9 @@
     "yourTurn": "Ваш ход!",
     "bankrupt": "Банкрот",
     "winner": "Победитель",
-    "gameOver": "Игра окончена"
+    "gameOver": "Игра окончена",
+    "inJail": "В тюрьме",
+    "payJailFine": "Заплатить залог (500K₽)"
   },
   "cells": {
     "start": "Старт",
@@ -102,6 +104,12 @@
     "playerBankrupt": "{{player}} обанкротился!",
     "gameWon": "{{player}} победил с капиталом {{money}}₽!",
     "passedStart": "{{player}} прошёл Старт и получил {{amount}}₽",
-    "drewCard": "{{player}} вытянул карту: {{card}}"
+    "drewCard": "{{player}} вытянул карту: {{card}}",
+    "paidTax": "{{player}} заплатил {{cell}} {{amount}}₽",
+    "wentToJail": "{{player}} отправился в тюрьму!",
+    "wentToJailDoubles": "{{player}} выбросил 3 дубля подряд и попал в тюрьму!",
+    "stayedInJail": "{{player}} остался в тюрьме (попытка {{turn}} из 3)",
+    "exitedJailDoubles": "{{player}} выбросил дубль и вышел из тюрьмы!",
+    "paidJailFine": "{{player}} заплатил залог {{amount}}₽ и вышел из тюрьмы"
   }
 }

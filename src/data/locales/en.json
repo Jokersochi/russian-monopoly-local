@@ -23,7 +23,9 @@
     "yourTurn": "Your turn!",
     "bankrupt": "Bankrupt",
     "winner": "Winner",
-    "gameOver": "Game Over"
+    "gameOver": "Game Over",
+    "inJail": "In Jail",
+    "payJailFine": "Pay Bail (500K₽)"
   },
   "cells": {
     "start": "Start",
@@ -102,6 +104,12 @@
     "playerBankrupt": "{{player}} went bankrupt!",
     "gameWon": "{{player}} won with {{money}}₽!",
     "passedStart": "{{player}} passed Start and collected {{amount}}₽",
-    "drewCard": "{{player}} drew card: {{card}}"
+    "drewCard": "{{player}} drew card: {{card}}",
+    "paidTax": "{{player}} paid {{cell}} {{amount}}₽",
+    "wentToJail": "{{player}} went to jail!",
+    "wentToJailDoubles": "{{player}} rolled 3 doubles in a row and went to jail!",
+    "stayedInJail": "{{player}} stayed in jail (attempt {{turn}} of 3)",
+    "exitedJailDoubles": "{{player}} rolled doubles and got out of jail!",
+    "paidJailFine": "{{player}} paid bail of {{amount}}₽ and got out of jail"
   }
 }

@@ -4,15 +4,15 @@ import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 
 export const ActionPanel = () => {
-  const { gameState, buyProperty, passProperty, endTurn, cells } = useGame();
+  const { gameState, buyProperty, passProperty, endTurn, payJailFine, cells } = useGame();
   const { t } = useLocale();
 
   if (!gameState) return null;
 
   const currentPlayer = gameState.players[gameState.currentPlayer];
   const currentCell = cells[currentPlayer.position];
-  const canBuy = gameState.phase === 'landed' && 
-                 currentCell.price && 
+  const canBuy = gameState.phase === 'landed' &&
+                 currentCell.price &&
                  !gameState.players.some(p => p.properties.includes(currentCell.id)) &&
                  currentPlayer.money >= (currentCell.price || 0);
 
@@ -39,6 +39,25 @@ export const ActionPanel = () => {
             </div>
           </div>
         </div>
+
+        {gameState.phase === 'rolling' && currentPlayer.inJail && (
+          <div className="p-3 bg-russia-red/10 rounded-lg border border-russia-red/30 space-y-2">
+            <p className="text-sm font-bold text-russia-red flex items-center gap-2">
+              🔒 {t('game.inJail')}
+              <span className="text-xs font-normal text-muted-foreground">
+                ({currentPlayer.jailTurns}/3)
+              </span>
+            </p>
+            <Button
+              onClick={payJailFine}
+              variant="outline"
+              className="w-full border-russia-red/50 hover:bg-russia-red/20 text-sm"
+              disabled={currentPlayer.money < 500000}
+            >
+              💰 {t('game.payJailFine')}
+            </Button>
+          </div>
+        )}
 
         {gameState.phase === 'landed' && currentCell.price && (
           <Card className="p-4 bg-gradient-to-br from-muted/80 to-muted/50 border-2 border-russia-gold/30 shadow-sm">

@@ -6,7 +6,7 @@ export const BOARD_CELLS: Cell[] = [
   { id: 1, type: 'city', nameKey: 'moscow', category: 'culture', price: 600000, rent: [20000, 100000, 300000, 900000, 1600000, 2500000], houseCost: 500000, color: '#8B4513', position: { x: 9, y: 10 } },
   { id: 2, type: 'trial', nameKey: 'trial', position: { x: 8, y: 10 } },
   { id: 3, type: 'city', nameKey: 'stPetersburg', category: 'culture', price: 600000, rent: [20000, 100000, 300000, 900000, 1600000, 2500000], houseCost: 500000, color: '#8B4513', position: { x: 7, y: 10 } },
-  { id: 4, type: 'tax', nameKey: 'incomeTax', position: { x: 6, y: 10 } },
+  { id: 4, type: 'tax', nameKey: 'incomeTax', taxAmount: 2000000, position: { x: 6, y: 10 } },
   { id: 5, type: 'transport', nameKey: 'airport', category: 'transport', price: 2000000, rent: [250000, 500000, 1000000, 2000000], position: { x: 5, y: 10 } },
   { id: 6, type: 'city', nameKey: 'novosibirsk', category: 'industry', price: 1000000, rent: [60000, 300000, 900000, 2700000, 4000000, 5500000], houseCost: 500000, color: '#87CEEB', position: { x: 4, y: 10 } },
   { id: 7, type: 'chance', nameKey: 'chance', position: { x: 3, y: 10 } },
@@ -46,7 +46,7 @@ export const BOARD_CELLS: Cell[] = [
   { id: 35, type: 'transport', nameKey: 'busStation', category: 'transport', price: 2000000, rent: [250000, 500000, 1000000, 2000000], position: { x: 10, y: 5 } },
   { id: 36, type: 'chance', nameKey: 'chance', position: { x: 10, y: 6 } },
   { id: 37, type: 'city', nameKey: 'baikal', category: 'nature', price: 3500000, rent: [350000, 1750000, 5000000, 11000000, 13000000, 15000000], houseCost: 2000000, color: '#4169E1', position: { x: 10, y: 7 } },
-  { id: 38, type: 'tax', nameKey: 'luxuryTax', position: { x: 10, y: 8 } },
+  { id: 38, type: 'tax', nameKey: 'luxuryTax', taxAmount: 1000000, position: { x: 10, y: 8 } },
   { id: 39, type: 'city', nameKey: 'goldenRing', category: 'tourism', price: 4000000, rent: [500000, 2000000, 6000000, 14000000, 17000000, 20000000], houseCost: 2000000, color: '#800080', position: { x: 10, y: 9 } },
 ];
 

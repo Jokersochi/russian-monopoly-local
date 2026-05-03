@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { GameState, Player, Cell, GamePhase, LogEntry } from '@/types/game';
-import { BOARD_CELLS, PLAYER_TOKENS } from '@/data/board';
+import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 
@@ -12,6 +12,7 @@ interface GameContextType {
   passProperty: () => void;
   endTurn: () => void;
   resetGame: () => void;
+  payJailFine: () => void;
   cells: Cell[];
 }
 
@@ -51,6 +52,8 @@ export const useGame = () => {
 
 const STARTING_MONEY = 15000000;
 const START_BONUS = 2000000;
+const JAIL_CELL = 10;
+const JAIL_FINE = 500000;
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -70,7 +73,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   // Apply post-debit bankruptcy + advance turn to next non-bankrupt player.
-  // Returns updated players, log, the new currentPlayer/round/phase.
   const advanceAfterDebit = useCallback(
     (
       players: Player[],
@@ -79,8 +81,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       currentRound: number,
       maxRounds: number
     ): AdvanceResult => {
-      // Bankruptcy: any player with money < 0 becomes bankrupt; properties revert
-      // to the bank (kept simple — Monopoly's "creditor inherits" is future work).
       const nextPlayers = players.map((p) => {
         if (p.bankrupt || p.money >= 0) return p;
         return { ...p, bankrupt: true, properties: [], money: 0 };
@@ -97,7 +97,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      // Game-over checks (in priority order):
       const survivors = nextPlayers.filter((p) => !p.bankrupt);
       if (survivors.length <= 1) {
         const winnerIdx = survivors.length === 1
@@ -121,13 +120,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      // Advance to next active player; round increments on wrap to player 0
       const nextCurrentPlayer = findNextActivePlayer(nextPlayers, currentIdx);
       const wrapped = nextCurrentPlayer <= currentIdx;
       const nextRound = wrapped ? currentRound + 1 : currentRound;
 
       if (nextRound > maxRounds) {
-        // Round limit reached — winner is highest net worth among survivors
         const ranked = nextPlayers
           .map((p, idx) => ({ idx, nw: computeNetWorth(p, BOARD_CELLS) }))
           .sort((a, b) => b.nw - a.nw);
@@ -203,10 +200,179 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const currentPlayer = gameState.players[gameState.currentPlayer];
     const playerName = t(`players.${currentPlayer.nameKey}`);
-    const newPosition = (currentPlayer.position + sum) % 40;
-    const passedStart = newPosition < currentPlayer.position;
+
+    let workingLog: LogEntry[] = [
+      ...gameState.gameLog,
+      makeLog('log.playerRolled', 'info', { player: playerName, dice: `${dice1}+${dice2}=${sum}` }),
+    ];
+    let workingPlayers = gameState.players;
+
+    toast({ title: `Выброшено: ${dice1} + ${dice2} = ${sum}`, description: isDouble ? 'Дубль!' : undefined });
+
+    // ── JAIL ROLL ─────────────────────────────────────────────────────────────
+    if (currentPlayer.inJail) {
+      if (!isDouble && currentPlayer.jailTurns < 2) {
+        // Stay in jail
+        workingLog = [...workingLog, makeLog('log.stayedInJail', 'warning', {
+          player: playerName, turn: String(currentPlayer.jailTurns + 1),
+        })];
+        workingPlayers = workingPlayers.map((p, idx) =>
+          idx === gameState.currentPlayer ? { ...p, jailTurns: p.jailTurns + 1 } : p
+        );
+        const result = advanceAfterDebit(workingPlayers, workingLog, gameState.currentPlayer, gameState.round, gameState.maxRounds);
+        setGameState({
+          ...gameState, dice: [dice1, dice2], lastRoll: [dice1, dice2],
+          players: result.players, gameLog: result.log,
+          phase: result.nextPhase, currentPlayer: result.nextCurrentPlayer,
+          round: result.nextRound, doubleCount: 0,
+        });
+        return;
+      }
+
+      // Exit jail (doubles or forced after 3rd turn)
+      if (!isDouble) {
+        workingPlayers = workingPlayers.map((p, idx) =>
+          idx === gameState.currentPlayer ? { ...p, money: p.money - JAIL_FINE } : p
+        );
+        workingLog = [...workingLog, makeLog('log.paidJailFine', 'warning', { player: playerName, amount: JAIL_FINE })];
+      } else {
+        workingLog = [...workingLog, makeLog('log.exitedJailDoubles', 'success', { player: playerName })];
+      }
+      workingPlayers = workingPlayers.map((p, idx) =>
+        idx === gameState.currentPlayer ? { ...p, inJail: false, jailTurns: 0 } : p
+      );
+    }
+
+    // ── TRIPLE DOUBLES → JAIL ─────────────────────────────────────────────────
+    const newDoubleCount = isDouble ? gameState.doubleCount + 1 : 0;
+    if (!currentPlayer.inJail && isDouble && newDoubleCount >= 3) {
+      workingPlayers = workingPlayers.map((p, idx) =>
+        idx === gameState.currentPlayer ? { ...p, position: JAIL_CELL, inJail: true, jailTurns: 0 } : p
+      );
+      workingLog = [...workingLog, makeLog('log.wentToJailDoubles', 'warning', { player: playerName })];
+      const result = advanceAfterDebit(workingPlayers, workingLog, gameState.currentPlayer, gameState.round, gameState.maxRounds);
+      setGameState({
+        ...gameState, dice: [dice1, dice2], lastRoll: [dice1, dice2],
+        players: result.players, gameLog: result.log,
+        phase: result.nextPhase, currentPlayer: result.nextCurrentPlayer,
+        round: result.nextRound, doubleCount: 0,
+      });
+      return;
+    }
+
+    // ── MOVEMENT ──────────────────────────────────────────────────────────────
+    const fromPosition = workingPlayers[gameState.currentPlayer].position;
+    const newPosition = (fromPosition + sum) % 40;
+    const passedStart = newPosition < fromPosition;
     const landedCell = BOARD_CELLS[newPosition];
 
+    workingPlayers = workingPlayers.map((p, idx) => {
+      if (idx !== gameState.currentPlayer) return p;
+      return { ...p, position: newPosition, money: passedStart ? p.money + START_BONUS : p.money };
+    });
+
+    if (passedStart) {
+      workingLog = [...workingLog, makeLog('log.passedStart', 'success', { player: playerName, amount: START_BONUS })];
+    }
+
+    // ── GO TO JAIL ────────────────────────────────────────────────────────────
+    if (landedCell.type === 'go-to-jail') {
+      workingPlayers = workingPlayers.map((p, idx) =>
+        idx === gameState.currentPlayer ? { ...p, position: JAIL_CELL, inJail: true, jailTurns: 0 } : p
+      );
+      workingLog = [...workingLog, makeLog('log.wentToJail', 'warning', { player: playerName })];
+      const result = advanceAfterDebit(workingPlayers, workingLog, gameState.currentPlayer, gameState.round, gameState.maxRounds);
+      setGameState({
+        ...gameState, dice: [dice1, dice2], lastRoll: [dice1, dice2],
+        players: result.players, gameLog: result.log,
+        phase: result.nextPhase, currentPlayer: result.nextCurrentPlayer,
+        round: result.nextRound, doubleCount: 0,
+      });
+      return;
+    }
+
+    // ── TAX ───────────────────────────────────────────────────────────────────
+    if (landedCell.type === 'tax' && landedCell.taxAmount) {
+      workingPlayers = workingPlayers.map((p, idx) =>
+        idx === gameState.currentPlayer ? { ...p, money: p.money - landedCell.taxAmount! } : p
+      );
+      workingLog = [...workingLog, makeLog('log.paidTax', 'warning', {
+        player: playerName, cell: t(`cells.${landedCell.nameKey}`), amount: landedCell.taxAmount,
+      })];
+      toast({ title: t(`cells.${landedCell.nameKey}`), description: `-${landedCell.taxAmount.toLocaleString()}₽` });
+      const result = advanceAfterDebit(workingPlayers, workingLog, gameState.currentPlayer, gameState.round, gameState.maxRounds);
+      setGameState({
+        ...gameState, dice: [dice1, dice2], lastRoll: [dice1, dice2],
+        players: result.players, gameLog: result.log,
+        phase: result.nextPhase, currentPlayer: result.nextCurrentPlayer,
+        round: result.nextRound, doubleCount: newDoubleCount,
+      });
+      return;
+    }
+
+    // ── CARD DRAW ─────────────────────────────────────────────────────────────
+    if (landedCell.type === 'chance' || landedCell.type === 'trial') {
+      const deck = landedCell.type === 'chance' ? CHANCE_CARDS : TRIAL_CARDS;
+      const card = deck[Math.floor(Math.random() * deck.length)];
+      const cardText = t(`cards.${card.textKey}`);
+
+      workingLog = [...workingLog, makeLog('log.drewCard', 'info', { player: playerName, card: cardText })];
+      toast({ title: t(`cells.${landedCell.nameKey}`), description: cardText });
+
+      if (card.effect.money !== undefined) {
+        workingPlayers = workingPlayers.map((p, idx) =>
+          idx === gameState.currentPlayer ? { ...p, money: p.money + card.effect.money! } : p
+        );
+      }
+
+      if (card.effect.collectFromPlayers !== undefined) {
+        const amount = card.effect.collectFromPlayers;
+        const activeCount = workingPlayers.filter((p, idx) => idx !== gameState.currentPlayer && !p.bankrupt).length;
+        workingPlayers = workingPlayers.map((p, idx) => {
+          if (idx === gameState.currentPlayer) return { ...p, money: p.money + activeCount * amount };
+          if (!p.bankrupt) return { ...p, money: p.money - amount };
+          return p;
+        });
+      }
+
+      if (card.effect.getOutOfJail) {
+        workingPlayers = workingPlayers.map((p, idx) =>
+          idx === gameState.currentPlayer ? { ...p, getOutOfJailCards: p.getOutOfJailCards + 1 } : p
+        );
+      }
+
+      if (card.effect.moveToCell !== undefined) {
+        workingPlayers = workingPlayers.map((p, idx) =>
+          idx === gameState.currentPlayer ? { ...p, position: card.effect.moveToCell! } : p
+        );
+      }
+
+      if (card.effect.taxPerProperty !== undefined) {
+        const rate = card.effect.taxPerProperty;
+        const props = workingPlayers[gameState.currentPlayer].properties;
+        let tax: number;
+        if (rate > 0) {
+          tax = props.length * rate;
+        } else {
+          const totalValue = props.reduce((sum, cellId) => sum + (BOARD_CELLS[cellId]?.price ?? 0), 0);
+          tax = Math.floor(totalValue * Math.abs(rate));
+        }
+        workingPlayers = workingPlayers.map((p, idx) =>
+          idx === gameState.currentPlayer ? { ...p, money: p.money - tax } : p
+        );
+      }
+
+      const result = advanceAfterDebit(workingPlayers, workingLog, gameState.currentPlayer, gameState.round, gameState.maxRounds);
+      setGameState({
+        ...gameState, dice: [dice1, dice2], lastRoll: [dice1, dice2],
+        players: result.players, gameLog: result.log,
+        phase: result.nextPhase, currentPlayer: result.nextCurrentPlayer,
+        round: result.nextRound, doubleCount: newDoubleCount,
+      });
+      return;
+    }
+
+    // ── RENT (owned by another player) ────────────────────────────────────────
     const ownerIdx = gameState.players.findIndex(
       (p, idx) =>
         idx !== gameState.currentPlayer &&
@@ -214,101 +380,70 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         p.properties.includes(landedCell.id)
     );
 
-    const updatedPlayers = gameState.players.map((p, idx) => {
-      if (idx === gameState.currentPlayer) {
-        return {
-          ...p,
-          position: newPosition,
-          money: passedStart ? p.money + START_BONUS : p.money,
-        };
-      }
-      return p;
-    });
-
-    const newLog: LogEntry[] = [
-      ...gameState.gameLog,
-      makeLog('log.playerRolled', 'info', {
-        player: playerName,
-        dice: `${dice1}+${dice2}=${sum}`,
-      }),
-    ];
-
-    if (passedStart) {
-      newLog.push(
-        makeLog('log.passedStart', 'success', {
-          player: playerName,
-          amount: START_BONUS,
-        })
-      );
-    }
-
-    let nextPhase: GamePhase = 'landed';
-    let nextCurrentPlayer = gameState.currentPlayer;
-    let nextRound = gameState.round;
-    let logAfterRent = newLog;
-    let playersAfterRent = updatedPlayers;
-    let rentTriggered = false;
-
     if (ownerIdx >= 0 && landedCell.rent && landedCell.rent[0] > 0) {
       const rentAmount = landedCell.rent[0];
       const owner = gameState.players[ownerIdx];
       const ownerName = t(`players.${owner.nameKey}`);
 
-      playersAfterRent = updatedPlayers.map((p, idx) => {
+      workingPlayers = workingPlayers.map((p, idx) => {
         if (idx === gameState.currentPlayer) return { ...p, money: p.money - rentAmount };
         if (idx === ownerIdx) return { ...p, money: p.money + rentAmount };
         return p;
       });
 
-      logAfterRent = [
-        ...newLog,
-        makeLog('log.playerPaidRent', 'warning', {
-          player: playerName,
-          amount: rentAmount,
-          owner: ownerName,
-        }),
-      ];
+      workingLog = [...workingLog, makeLog('log.playerPaidRent', 'warning', {
+        player: playerName, amount: rentAmount, owner: ownerName,
+      })];
 
       toast({
         title: t('game.payRent'),
         description: `${playerName} → ${rentAmount.toLocaleString()}₽ → ${ownerName}`,
       });
 
-      rentTriggered = true;
+      const result = advanceAfterDebit(workingPlayers, workingLog, gameState.currentPlayer, gameState.round, gameState.maxRounds);
+      setGameState({
+        ...gameState, dice: [dice1, dice2], lastRoll: [dice1, dice2],
+        players: result.players, gameLog: result.log,
+        phase: result.nextPhase, currentPlayer: result.nextCurrentPlayer,
+        round: result.nextRound, doubleCount: newDoubleCount,
+      });
+      return;
     }
 
-    if (rentTriggered) {
-      const result = advanceAfterDebit(
-        playersAfterRent,
-        logAfterRent,
-        gameState.currentPlayer,
-        gameState.round,
-        gameState.maxRounds
-      );
-      playersAfterRent = result.players;
-      logAfterRent = result.log;
-      nextPhase = result.nextPhase;
-      nextCurrentPlayer = result.nextCurrentPlayer;
-      nextRound = result.nextRound;
-    }
-
+    // ── DEFAULT: show landed cell ─────────────────────────────────────────────
     setGameState({
       ...gameState,
       dice: [dice1, dice2],
       lastRoll: [dice1, dice2],
-      players: playersAfterRent,
-      gameLog: logAfterRent,
-      phase: nextPhase,
-      currentPlayer: nextCurrentPlayer,
-      round: nextRound,
-      doubleCount: isDouble ? gameState.doubleCount + 1 : 0,
-    });
-
-    toast({
-      title: `Выброшено: ${dice1} + ${dice2} = ${sum}`,
-      description: isDouble ? "Дубль!" : undefined,
+      players: workingPlayers,
+      gameLog: workingLog,
+      phase: 'landed',
+      doubleCount: newDoubleCount,
     });
   }, [gameState, toast, t, makeLog, advanceAfterDebit]);
+
+  const payJailFine = useCallback(() => {
+    if (!gameState || gameState.phase !== 'rolling') return;
+    const currentPlayer = gameState.players[gameState.currentPlayer];
+    if (!currentPlayer.inJail) return;
+
+    if (currentPlayer.money < JAIL_FINE) {
+      toast({ title: 'Недостаточно денег для залога', variant: 'destructive' });
+      return;
+    }
+
+    const playerName = t(`players.${currentPlayer.nameKey}`);
+    const updatedPlayers = gameState.players.map((p, idx) =>
+      idx === gameState.currentPlayer ? { ...p, money: p.money - JAIL_FINE, inJail: false, jailTurns: 0 } : p
+    );
+    const newLog: LogEntry[] = [
+      ...gameState.gameLog,
+      makeLog('log.paidJailFine', 'warning', { player: playerName, amount: JAIL_FINE }),
+    ];
+
+    setGameState({ ...gameState, players: updatedPlayers, gameLog: newLog });
+    toast({ title: 'Залог оплачен', description: `${JAIL_FINE.toLocaleString()}₽ — теперь бросайте кубики` });
+  }, [gameState, toast, t, makeLog]);
 
   const buyProperty = useCallback(() => {
     if (!gameState || gameState.phase !== 'landed') return;
@@ -463,6 +598,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         passProperty,
         endTurn,
         resetGame,
+        payJailFine,
         cells: BOARD_CELLS,
       }}
     >

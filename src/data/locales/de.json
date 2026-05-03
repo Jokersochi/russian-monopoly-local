@@ -23,7 +23,9 @@
     "yourTurn": "Du bist dran!",
     "bankrupt": "Bankrott",
     "winner": "Gewinner",
-    "gameOver": "Spiel vorbei"
+    "gameOver": "Spiel vorbei",
+    "inJail": "Im Gefängnis",
+    "payJailFine": "Kaution zahlen (500K₽)"
   },
   "cells": {
     "start": "Start",
@@ -102,6 +104,12 @@
     "playerBankrupt": "{{player}} ging bankrott!",
     "gameWon": "{{player}} gewann mit {{money}}₽!",
     "passedStart": "{{player}} passierte Start und erhielt {{amount}}₽",
-    "drewCard": "{{player}} zog Karte: {{card}}"
+    "drewCard": "{{player}} zog Karte: {{card}}",
+    "paidTax": "{{player}} zahlte {{cell}} {{amount}}₽",
+    "wentToJail": "{{player}} ging ins Gefängnis!",
+    "wentToJailDoubles": "{{player}} würfelte 3 Mal hintereinander Pasch und kam ins Gefängnis!",
+    "stayedInJail": "{{player}} blieb im Gefängnis (Versuch {{turn}} von 3)",
+    "exitedJailDoubles": "{{player}} würfelte Pasch und kam frei!",
+    "paidJailFine": "{{player}} zahlte Kaution {{amount}}₽ und kam frei"
   }
 }

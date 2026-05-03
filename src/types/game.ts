@@ -27,6 +27,7 @@ export interface Cell {
   price?: number;
   rent?: number[];
   houseCost?: number;
+  taxAmount?: number;
   color?: string;
   position: { x: number; y: number };
 }
