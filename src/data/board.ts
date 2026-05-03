@@ -51,19 +51,29 @@ export const BOARD_CELLS: Cell[] = [
 ];
 
 export const CHANCE_CARDS = [
-  { id: 1, textKey: 'chance1', type: 'bonus' as const, effect: { money: 50000 } },
-  { id: 2, textKey: 'chance2', type: 'bonus' as const, effect: { money: 30000 } },
-  { id: 3, textKey: 'chance3', type: 'bonus' as const, effect: { money: 20000 } },
-  { id: 4, textKey: 'chance4', type: 'special' as const, effect: { collectFromPlayers: 10000 } },
-  { id: 5, textKey: 'chance5', type: 'special' as const, effect: { getOutOfJail: true } },
+  { id: 1,  textKey: 'chance1',  type: 'bonus'   as const, effect: { money: 500_000 } },
+  { id: 2,  textKey: 'chance2',  type: 'bonus'   as const, effect: { money: 300_000 } },
+  { id: 3,  textKey: 'chance3',  type: 'bonus'   as const, effect: { money: 200_000 } },
+  { id: 4,  textKey: 'chance4',  type: 'special' as const, effect: { collectFromPlayers: 100_000 } },
+  { id: 5,  textKey: 'chance5',  type: 'special' as const, effect: { getOutOfJail: true } },
+  { id: 6,  textKey: 'chance6',  type: 'bonus'   as const, effect: { money: 1_000_000 } },
+  { id: 7,  textKey: 'chance7',  type: 'bonus'   as const, effect: { money: 750_000 } },
+  { id: 8,  textKey: 'chance8',  type: 'bonus'   as const, effect: { money: 400_000 } },
+  { id: 9,  textKey: 'chance9',  type: 'bonus'   as const, effect: { money: 600_000 } },
+  { id: 10, textKey: 'chance10', type: 'special' as const, effect: { collectFromPlayers: 50_000 } },
 ];
 
 export const TRIAL_CARDS = [
-  { id: 1, textKey: 'trial1', type: 'penalty' as const, effect: { taxPerProperty: 15000 } },
-  { id: 2, textKey: 'trial2', type: 'penalty' as const, effect: { money: -25000 } },
-  { id: 3, textKey: 'trial3', type: 'penalty' as const, effect: { money: -50000 } },
-  { id: 4, textKey: 'trial4', type: 'penalty' as const, effect: { taxPerProperty: -0.1 } },
-  { id: 5, textKey: 'trial5', type: 'move' as const, effect: { moveToCell: 0 } },
+  { id: 1,  textKey: 'trial1',  type: 'penalty' as const, effect: { taxPerProperty: 150_000 } },
+  { id: 2,  textKey: 'trial2',  type: 'penalty' as const, effect: { money: -250_000 } },
+  { id: 3,  textKey: 'trial3',  type: 'penalty' as const, effect: { money: -500_000 } },
+  { id: 4,  textKey: 'trial4',  type: 'penalty' as const, effect: { taxPerProperty: -0.1 } },
+  { id: 5,  textKey: 'trial5',  type: 'move'    as const, effect: { moveToCell: 0 } },
+  { id: 6,  textKey: 'trial6',  type: 'penalty' as const, effect: { money: -400_000 } },
+  { id: 7,  textKey: 'trial7',  type: 'penalty' as const, effect: { taxPerProperty: 100_000 } },
+  { id: 8,  textKey: 'trial8',  type: 'penalty' as const, effect: { money: -300_000 } },
+  { id: 9,  textKey: 'trial9',  type: 'penalty' as const, effect: { money: -200_000 } },
+  { id: 10, textKey: 'trial10', type: 'move'    as const, effect: { moveToCell: 10 } },
 ];
 
 export const PLAYER_TOKENS = [

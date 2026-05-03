@@ -34,10 +34,12 @@ export interface Cell {
 export interface Player {
   id: number;
   nameKey: string;
+  displayName?: string;
   token: string;
   money: number;
   position: number;
   properties: number[];
+  mortgaged: number[];
   getOutOfJailCards: number;
   inJail: boolean;
   jailTurns: number;
@@ -70,11 +72,13 @@ export interface GameState {
   dice: [number, number];
   phase: GamePhase;
   auctionState?: AuctionState;
+  currentCard?: ChanceCard;
   lastRoll: [number, number] | null;
   doubleCount: number;
   gameLog: LogEntry[];
   round: number;
   maxRounds: number;
+  houses: Record<number, number>;
   currentEvent?: MicroEvent;
 }
 
@@ -93,9 +97,10 @@ export type GamePhase =
 export interface AuctionState {
   cellId: number;
   currentBid: number;
-  currentBidder: number | null;
+  highBidder: number | null;
+  currentBidder: number;
   participants: number[];
-  passedPlayers: Set<number>;
+  passedPlayers: number[];
 }
 
 export interface LogEntry {

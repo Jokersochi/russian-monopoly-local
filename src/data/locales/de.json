@@ -23,7 +23,13 @@
     "yourTurn": "Du bist dran!",
     "bankrupt": "Bankrott",
     "winner": "Gewinner",
-    "gameOver": "Spiel vorbei"
+    "gameOver": "Spiel vorbei",
+    "playerNames": "Spielernamen",
+    "mortgage": "Verpfänden",
+    "unmortgage": "Auslösen",
+    "mortgaged": "Verpfändet",
+    "netWorth": "Vermögen",
+    "actions": "Aktionen"
   },
   "cells": {
     "start": "Start",
@@ -65,16 +71,26 @@
     "goToJail": "Gehe ins Gefängnis!"
   },
   "cards": {
-    "chance1": "Tourismusbonus: Erhalten Sie 50000₽",
-    "chance2": "Startup-Wettbewerb gewonnen: +30000₽",
-    "chance3": "Steuerabzug: Erhalten Sie 20000₽ zurück",
-    "chance4": "Stadtjubiläum: Sammeln Sie 10000₽ von jedem Spieler",
-    "chance5": "Komme frei aus dem Gefängnis - Karte behalten",
-    "trial1": "Inspektion: Zahlen Sie 15000₽ pro Besitz",
-    "trial2": "Infrastrukturreparatur: 25000₽ pro Haus, 100000₽ pro Hotel",
-    "trial3": "Verstoßstrafe: Zahlen Sie 50000₽",
+    "chance1": "Tourismusboom: +500.000₽",
+    "chance2": "Startup-Wettbewerb gewonnen: +300.000₽",
+    "chance3": "Steuerabzug: +200.000₽",
+    "chance4": "Stadtjubiläum: Sammeln Sie 100.000₽ von jedem Spieler",
+    "chance5": "Komme frei aus dem Gefängnis — Karte behalten",
+    "chance6": "Staatssubvention: +1.000.000₽",
+    "chance7": "Glückliche Investition: +750.000₽",
+    "chance8": "Exportvertrag: +400.000₽",
+    "chance9": "Entwicklungsförderung erhalten: +600.000₽",
+    "chance10": "Feiertagsbonus: Sammeln Sie 50.000₽ von jedem",
+    "trial1": "Inspektion: Zahlen Sie 150.000₽ pro Besitz",
+    "trial2": "Notfallreparatur: Zahlen Sie 250.000₽",
+    "trial3": "Verstoßstrafe: Zahlen Sie 500.000₽",
     "trial4": "Grundsteuer: 10% des gesamten Immobilienwerts",
-    "trial5": "Umzug: Gehe zu Start, ohne Geld zu sammeln"
+    "trial5": "Umzug: Gehe zu Start, ohne Geld zu sammeln",
+    "trial6": "Klage verloren: Zahlen Sie 400.000₽",
+    "trial7": "Überraschungsprüfung: Zahlen Sie 100.000₽ pro Besitz",
+    "trial8": "Umweltstrafe: Zahlen Sie 300.000₽",
+    "trial9": "Infrastrukturausfall: Zahlen Sie 200.000₽",
+    "trial10": "Gehe direkt ins Gefängnis"
   },
   "players": {
     "player1": "Spieler 1",
@@ -98,10 +114,24 @@
     "playerPaidRent": "{{player}} zahlte {{amount}}₽ Miete an {{owner}}",
     "playerPassed": "{{player}} passte bei {{property}}",
     "auctionStarted": "Auktion gestartet für {{property}}",
-    "auctionWon": "{{player}} gewann Auktion für {{price}}₽",
+    "auctionBid": "{{player}} bietet {{amount}}₽ auf {{property}}",
+    "auctionPassedBid": "{{player}} passte bei der Auktion",
+    "auctionWon": "{{player}} gewann Auktion {{property}} für {{price}}₽",
+    "auctionNoBids": "Keine Gebote auf {{property}} — an die Bank zurück",
     "playerBankrupt": "{{player}} ging bankrott!",
     "gameWon": "{{player}} gewann mit {{money}}₽!",
-    "passedStart": "{{player}} passierte Start und erhielt 200000₽",
-    "drewCard": "{{player}} zog Karte: {{card}}"
+    "passedStart": "{{player}} passierte Start und erhielt {{amount}}₽",
+    "drewCard": "{{player}} zog Karte: {{card}}",
+    "playerJailed": "{{player}} ins Gefängnis geschickt",
+    "playerReleasedFromJail": "{{player}} würfelte Pasch und verließ das Gefängnis!",
+    "playerForcedBail": "{{player}} musste Kaution zahlen und weiterziehen",
+    "playerPaysBail": "{{player}} zahlte Kaution {{amount}}₽",
+    "playerStillInJail": "{{player}} bleibt im Gefängnis ({{turns}}/3)",
+    "playerDouble": "{{player}} würfelte Pasch — nochmal würfeln!",
+    "playerThreeDoubles": "{{player}} — dreimal Pasch! Ins Gefängnis!",
+    "playerPaidTax": "{{player}} zahlte Steuer {{amount}}₽",
+    "rentOwnProperty": "{{player}} auf eigenem Grundstück — keine Miete",
+    "playerMortgaged": "{{player}} hat {{property}} für {{amount}}₽ verpfändet",
+    "playerUnmortgaged": "{{player}} hat {{property}} für {{amount}}₽ ausgelöst"
   }
 }
