@@ -11,8 +11,35 @@ interface GameContextType {
   buyProperty: () => void;
   passProperty: () => void;
   endTurn: () => void;
+  resetGame: () => void;
   cells: Cell[];
 }
+
+interface AdvanceResult {
+  players: Player[];
+  log: LogEntry[];
+  nextCurrentPlayer: number;
+  nextRound: number;
+  nextPhase: GamePhase;
+}
+
+const computeNetWorth = (player: Player, cells: Cell[]): number => {
+  if (player.bankrupt) return -Infinity;
+  const propertyValue = player.properties.reduce(
+    (sum, cellId) => sum + (cells[cellId]?.price ?? 0),
+    0
+  );
+  return player.money + propertyValue;
+};
+
+const findNextActivePlayer = (players: Player[], fromIdx: number): number => {
+  const n = players.length;
+  for (let i = 1; i <= n; i++) {
+    const idx = (fromIdx + i) % n;
+    if (!players[idx].bankrupt) return idx;
+  }
+  return fromIdx;
+};
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
@@ -40,6 +67,96 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: Date.now(),
     }),
     []
+  );
+
+  // Apply post-debit bankruptcy + advance turn to next non-bankrupt player.
+  // Returns updated players, log, the new currentPlayer/round/phase.
+  const advanceAfterDebit = useCallback(
+    (
+      players: Player[],
+      log: LogEntry[],
+      currentIdx: number,
+      currentRound: number,
+      maxRounds: number
+    ): AdvanceResult => {
+      // Bankruptcy: any player with money < 0 becomes bankrupt; properties revert
+      // to the bank (kept simple — Monopoly's "creditor inherits" is future work).
+      const nextPlayers = players.map((p) => {
+        if (p.bankrupt || p.money >= 0) return p;
+        return { ...p, bankrupt: true, properties: [], money: 0 };
+      });
+      let nextLog = log;
+      players.forEach((p, i) => {
+        if (!p.bankrupt && nextPlayers[i].bankrupt) {
+          nextLog = [
+            ...nextLog,
+            makeLog('log.playerBankrupt', 'error', {
+              player: t(`players.${p.nameKey}`),
+            }),
+          ];
+        }
+      });
+
+      // Game-over checks (in priority order):
+      const survivors = nextPlayers.filter((p) => !p.bankrupt);
+      if (survivors.length <= 1) {
+        const winnerIdx = survivors.length === 1
+          ? nextPlayers.indexOf(survivors[0])
+          : currentIdx;
+        if (survivors.length === 1) {
+          nextLog = [
+            ...nextLog,
+            makeLog('log.gameWon', 'success', {
+              player: t(`players.${survivors[0].nameKey}`),
+              money: computeNetWorth(survivors[0], BOARD_CELLS),
+            }),
+          ];
+        }
+        return {
+          players: nextPlayers,
+          log: nextLog,
+          nextCurrentPlayer: winnerIdx,
+          nextRound: currentRound,
+          nextPhase: 'game-over',
+        };
+      }
+
+      // Advance to next active player; round increments on wrap to player 0
+      const nextCurrentPlayer = findNextActivePlayer(nextPlayers, currentIdx);
+      const wrapped = nextCurrentPlayer <= currentIdx;
+      const nextRound = wrapped ? currentRound + 1 : currentRound;
+
+      if (nextRound > maxRounds) {
+        // Round limit reached — winner is highest net worth among survivors
+        const ranked = nextPlayers
+          .map((p, idx) => ({ idx, nw: computeNetWorth(p, BOARD_CELLS) }))
+          .sort((a, b) => b.nw - a.nw);
+        const winner = nextPlayers[ranked[0].idx];
+        nextLog = [
+          ...nextLog,
+          makeLog('log.gameWon', 'success', {
+            player: t(`players.${winner.nameKey}`),
+            money: ranked[0].nw,
+          }),
+        ];
+        return {
+          players: nextPlayers,
+          log: nextLog,
+          nextCurrentPlayer: ranked[0].idx,
+          nextRound,
+          nextPhase: 'game-over',
+        };
+      }
+
+      return {
+        players: nextPlayers,
+        log: nextLog,
+        nextCurrentPlayer,
+        nextRound,
+        nextPhase: 'rolling',
+      };
+    },
+    [makeLog, t]
   );
 
   const initGame = useCallback((playerCount: number) => {
@@ -97,7 +214,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         p.properties.includes(landedCell.id)
     );
 
-    let updatedPlayers = gameState.players.map((p, idx) => {
+    const updatedPlayers = gameState.players.map((p, idx) => {
       if (idx === gameState.currentPlayer) {
         return {
           ...p,
@@ -127,43 +244,63 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let nextPhase: GamePhase = 'landed';
     let nextCurrentPlayer = gameState.currentPlayer;
+    let nextRound = gameState.round;
+    let logAfterRent = newLog;
+    let playersAfterRent = updatedPlayers;
+    let rentTriggered = false;
 
     if (ownerIdx >= 0 && landedCell.rent && landedCell.rent[0] > 0) {
       const rentAmount = landedCell.rent[0];
       const owner = gameState.players[ownerIdx];
       const ownerName = t(`players.${owner.nameKey}`);
 
-      updatedPlayers = updatedPlayers.map((p, idx) => {
+      playersAfterRent = updatedPlayers.map((p, idx) => {
         if (idx === gameState.currentPlayer) return { ...p, money: p.money - rentAmount };
         if (idx === ownerIdx) return { ...p, money: p.money + rentAmount };
         return p;
       });
 
-      newLog.push(
+      logAfterRent = [
+        ...newLog,
         makeLog('log.playerPaidRent', 'warning', {
           player: playerName,
           amount: rentAmount,
           owner: ownerName,
-        })
-      );
+        }),
+      ];
 
       toast({
         title: t('game.payRent'),
         description: `${playerName} → ${rentAmount.toLocaleString()}₽ → ${ownerName}`,
       });
 
-      nextPhase = 'rolling';
-      nextCurrentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+      rentTriggered = true;
+    }
+
+    if (rentTriggered) {
+      const result = advanceAfterDebit(
+        playersAfterRent,
+        logAfterRent,
+        gameState.currentPlayer,
+        gameState.round,
+        gameState.maxRounds
+      );
+      playersAfterRent = result.players;
+      logAfterRent = result.log;
+      nextPhase = result.nextPhase;
+      nextCurrentPlayer = result.nextCurrentPlayer;
+      nextRound = result.nextRound;
     }
 
     setGameState({
       ...gameState,
       dice: [dice1, dice2],
       lastRoll: [dice1, dice2],
-      players: updatedPlayers,
-      gameLog: newLog,
+      players: playersAfterRent,
+      gameLog: logAfterRent,
       phase: nextPhase,
       currentPlayer: nextCurrentPlayer,
+      round: nextRound,
       doubleCount: isDouble ? gameState.doubleCount + 1 : 0,
     });
 
@@ -171,7 +308,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: `Выброшено: ${dice1} + ${dice2} = ${sum}`,
       description: isDouble ? "Дубль!" : undefined,
     });
-  }, [gameState, toast, t, makeLog]);
+  }, [gameState, toast, t, makeLog, advanceAfterDebit]);
 
   const buyProperty = useCallback(() => {
     if (!gameState || gameState.phase !== 'landed') return;
@@ -196,19 +333,30 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const playerName = t(`players.${currentPlayer.nameKey}`);
       const propertyName = t(`cells.${cell.nameKey}`);
 
+      const logAfterBuy: LogEntry[] = [
+        ...gameState.gameLog,
+        makeLog('log.playerBought', 'success', {
+          player: playerName,
+          property: propertyName,
+          price: cell.price,
+        }),
+      ];
+
+      const result = advanceAfterDebit(
+        updatedPlayers,
+        logAfterBuy,
+        gameState.currentPlayer,
+        gameState.round,
+        gameState.maxRounds
+      );
+
       setGameState({
         ...gameState,
-        players: updatedPlayers,
-        phase: 'rolling',
-        currentPlayer: (gameState.currentPlayer + 1) % gameState.players.length,
-        gameLog: [
-          ...gameState.gameLog,
-          makeLog('log.playerBought', 'success', {
-            player: playerName,
-            property: propertyName,
-            price: cell.price,
-          }),
-        ],
+        players: result.players,
+        gameLog: result.log,
+        phase: result.nextPhase,
+        currentPlayer: result.nextCurrentPlayer,
+        round: result.nextRound,
       });
 
       toast({
@@ -221,7 +369,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive",
       });
     }
-  }, [gameState, toast, t, makeLog]);
+  }, [gameState, toast, t, makeLog, advanceAfterDebit]);
 
   const passProperty = useCallback(() => {
     if (!gameState || gameState.phase !== 'landed') return;
@@ -231,38 +379,62 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const playerName = t(`players.${currentPlayer.nameKey}`);
     const propertyName = cell.nameKey ? t(`cells.${cell.nameKey}`) : '';
 
+    const logAfterPass: LogEntry[] = [
+      ...gameState.gameLog,
+      makeLog('log.playerPassed', 'info', {
+        player: playerName,
+        property: propertyName,
+      }),
+    ];
+
+    const result = advanceAfterDebit(
+      gameState.players,
+      logAfterPass,
+      gameState.currentPlayer,
+      gameState.round,
+      gameState.maxRounds
+    );
+
     setGameState({
       ...gameState,
-      phase: 'rolling',
-      currentPlayer: (gameState.currentPlayer + 1) % gameState.players.length,
-      gameLog: [
-        ...gameState.gameLog,
-        makeLog('log.playerPassed', 'info', {
-          player: playerName,
-          property: propertyName,
-        }),
-      ],
+      players: result.players,
+      gameLog: result.log,
+      phase: result.nextPhase,
+      currentPlayer: result.nextCurrentPlayer,
+      round: result.nextRound,
     });
 
     toast({
       title: "Пропуск",
       description: "Вы пропустили покупку",
     });
-  }, [gameState, toast, t, makeLog]);
+  }, [gameState, toast, t, makeLog, advanceAfterDebit]);
 
   const endTurn = useCallback(() => {
     if (!gameState) return;
 
-    const nextPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
-    const newRound = nextPlayer === 0 ? gameState.round + 1 : gameState.round;
+    const result = advanceAfterDebit(
+      gameState.players,
+      gameState.gameLog,
+      gameState.currentPlayer,
+      gameState.round,
+      gameState.maxRounds
+    );
 
     setGameState({
       ...gameState,
-      currentPlayer: nextPlayer,
-      phase: 'rolling',
-      round: newRound,
+      players: result.players,
+      gameLog: result.log,
+      phase: result.nextPhase,
+      currentPlayer: result.nextCurrentPlayer,
+      round: result.nextRound,
     });
-  }, [gameState]);
+  }, [gameState, advanceAfterDebit]);
+
+  const resetGame = useCallback(() => {
+    localStorage.removeItem('russianMonopolyState');
+    setGameState(null);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('russianMonopolyState');
@@ -290,6 +462,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         buyProperty,
         passProperty,
         endTurn,
+        resetGame,
         cells: BOARD_CELLS,
       }}
     >
