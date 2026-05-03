@@ -131,6 +131,15 @@ export interface Contract {
   rentBonus: number;
 }
 
+export interface TradeOffer {
+  fromPlayer: number;
+  toPlayer: number;
+  offeredProperties: number[];
+  requestedProperties: number[];
+  offeredMoney: number;
+  requestedMoney: number;
+}
+
 export interface LocaleStrings {
   game: {
     title: string;

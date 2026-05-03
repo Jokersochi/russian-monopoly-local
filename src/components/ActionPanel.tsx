@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
+import { TradingModal } from '@/components/TradingModal';
+import { BOARD_CELLS } from '@/data/board';
 
 export const ActionPanel = () => {
   const {
@@ -21,6 +23,10 @@ export const ActionPanel = () => {
   } = useGame();
   const { t } = useLocale();
   const [bidAmount, setBidAmount] = useState('');
+  const [tradeOpen, setTradeOpen] = useState(false);
+
+  const pname = (p: typeof gameState.players[0]) =>
+    p.displayName || t(`players.${p.nameKey}`);
 
   if (!gameState) return null;
 
@@ -46,7 +52,7 @@ export const ActionPanel = () => {
           <h3 className="text-2xl font-bold text-russia-gold">{t('game.gameOver')}</h3>
           {winner && (
             <div className="p-4 bg-gradient-gold/20 rounded-lg border border-russia-gold/30">
-              <p className="text-lg font-bold">{t('game.winner')}: {t(`players.${winner.nameKey}`)}</p>
+              <p className="text-lg font-bold">{t('game.winner')}: {pname(winner)}</p>
               <p className="text-russia-gold text-xl font-bold mt-1">
                 💰 {(winner.money / 1_000_000).toFixed(2)}M₽
               </p>
@@ -55,7 +61,7 @@ export const ActionPanel = () => {
           <div className="space-y-2 text-sm">
             {[...players].sort((a, b) => b.money - a.money).map((p, i) => (
               <div key={p.id} className="flex justify-between items-center p-2 bg-card/50 rounded">
-                <span>{i + 1}. {p.token} {t(`players.${p.nameKey}`)}</span>
+                <span>{i + 1}. {p.token} {pname(p)}</span>
                 <span className="font-bold text-russia-gold">{(p.money / 1_000).toFixed(0)}K₽</span>
               </div>
             ))}
@@ -85,7 +91,7 @@ export const ActionPanel = () => {
             <p className="text-sm text-muted-foreground">Ходов в тюрьме:</p>
             <p className="text-2xl font-bold text-russia-red">{currentPlayer.jailTurns}/3</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {currentPlayer.token} {t(`players.${currentPlayer.nameKey}`)}
+              {currentPlayer.token} {pname(currentPlayer)}
             </p>
           </div>
           <p className="text-sm text-muted-foreground text-center">
@@ -152,7 +158,7 @@ export const ActionPanel = () => {
             </div>
             <div className="flex justify-between">
               <span>🏠 Владелец:</span>
-              <span className="font-bold">{owner ? `${owner.token} ${t(`players.${owner.nameKey}`)}` : '—'}</span>
+              <span className="font-bold">{owner ? `${owner.token} ${pname(owner)}` : '—'}</span>
             </div>
             <div className="flex justify-between text-base">
               <span>💰 Аренда:</span>
@@ -231,14 +237,14 @@ export const ActionPanel = () => {
             {auctionState.highBidder !== null && (
               <div className="flex justify-between">
                 <span>🥇 Лидер:</span>
-                <span className="font-bold">{players[auctionState.highBidder]?.token} {t(`players.${players[auctionState.highBidder]?.nameKey}`)}</span>
+                <span className="font-bold">{players[auctionState.highBidder]?.token} {players[auctionState.highBidder] ? pname(players[auctionState.highBidder]) : ''}</span>
               </div>
             )}
           </div>
 
           <div className="p-3 bg-card/50 rounded-lg border border-russia-gold/20">
             <p className="text-xs text-muted-foreground mb-1">Ход игрока:</p>
-            <p className="font-bold">{bidder?.token} {t(`players.${bidder?.nameKey}`)}</p>
+            <p className="font-bold">{bidder?.token} {bidder ? pname(bidder) : ''}</p>
             <p className="text-xs text-muted-foreground">
               💰 {((bidder?.money ?? 0) / 1_000).toFixed(0)}K₽
             </p>
@@ -294,7 +300,7 @@ export const ActionPanel = () => {
           <div className="flex items-center justify-center gap-2">
             <span className="text-4xl drop-shadow">{currentPlayer.token}</span>
             <div>
-              <p className="font-bold text-lg">{t(`players.${currentPlayer.nameKey}`)}</p>
+              <p className="font-bold text-lg">{pname(currentPlayer)}</p>
               <p className="text-sm text-russia-gold font-bold">
                 💰 {(currentPlayer.money / 1_000).toFixed(0)}K₽
               </p>
@@ -373,11 +379,22 @@ export const ActionPanel = () => {
           )}
         </div>
 
+        {phase === 'rolling' && players.filter((_, i) => i !== cpIdx && !_.bankrupt).length > 0 && (
+          <Button
+            onClick={() => setTradeOpen(true)}
+            variant="outline"
+            className="w-full h-10 border-russia-blue/40 text-russia-blue hover:bg-russia-blue/10 text-sm font-semibold"
+          >
+            🤝 Предложить сделку
+          </Button>
+        )}
+
         <div className="text-xs text-center text-muted-foreground pt-3 border-t border-border/50 space-y-1">
           <div>⚙️ Фаза: <span className="font-semibold">{phase}</span></div>
           <div>🔄 Раунд: <span className="font-semibold">{gameState.round}</span></div>
         </div>
       </div>
+      <TradingModal open={tradeOpen} onClose={() => setTradeOpen(false)} />
     </Card>
   );
 };

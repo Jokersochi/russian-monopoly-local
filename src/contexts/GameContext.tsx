@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry } from '@/types/game';
+import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry, TradeOffer } from '@/types/game';
 import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -25,6 +25,7 @@ interface GameContextType {
   buyHouse: (cellId: number) => void;
   mortgageProperty: (cellId: number) => void;
   unmortgageProperty: (cellId: number) => void;
+  executeTrade: (offer: TradeOffer) => void;
   cells: Cell[];
 }
 
@@ -853,6 +854,49 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast({ title: t('game.unmortgage'), description: `-${redemptionCost.toLocaleString('ru-RU')}₽` });
   }, [gameState, t]);
 
+  const executeTrade = useCallback((offer: TradeOffer) => {
+    if (!gameState) return;
+
+    const from = gameState.players[offer.fromPlayer];
+    const to = gameState.players[offer.toPlayer];
+
+    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
+      toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
+      return;
+    }
+
+    const updatedPlayers = gameState.players.map((p, i) => {
+      if (i === offer.fromPlayer) {
+        return {
+          ...p,
+          money: p.money - offer.offeredMoney + offer.requestedMoney,
+          properties: [
+            ...p.properties.filter(id => !offer.offeredProperties.includes(id)),
+            ...offer.requestedProperties,
+          ],
+          mortgaged: p.mortgaged.filter(id => !offer.offeredProperties.includes(id)),
+        };
+      }
+      if (i === offer.toPlayer) {
+        return {
+          ...p,
+          money: p.money - offer.requestedMoney + offer.offeredMoney,
+          properties: [
+            ...p.properties.filter(id => !offer.requestedProperties.includes(id)),
+            ...offer.offeredProperties,
+          ],
+          mortgaged: p.mortgaged.filter(id => !offer.requestedProperties.includes(id)),
+        };
+      }
+      return p;
+    });
+
+    const log = makeLog('log.tradeCompleted', { player1: pname(from), player2: pname(to) }, 'success');
+
+    setGameState({ ...gameState, players: updatedPlayers, gameLog: [...gameState.gameLog, log] });
+    toast({ title: '🤝 Сделка заключена!', description: `${pname(from)} ↔ ${pname(to)}` });
+  }, [gameState, t]);
+
   useEffect(() => {
     if (gameState) {
       localStorage.setItem('russianMonopolyState', JSON.stringify(gameState));
@@ -876,6 +920,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         buyHouse,
         mortgageProperty,
         unmortgageProperty,
+        executeTrade,
         cells: BOARD_CELLS,
       }}
     >

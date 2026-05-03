@@ -132,6 +132,7 @@
     "playerPaidTax": "{{player}} заплатил налог {{amount}}₽",
     "rentOwnProperty": "{{player}} на своей земле — аренда не платится",
     "playerMortgaged": "{{player}} заложил {{property}} и получил {{amount}}₽",
-    "playerUnmortgaged": "{{player}} выкупил {{property}} за {{amount}}₽"
+    "playerUnmortgaged": "{{player}} выкупил {{property}} за {{amount}}₽",
+    "tradeCompleted": "{{player1}} и {{player2}} заключили сделку"
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -11,11 +11,31 @@ export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
+  const [justLandedIds, setJustLandedIds] = useState<Set<number>>(new Set());
+  const prevPositions = useRef<Record<number, number>>({});
+
+  useEffect(() => {
+    if (!gameState) return;
+    const movedIds: number[] = [];
+    gameState.players.forEach((p) => {
+      const prev = prevPositions.current[p.id];
+      if (prev !== undefined && prev !== p.position) {
+        movedIds.push(p.id);
+      }
+      prevPositions.current[p.id] = p.position;
+    });
+    if (movedIds.length > 0) {
+      setJustLandedIds(new Set(movedIds));
+      const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState?.players.map(p => p.position + ':' + p.id).join(',')]);
 
   if (!gameState) return null;
 
   const { players, currentPlayer: cpIdx, houses } = gameState;
   const currentPlayer = players[cpIdx];
+  const pname = (p: typeof players[0]) => p.displayName || t(`players.${p.nameKey}`);
 
   const getCellStyle = (position: { x: number; y: number }) => {
     const size = 80;
@@ -91,13 +111,13 @@ export const GameBoard = () => {
                 )}
 
                 {owner && !houseCount && (
-                  <div className="text-[10px] mt-0.5" title={t(`players.${owner.nameKey}`)}>
+                  <div className="text-[10px] mt-0.5" title={pname(owner)}>
                     {owner.token}
                   </div>
                 )}
 
                 {owner && houseCount > 0 && (
-                  <div className="text-[8px] mt-0.5 opacity-70" title={t(`players.${owner.nameKey}`)}>
+                  <div className="text-[8px] mt-0.5 opacity-70" title={pname(owner)}>
                     {owner.token}
                   </div>
                 )}
@@ -105,7 +125,13 @@ export const GameBoard = () => {
                 {playersHere.length > 0 && (
                   <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30 z-30">
                     {playersHere.map((player) => (
-                      <span key={player.id} className="text-base drop-shadow">
+                      <span
+                        key={player.id}
+                        className={cn(
+                          'text-base drop-shadow transition-transform',
+                          justLandedIds.has(player.id) && 'animate-bounce'
+                        )}
+                      >
                         {player.token}
                       </span>
                     ))}
@@ -133,7 +159,7 @@ export const GameBoard = () => {
                   </span>
                   <div className="text-left">
                     <p className="text-xl font-bold text-russia-gold">
-                      {t(`players.${currentPlayer.nameKey}`)}
+                      {pname(currentPlayer)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       💰 {(currentPlayer.money / 1_000).toFixed(0)}K₽
