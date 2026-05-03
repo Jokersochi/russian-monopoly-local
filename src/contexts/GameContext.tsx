@@ -660,7 +660,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const log = (key: string, params: Record<string, string | number>, type: LogEntry['type'] = 'info') =>
       logs.push(makeLog(key, params, type));
 
-    let goToJailCard = false;
     let newPosition = player.position;
 
     if (effect.money !== undefined) {
