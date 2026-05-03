@@ -133,6 +133,7 @@
     "rentOwnProperty": "{{player}} en su propiedad — no paga alquiler",
     "playerMortgaged": "{{player}} hipotecó {{property}} por {{amount}}₽",
     "playerUnmortgaged": "{{player}} desempeñó {{property}} por {{amount}}₽",
-    "tradeCompleted": "{{player1}} y {{player2}} completaron un trato"
+    "tradeCompleted": "{{player1}} y {{player2}} completaron un trato",
+    "microEvent": "{{event}} — {{amount}}₽"
   }
 }

@@ -133,6 +133,7 @@
     "rentOwnProperty": "{{player}} auf eigenem Grundstück — keine Miete",
     "playerMortgaged": "{{player}} hat {{property}} für {{amount}}₽ verpfändet",
     "playerUnmortgaged": "{{player}} hat {{property}} für {{amount}}₽ ausgelöst",
-    "tradeCompleted": "{{player1}} und {{player2}} haben einen Handel abgeschlossen"
+    "tradeCompleted": "{{player1}} und {{player2}} haben einen Handel abgeschlossen",
+    "microEvent": "{{event}} — {{amount}}₽"
   }
 }

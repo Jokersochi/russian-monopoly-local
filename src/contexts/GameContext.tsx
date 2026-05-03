@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry, TradeOffer } from '@/types/game';
-import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS } from '@/data/board';
+import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 
@@ -52,29 +52,34 @@ function makeLog(
   return { id: Date.now() + Math.random(), textKey, params, type, timestamp: Date.now() };
 }
 
-function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<number, number>): number {
+function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<number, number>, event?: GameState['currentEvent']): number {
   if (!cell.rent) return 0;
+
+  let multiplier = 1;
+  if (event?.effects.category && cell.category === event.effects.category && event.effects.rentMultiplier !== undefined) {
+    multiplier = event.effects.rentMultiplier;
+  }
 
   if (cell.type === 'transport') {
     const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'transport').length;
-    return TRANSPORT_RENT[Math.min(count - 1, 3)];
+    return Math.round(TRANSPORT_RENT[Math.min(count - 1, 3)] * multiplier);
   }
 
   if (cell.type === 'utility') {
     const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'utility').length;
-    return count >= 2 ? diceSum * 100_000 : diceSum * 40_000;
+    return Math.round((count >= 2 ? diceSum * 100_000 : diceSum * 40_000) * multiplier);
   }
 
   const houseCount = houses[cell.id] || 0;
   if (houseCount > 0) {
     const rentIdx = Math.min(houseCount, (cell.rent.length || 1) - 1);
-    return cell.rent[rentIdx];
+    return Math.round(cell.rent[rentIdx] * multiplier);
   }
 
   const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
   const ownsAll = sameColor.length > 0 && sameColor.every(c => owner.properties.includes(c.id));
   const base = cell.rent[0];
-  return ownsAll ? base * 2 : base;
+  return Math.round((ownsAll ? base * 2 : base) * multiplier);
 }
 
 function findNextBidder(
@@ -90,6 +95,27 @@ function findNextBidder(
   return null;
 }
 
+function pickRandomEvent(exclude?: string): GameState['currentEvent'] {
+  const pool = exclude ? MICRO_EVENTS.filter(e => e.id !== exclude) : MICRO_EVENTS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function applyRoundBonus(state: GameState, event: GameState['currentEvent']): { players: GameState['players']; gameLog: GameState['gameLog'] } {
+  if (!event?.effects.bonus) return { players: state.players, gameLog: state.gameLog };
+  const amount = event.effects.bonus;
+  const log: LogEntry = {
+    id: Date.now() + Math.random(),
+    textKey: 'log.microEvent',
+    params: { event: event.nameKey, amount: Math.abs(amount).toLocaleString('ru-RU') },
+    type: amount > 0 ? 'success' : 'warning',
+    timestamp: Date.now(),
+  };
+  return {
+    players: state.players.map(p => ({ ...p, money: p.money + amount })),
+    gameLog: [...state.gameLog, log],
+  };
+}
+
 function advanceAfterAction(
   state: GameState,
   goToJailOverride?: boolean
@@ -99,6 +125,11 @@ function advanceAfterAction(
     const newRound = nextIdx === 0 ? state.round + 1 : state.round;
     if (newRound > state.maxRounds) return { currentPlayer: nextIdx, round: newRound, phase: 'game-over', doubleCount: 0 };
     const nextPl = state.players[nextIdx];
+    if (nextIdx === 0) {
+      const newEvent = pickRandomEvent(state.currentEvent?.id);
+      const { players, gameLog } = applyRoundBonus(state, newEvent);
+      return { currentPlayer: nextIdx, round: newRound, phase: nextPl.inJail ? 'jail' : 'rolling', doubleCount: 0, currentEvent: newEvent, players, gameLog };
+    }
     return { currentPlayer: nextIdx, round: newRound, phase: nextPl.inJail ? 'jail' : 'rolling', doubleCount: 0 };
   }
 
@@ -109,6 +140,11 @@ function advanceAfterAction(
   const newRound = nextIdx === 0 ? state.round + 1 : state.round;
   if (newRound > state.maxRounds) return { currentPlayer: nextIdx, round: newRound, phase: 'game-over', doubleCount: 0 };
   const nextPl = state.players[nextIdx];
+  if (nextIdx === 0) {
+    const newEvent = pickRandomEvent(state.currentEvent?.id);
+    const { players, gameLog } = applyRoundBonus(state, newEvent);
+    return { currentPlayer: nextIdx, round: newRound, phase: nextPl.inJail ? 'jail' : 'rolling', doubleCount: 0, currentEvent: newEvent, players, gameLog };
+  }
   return { currentPlayer: nextIdx, round: newRound, phase: nextPl.inJail ? 'jail' : 'rolling', doubleCount: 0 };
 }
 
@@ -151,6 +187,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       round: 1,
       maxRounds: rounds,
       houses: {},
+      currentEvent: pickRandomEvent(),
     });
 
     toast({ title: 'Игра началась!', description: `${playerCount} игроков. Удачи!` });
@@ -319,7 +356,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (cell.type === 'tax') {
-      const taxAmount = TAX_AMOUNTS[position] || 1_000_000;
+      const baseTax = TAX_AMOUNTS[position] || 1_000_000;
+      const taxMult = state.currentEvent?.effects.taxMultiplier ?? 1;
+      const taxAmount = Math.round(baseTax * taxMult);
       log('log.playerPaidTax', { player: pname(player), amount: taxAmount.toLocaleString('ru-RU') }, 'warning');
       const updatedPlayers = state.players.map((p, i) =>
         i === state.currentPlayer ? { ...p, money: p.money - taxAmount } : p
@@ -353,7 +392,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const next = advanceAfterAction(state);
           return appendLogs({ ...state, ...next });
         }
-        const rent = calcRent(cell, owner, diceSum, state.houses);
+        const rent = calcRent(cell, owner, diceSum, state.houses, state.currentEvent);
         log('log.playerPaidRent', {
           player: pname(player),
           amount: rent.toLocaleString('ru-RU'),

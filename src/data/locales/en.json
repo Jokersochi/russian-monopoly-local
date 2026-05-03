@@ -133,6 +133,7 @@
     "rentOwnProperty": "{{player}} landed on own property — no rent",
     "playerMortgaged": "{{player}} mortgaged {{property}} for {{amount}}₽",
     "playerUnmortgaged": "{{player}} unmortgaged {{property}} for {{amount}}₽",
-    "tradeCompleted": "{{player1}} and {{player2}} completed a trade"
+    "tradeCompleted": "{{player1}} and {{player2}} completed a trade",
+    "microEvent": "{{event}} — {{amount}}₽"
   }
 }

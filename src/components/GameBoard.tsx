@@ -168,30 +168,37 @@ export const GameBoard = () => {
                 </div>
               </div>
 
-              {/* Legend */}
-              <div className="grid grid-cols-2 gap-1.5 text-[10px] text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded ring-2 ring-russia-blue bg-transparent" />
-                  <span>Вы здесь</span>
+              {/* Current event */}
+              {gameState.currentEvent && (
+                <div className="p-3 rounded-xl border border-russia-gold/40 bg-gradient-to-r from-russia-gold/10 to-russia-gold/5 text-left space-y-0.5">
+                  <p className="text-xs font-bold text-russia-gold">{gameState.currentEvent.nameKey}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">{gameState.currentEvent.descriptionKey}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded ring-2 ring-russia-gold/70 bg-transparent" />
-                  <span>Ваше</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded ring-2 ring-russia-red/40 bg-transparent" />
-                  <span>Чужое</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded border border-board-green/60 bg-transparent" />
-                  <span>Свободно</span>
-                </div>
+              )}
+
+              {/* Net worth standings */}
+              <div className="space-y-1">
+                {[...players]
+                  .map((p, i) => {
+                    const propVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (c.price || 0), 0);
+                    const houseVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (gameState.houses[c.id] || 0) * (c.houseCost || 0), 0);
+                    return { p, i, net: p.money + propVal + houseVal };
+                  })
+                  .sort((a, b) => b.net - a.net)
+                  .map(({ p, net }, rank) => (
+                    <div key={p.id} className={cn('flex items-center gap-2 text-[10px] px-2 py-0.5 rounded', p.id === currentPlayer.id && 'bg-russia-gold/10')}>
+                      <span className="text-muted-foreground w-3">{rank + 1}.</span>
+                      <span>{p.token}</span>
+                      <span className={cn('flex-1 truncate', p.id === currentPlayer.id && 'text-russia-gold font-bold')}>{pname(p)}</span>
+                      <span className="text-emerald-400 font-semibold">{(net / 1_000_000).toFixed(1)}M</span>
+                    </div>
+                  ))}
               </div>
 
               <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground pt-1">
                 <div className="flex items-center gap-1">
                   <span className="text-russia-gold">🔄</span>
-                  <span>Раунд {gameState.round}</span>
+                  <span>Раунд {gameState.round}/{gameState.maxRounds}</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-muted-foreground" />
                 <div className="flex items-center gap-1">
