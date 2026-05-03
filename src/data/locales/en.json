@@ -23,7 +23,13 @@
     "yourTurn": "Your turn!",
     "bankrupt": "Bankrupt",
     "winner": "Winner",
-    "gameOver": "Game Over"
+    "gameOver": "Game Over",
+    "playerNames": "Player names",
+    "mortgage": "Mortgage",
+    "unmortgage": "Unmortgage",
+    "mortgaged": "Mortgaged",
+    "netWorth": "Net Worth",
+    "actions": "Actions"
   },
   "cells": {
     "start": "Start",
@@ -124,6 +130,8 @@
     "playerDouble": "{{player}} rolled doubles — rolls again!",
     "playerThreeDoubles": "{{player}} — three doubles! Off to jail!",
     "playerPaidTax": "{{player}} paid tax {{amount}}₽",
-    "rentOwnProperty": "{{player}} landed on own property — no rent"
+    "rentOwnProperty": "{{player}} landed on own property — no rent",
+    "playerMortgaged": "{{player}} mortgaged {{property}} for {{amount}}₽",
+    "playerUnmortgaged": "{{player}} unmortgaged {{property}} for {{amount}}₽"
   }
 }

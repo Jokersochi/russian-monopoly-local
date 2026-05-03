@@ -16,6 +16,7 @@
     "settings": "Настройки",
     "language": "Язык",
     "playerCount": "Количество игроков",
+    "playerNames": "Имена игроков",
     "startMoney": "Стартовый капитал",
     "maxRounds": "Максимум раундов",
     "start": "Начать игру",
@@ -23,7 +24,12 @@
     "yourTurn": "Ваш ход!",
     "bankrupt": "Банкрот",
     "winner": "Победитель",
-    "gameOver": "Игра окончена"
+    "gameOver": "Игра окончена",
+    "mortgage": "Заложить",
+    "unmortgage": "Выкупить",
+    "mortgaged": "Заложено",
+    "netWorth": "Активы",
+    "actions": "Действия"
   },
   "cells": {
     "start": "Старт",
@@ -124,6 +130,8 @@
     "playerDouble": "{{player}} выбросил дубль — ходит снова!",
     "playerThreeDoubles": "{{player}} — три дубля! В тюрьму!",
     "playerPaidTax": "{{player}} заплатил налог {{amount}}₽",
-    "rentOwnProperty": "{{player}} на своей земле — аренда не платится"
+    "rentOwnProperty": "{{player}} на своей земле — аренда не платится",
+    "playerMortgaged": "{{player}} заложил {{property}} и получил {{amount}}₽",
+    "playerUnmortgaged": "{{player}} выкупил {{property}} за {{amount}}₽"
   }
 }

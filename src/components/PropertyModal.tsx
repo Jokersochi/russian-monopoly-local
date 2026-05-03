@@ -15,7 +15,7 @@ interface PropertyModalProps {
 const HOUSE_ICONS = ['—', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
 
 export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
-  const { gameState, buyHouse, cells } = useGame();
+  const { gameState, buyHouse, mortgageProperty, unmortgageProperty, cells } = useGame();
   const { t } = useLocale();
 
   if (!cell || !gameState) return null;
@@ -25,6 +25,11 @@ export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
   const owner = players.find(p => p.properties.includes(cell.id));
   const isOwnedByCurrentPlayer = owner?.id === currentPlayer.id;
   const houseCount = houses[cell.id] || 0;
+  const isMortgaged = isOwnedByCurrentPlayer && currentPlayer.mortgaged.includes(cell.id);
+  const mortgageValue = cell.price ? Math.floor(cell.price / 2) : 0;
+  const redemptionCost = cell.price ? Math.floor(cell.price / 2 * 1.1) : 0;
+  const canMortgage = isOwnedByCurrentPlayer && phase === 'rolling' && !isMortgaged && !!cell.price && houseCount === 0;
+  const canUnmortgage = isOwnedByCurrentPlayer && phase === 'rolling' && isMortgaged && currentPlayer.money >= redemptionCost;
 
   const sameColor = cell.color
     ? cells.filter(c => c.color === cell.color)
@@ -60,7 +65,8 @@ export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
             <span className="text-muted-foreground">👤 Владелец</span>
             {owner ? (
               <span className="font-bold flex items-center gap-1">
-                {owner.token} {t(`players.${owner.nameKey}`)}
+                {owner.token} {owner.displayName || t(`players.${owner.nameKey}`)}
+                {isMortgaged && <Badge variant="destructive" className="text-xs ml-1">{t('game.mortgaged')}</Badge>}
               </span>
             ) : (
               <Badge variant="secondary" className="text-xs">Банк</Badge>
@@ -129,6 +135,45 @@ export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
               >
                 🏗️ Построить {houseCount < 4 ? 'дом' : 'отель'} ({(cell.houseCost / 1_000).toFixed(0)}K₽)
               </Button>
+            </div>
+          )}
+
+          {/* Mortgage / Unmortgage */}
+          {isOwnedByCurrentPlayer && phase === 'rolling' && cell.price && (
+            <div className="space-y-1.5">
+              {!isMortgaged ? (
+                <>
+                  {houseCount > 0 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Снесите все дома перед залогом
+                    </p>
+                  )}
+                  <Button
+                    onClick={() => { mortgageProperty(cell.id); onClose(); }}
+                    disabled={!canMortgage}
+                    variant="outline"
+                    className="w-full border-orange-500/50 text-orange-400 hover:bg-orange-500/10 text-sm"
+                  >
+                    🏦 {t('game.mortgage')} (+{(mortgageValue / 1_000).toFixed(0)}K₽)
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {!canUnmortgage && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Нужно {(redemptionCost / 1_000).toFixed(0)}K₽ для выкупа
+                    </p>
+                  )}
+                  <Button
+                    onClick={() => { unmortgageProperty(cell.id); onClose(); }}
+                    disabled={!canUnmortgage}
+                    variant="outline"
+                    className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10 text-sm"
+                  >
+                    🔓 {t('game.unmortgage')} (-{(redemptionCost / 1_000).toFixed(0)}K₽)
+                  </Button>
+                </>
+              )}
             </div>
           )}
 

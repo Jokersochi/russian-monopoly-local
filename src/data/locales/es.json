@@ -23,7 +23,13 @@
     "yourTurn": "¡Tu turno!",
     "bankrupt": "En bancarrota",
     "winner": "Ganador",
-    "gameOver": "Juego Terminado"
+    "gameOver": "Juego Terminado",
+    "playerNames": "Nombres de jugadores",
+    "mortgage": "Hipotecar",
+    "unmortgage": "Desempeñar",
+    "mortgaged": "Hipotecado",
+    "netWorth": "Patrimonio",
+    "actions": "Acciones"
   },
   "cells": {
     "start": "Inicio",
@@ -124,6 +130,8 @@
     "playerDouble": "¡{{player}} sacó dobles — tira de nuevo!",
     "playerThreeDoubles": "¡{{player}} — tres dobles! ¡A la cárcel!",
     "playerPaidTax": "{{player}} pagó impuesto {{amount}}₽",
-    "rentOwnProperty": "{{player}} en su propiedad — no paga alquiler"
+    "rentOwnProperty": "{{player}} en su propiedad — no paga alquiler",
+    "playerMortgaged": "{{player}} hipotecó {{property}} por {{amount}}₽",
+    "playerUnmortgaged": "{{player}} desempeñó {{property}} por {{amount}}₽"
   }
 }

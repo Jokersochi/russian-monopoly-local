@@ -34,10 +34,12 @@ export interface Cell {
 export interface Player {
   id: number;
   nameKey: string;
+  displayName?: string;
   token: string;
   money: number;
   position: number;
   properties: number[];
+  mortgaged: number[];
   getOutOfJailCards: number;
   inJail: boolean;
   jailTurns: number;

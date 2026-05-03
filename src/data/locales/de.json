@@ -23,7 +23,13 @@
     "yourTurn": "Du bist dran!",
     "bankrupt": "Bankrott",
     "winner": "Gewinner",
-    "gameOver": "Spiel vorbei"
+    "gameOver": "Spiel vorbei",
+    "playerNames": "Spielernamen",
+    "mortgage": "Verpfänden",
+    "unmortgage": "Auslösen",
+    "mortgaged": "Verpfändet",
+    "netWorth": "Vermögen",
+    "actions": "Aktionen"
   },
   "cells": {
     "start": "Start",
@@ -124,6 +130,8 @@
     "playerDouble": "{{player}} würfelte Pasch — nochmal würfeln!",
     "playerThreeDoubles": "{{player}} — dreimal Pasch! Ins Gefängnis!",
     "playerPaidTax": "{{player}} zahlte Steuer {{amount}}₽",
-    "rentOwnProperty": "{{player}} auf eigenem Grundstück — keine Miete"
+    "rentOwnProperty": "{{player}} auf eigenem Grundstück — keine Miete",
+    "playerMortgaged": "{{player}} hat {{property}} für {{amount}}₽ verpfändet",
+    "playerUnmortgaged": "{{player}} hat {{property}} für {{amount}}₽ ausgelöst"
   }
 }

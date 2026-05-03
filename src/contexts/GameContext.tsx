@@ -4,9 +4,15 @@ import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS } from '@/data/bo
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 
+export interface GameInitOptions {
+  playerNames?: string[];
+  maxRounds?: number;
+  startingMoney?: number;
+}
+
 interface GameContextType {
   gameState: GameState | null;
-  initGame: (playerCount: number) => void;
+  initGame: (playerCount: number, options?: GameInitOptions) => void;
   rollDice: () => void;
   buyProperty: () => void;
   passProperty: () => void;
@@ -17,6 +23,8 @@ interface GameContextType {
   useJailCard: () => void;
   dismissCard: () => void;
   buyHouse: (cellId: number) => void;
+  mortgageProperty: (cellId: number) => void;
+  unmortgageProperty: (cellId: number) => void;
   cells: Cell[];
 }
 
@@ -108,17 +116,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const { t } = useLocale();
 
-  const pname = (p: Player) => t(`players.${p.nameKey}`);
+  const pname = (p: Player) => p.displayName || t(`players.${p.nameKey}`);
   const cname = (c: Cell) => t(`cells.${c.nameKey}`);
 
-  const initGame = useCallback((playerCount: number) => {
+  const initGame = useCallback((playerCount: number, options?: GameInitOptions) => {
+    const startMoney = options?.startingMoney ?? STARTING_MONEY;
+    const rounds = options?.maxRounds ?? 50;
     const players: Player[] = Array.from({ length: playerCount }, (_, i) => ({
       id: i,
       nameKey: `player${i + 1}`,
+      displayName: options?.playerNames?.[i] || undefined,
       token: PLAYER_TOKENS[i].icon,
-      money: STARTING_MONEY,
+      money: startMoney,
       position: 0,
       properties: [],
+      mortgaged: [],
       getOutOfJailCards: 0,
       inJail: false,
       jailTurns: 0,
@@ -136,7 +148,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       doubleCount: 0,
       gameLog: [],
       round: 1,
-      maxRounds: 50,
+      maxRounds: rounds,
       houses: {},
     });
 
@@ -336,6 +348,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (ownerIdx >= 0 && ownerIdx !== state.currentPlayer) {
         const owner = state.players[ownerIdx];
+        if (owner.mortgaged.includes(cell.id)) {
+          const next = advanceAfterAction(state);
+          return appendLogs({ ...state, ...next });
+        }
         const rent = calcRent(cell, owner, diceSum, state.houses);
         log('log.playerPaidRent', {
           player: pname(player),
@@ -774,6 +790,70 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast({ title: `🏠 Построено!`, description: `${t(`cells.${cell.nameKey}`)}: ${label}` });
   }, [gameState, t]);
 
+  const mortgageProperty = useCallback((cellId: number) => {
+    if (!gameState || gameState.phase !== 'rolling') return;
+
+    const player = gameState.players[gameState.currentPlayer];
+    if (!player.properties.includes(cellId)) return;
+    if (player.mortgaged.includes(cellId)) return;
+
+    const cell = BOARD_CELLS[cellId];
+    if (!cell.price) return;
+
+    const mortgageValue = Math.floor(cell.price / 2);
+    const log = makeLog('log.playerMortgaged', {
+      player: pname(player),
+      property: t(`cells.${cell.nameKey}`),
+      amount: mortgageValue.toLocaleString('ru-RU'),
+    }, 'info');
+
+    setGameState({
+      ...gameState,
+      players: gameState.players.map((p, i) =>
+        i === gameState.currentPlayer
+          ? { ...p, money: p.money + mortgageValue, mortgaged: [...p.mortgaged, cellId] }
+          : p
+      ),
+      gameLog: [...gameState.gameLog, log],
+    });
+
+    toast({ title: t('game.mortgage'), description: `+${mortgageValue.toLocaleString('ru-RU')}₽` });
+  }, [gameState, t]);
+
+  const unmortgageProperty = useCallback((cellId: number) => {
+    if (!gameState || gameState.phase !== 'rolling') return;
+
+    const player = gameState.players[gameState.currentPlayer];
+    if (!player.mortgaged.includes(cellId)) return;
+
+    const cell = BOARD_CELLS[cellId];
+    if (!cell.price) return;
+
+    const redemptionCost = Math.floor(cell.price / 2 * 1.1);
+    if (player.money < redemptionCost) {
+      toast({ title: 'Недостаточно денег для выкупа!', variant: 'destructive' });
+      return;
+    }
+
+    const log = makeLog('log.playerUnmortgaged', {
+      player: pname(player),
+      property: t(`cells.${cell.nameKey}`),
+      amount: redemptionCost.toLocaleString('ru-RU'),
+    }, 'info');
+
+    setGameState({
+      ...gameState,
+      players: gameState.players.map((p, i) =>
+        i === gameState.currentPlayer
+          ? { ...p, money: p.money - redemptionCost, mortgaged: p.mortgaged.filter(id => id !== cellId) }
+          : p
+      ),
+      gameLog: [...gameState.gameLog, log],
+    });
+
+    toast({ title: t('game.unmortgage'), description: `-${redemptionCost.toLocaleString('ru-RU')}₽` });
+  }, [gameState, t]);
+
   useEffect(() => {
     if (gameState) {
       localStorage.setItem('russianMonopolyState', JSON.stringify(gameState));
@@ -795,6 +875,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         useJailCard,
         dismissCard,
         buyHouse,
+        mortgageProperty,
+        unmortgageProperty,
         cells: BOARD_CELLS,
       }}
     >
