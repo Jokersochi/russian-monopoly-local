@@ -2,10 +2,23 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { TradingModal } from '@/components/TradingModal';
+import { PropertyModal } from '@/components/PropertyModal';
 import { BOARD_CELLS } from '@/data/board';
+import { Cell } from '@/types/game';
 
 export const ActionPanel = () => {
   const {
@@ -19,11 +32,14 @@ export const ActionPanel = () => {
     useJailCard,
     dismissCard,
     initGame,
+    resetGame,
+    confirmBankruptcy,
     cells,
   } = useGame();
   const { t } = useLocale();
   const [bidAmount, setBidAmount] = useState('');
   const [tradeOpen, setTradeOpen] = useState(false);
+  const [inspectCell, setInspectCell] = useState<Cell | null>(null);
 
   const pname = (p: typeof gameState.players[0]) =>
     p.displayName || t(`players.${p.nameKey}`);
@@ -44,35 +60,195 @@ export const ActionPanel = () => {
 
   // ---- GAME OVER ----
   if (phase === 'game-over') {
-    const winner = players.length === 1 ? players[0] : [...players].sort((a, b) => b.money - a.money)[0];
+    const allPlayers = gameState.players;
+    const winner = allPlayers.length === 1
+      ? allPlayers[0]
+      : [...allPlayers].sort((a, b) => b.money - a.money)[0];
+
     return (
       <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/40">
-        <div className="p-6 text-center space-y-4">
+        <div className="p-5 text-center space-y-4">
           <div className="text-5xl">🏆</div>
           <h3 className="text-2xl font-bold text-russia-gold">{t('game.gameOver')}</h3>
           {winner && (
             <div className="p-4 bg-gradient-gold/20 rounded-lg border border-russia-gold/30">
-              <p className="text-lg font-bold">{t('game.winner')}: {pname(winner)}</p>
+              <p className="text-lg font-bold">{t('game.winner')}: {winner.token} {pname(winner)}</p>
               <p className="text-russia-gold text-xl font-bold mt-1">
                 💰 {(winner.money / 1_000_000).toFixed(2)}M₽
               </p>
             </div>
           )}
-          <div className="space-y-2 text-sm">
-            {[...players].sort((a, b) => b.money - a.money).map((p, i) => (
-              <div key={p.id} className="flex justify-between items-center p-2 bg-card/50 rounded">
-                <span>{i + 1}. {p.token} {pname(p)}</span>
+
+          {/* Final standings */}
+          <div className="space-y-1 text-sm">
+            {[...allPlayers].sort((a, b) => b.money - a.money).map((p, i) => (
+              <div key={p.id} className="flex justify-between items-center p-2 bg-card/50 rounded border border-border/30">
+                <span className="flex items-center gap-2">
+                  <span className="text-muted-foreground w-4">{i + 1}.</span>
+                  {p.token} {pname(p)}
+                </span>
                 <span className="font-bold text-russia-gold">{(p.money / 1_000).toFixed(0)}K₽</span>
               </div>
             ))}
           </div>
+
+          {/* Statistics table */}
+          <div className="rounded-lg border border-border/40 overflow-hidden text-xs">
+            <div className="bg-muted/80 px-3 py-2 font-bold text-muted-foreground text-left">
+              📊 Статистика
+            </div>
+            <div className="divide-y divide-border/30">
+              <div className="grid grid-cols-4 px-2 py-1.5 text-muted-foreground font-semibold bg-muted/40">
+                <span>Игрок</span>
+                <span className="text-center">Куплено</span>
+                <span className="text-center text-board-green">Получено</span>
+                <span className="text-center text-russia-red">Уплачено</span>
+              </div>
+              {[...allPlayers].sort((a, b) => b.money - a.money).map(p => (
+                <div key={p.id} className="grid grid-cols-4 px-2 py-1.5">
+                  <span className="truncate">{p.token} {pname(p)}</span>
+                  <span className="text-center">{p.stats?.propertiesBought ?? 0}</span>
+                  <span className="text-center text-board-green">
+                    {((p.stats?.rentCollected ?? 0) / 1_000).toFixed(0)}K
+                  </span>
+                  <span className="text-center text-russia-red">
+                    {((p.stats?.rentPaid ?? 0) / 1_000).toFixed(0)}K
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <Button
-            onClick={() => initGame(players.length)}
+            onClick={() => resetGame()}
             className="w-full h-12 bg-gradient-russian hover:opacity-90 font-bold"
           >
             🔄 {t('game.newGame')}
           </Button>
         </div>
+      </Card>
+    );
+  }
+
+  // ---- PRE-BANKRUPTCY ----
+  if (phase === 'pre-bankruptcy') {
+    const debt = gameState.bankruptcyDebt ?? (currentPlayer.money < 0 ? -currentPlayer.money : 0);
+    const creditorIdx = gameState.bankruptcyCreditor;
+    const creditor = creditorIdx != null ? players[creditorIdx] : null;
+    const canCover = currentPlayer.money >= 0;
+    const ownedCells = cells.filter(c => currentPlayer.properties.includes(c.id));
+
+    return (
+      <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/50">
+        <div className="p-4 border-b border-russia-red/30 flex items-center gap-2">
+          <span className="text-2xl">⚠️</span>
+          <div>
+            <h3 className="text-lg font-bold text-russia-red">Финансовый кризис</h3>
+            <p className="text-xs text-muted-foreground">
+              {currentPlayer.token} {pname(currentPlayer)}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-3">
+          {/* Debt info */}
+          <div className="p-3 rounded-lg bg-russia-red/10 border border-russia-red/30 space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Баланс:</span>
+              <span className={`font-bold ${currentPlayer.money < 0 ? 'text-russia-red' : 'text-board-green'}`}>
+                {(currentPlayer.money / 1_000).toFixed(0)}K₽
+              </span>
+            </div>
+            {debt > 0 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Долг:</span>
+                <span className="font-bold text-russia-red">{(debt / 1_000).toFixed(0)}K₽</span>
+              </div>
+            )}
+            {creditor && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Кредитор:</span>
+                <span className="font-bold">{creditor.token} {pname(creditor)}</span>
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-muted-foreground text-center">
+            Заложите или продайте имущество, чтобы покрыть долг
+          </p>
+
+          {/* Owned properties for inspection/liquidation */}
+          {ownedCells.length > 0 && (
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {ownedCells.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => setInspectCell(c)}
+                  className="w-full flex items-center justify-between p-2 rounded border border-border/40 hover:border-russia-gold/50 hover:bg-russia-gold/5 transition-colors text-xs text-left"
+                >
+                  <span className="flex items-center gap-1.5">
+                    {c.color && (
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0 border border-black/20"
+                        style={{ backgroundColor: c.color }}
+                      />
+                    )}
+                    <span className="truncate">{t(`cells.${c.nameKey}`)}</span>
+                    {currentPlayer.mortgaged.includes(c.id) && (
+                      <span className="text-orange-400 ml-1">[залог]</span>
+                    )}
+                  </span>
+                  {c.price && (
+                    <span className="text-russia-gold font-semibold ml-2 flex-shrink-0">
+                      {(c.price / 2 / 1_000).toFixed(0)}K↑
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Resolve / Bankruptcy buttons */}
+          <Button
+            onClick={endTurn}
+            disabled={!canCover}
+            className="w-full h-11 bg-gradient-gold hover:opacity-90 font-bold text-sm"
+          >
+            ✅ Долг погашен — продолжить
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full h-10 border-russia-red/50 text-russia-red hover:bg-russia-red/10 text-sm"
+              >
+                🏳️ Объявить банкротство
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Подтвердить банкротство?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {pname(currentPlayer)} выбывает из игры. Всё имущество передаётся{' '}
+                  {creditor ? `${creditor.token} ${pname(creditor)}` : 'банку'}.
+                  Это действие нельзя отменить.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmBankruptcy}
+                  className="bg-russia-red hover:bg-russia-red/80"
+                >
+                  Объявить банкротство
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+
+        <PropertyModal cell={inspectCell} onClose={() => setInspectCell(null)} />
       </Card>
     );
   }
@@ -125,23 +301,7 @@ export const ActionPanel = () => {
   if (phase === 'paying-rent') {
     const ownerIdx = players.findIndex(p => p.properties.includes(currentCell.id));
     const owner = ownerIdx >= 0 ? players[ownerIdx] : null;
-    const diceSum = dice[0] + dice[1];
-    const rent = owner
-      ? (() => {
-          if (!currentCell.rent) return 0;
-          if (currentCell.type === 'transport') {
-            const count = owner.properties.filter(pid => cells[pid]?.type === 'transport').length;
-            return [250_000, 500_000, 1_000_000, 2_000_000][Math.min(count - 1, 3)];
-          }
-          if (currentCell.type === 'utility') {
-            const count = owner.properties.filter(pid => cells[pid]?.type === 'utility').length;
-            return count >= 2 ? diceSum * 100_000 : diceSum * 40_000;
-          }
-          const same = cells.filter(c => c.color && c.color === currentCell.color);
-          const monopoly = same.length > 0 && same.every(c => owner.properties.includes(c.id));
-          return monopoly ? currentCell.rent[0] * 2 : currentCell.rent[0];
-        })()
-      : 0;
+    const rent = gameState.lastRentPaid ?? 0;
 
     return (
       <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/30">
@@ -161,7 +321,7 @@ export const ActionPanel = () => {
               <span className="font-bold">{owner ? `${owner.token} ${pname(owner)}` : '—'}</span>
             </div>
             <div className="flex justify-between text-base">
-              <span>💰 Аренда:</span>
+              <span>💰 Списано:</span>
               <span className="font-bold text-russia-red">{rent.toLocaleString('ru-RU')}₽</span>
             </div>
           </div>
@@ -237,7 +397,10 @@ export const ActionPanel = () => {
             {auctionState.highBidder !== null && (
               <div className="flex justify-between">
                 <span>🥇 Лидер:</span>
-                <span className="font-bold">{players[auctionState.highBidder]?.token} {players[auctionState.highBidder] ? pname(players[auctionState.highBidder]) : ''}</span>
+                <span className="font-bold">
+                  {players[auctionState.highBidder]?.token}{' '}
+                  {players[auctionState.highBidder] ? pname(players[auctionState.highBidder]) : ''}
+                </span>
               </div>
             )}
           </div>
@@ -389,7 +552,38 @@ export const ActionPanel = () => {
           </Button>
         )}
 
-        <div className="text-xs text-center text-muted-foreground pt-3 border-t border-border/50 space-y-1">
+        {/* Abandon game */}
+        {phase === 'rolling' && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full h-8 text-xs text-muted-foreground hover:text-russia-red hover:bg-russia-red/10"
+              >
+                🚪 Завершить игру
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Завершить текущую игру?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Игра будет прекращена и сохранение удалено. Это действие нельзя отменить.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={resetGame}
+                  className="bg-russia-red hover:bg-russia-red/80"
+                >
+                  Завершить
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
+        <div className="text-xs text-center text-muted-foreground pt-2 border-t border-border/50 space-y-1">
           <div>⚙️ Фаза: <span className="font-semibold">{phase}</span></div>
           <div>🔄 Раунд: <span className="font-semibold">{gameState.round}</span></div>
         </div>
