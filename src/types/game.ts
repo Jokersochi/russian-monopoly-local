@@ -1,22 +1,22 @@
-export type CellType = 
-  | 'city' 
-  | 'transport' 
-  | 'utility' 
-  | 'chance' 
-  | 'trial' 
-  | 'tax' 
-  | 'start' 
-  | 'jail' 
-  | 'visiting' 
+export type CellType =
+  | 'city'
+  | 'transport'
+  | 'utility'
+  | 'chance'
+  | 'trial'
+  | 'tax'
+  | 'start'
+  | 'jail'
+  | 'visiting'
   | 'free-parking'
   | 'go-to-jail';
 
-export type Category = 
-  | 'tourism' 
-  | 'transport' 
-  | 'industry' 
-  | 'culture' 
-  | 'education' 
+export type Category =
+  | 'tourism'
+  | 'transport'
+  | 'industry'
+  | 'culture'
+  | 'education'
   | 'nature';
 
 export interface Cell {
@@ -29,6 +29,12 @@ export interface Cell {
   houseCost?: number;
   color?: string;
   position: { x: number; y: number };
+}
+
+export interface PlayerStats {
+  rentCollected: number;
+  rentPaid: number;
+  propertiesBought: number;
 }
 
 export interface Player {
@@ -47,6 +53,7 @@ export interface Player {
   residenceCity?: number;
   contracts: string[];
   bankrupt: boolean;
+  stats: PlayerStats;
 }
 
 export interface ChanceCard {
@@ -74,24 +81,28 @@ export interface GameState {
   auctionState?: AuctionState;
   currentCard?: ChanceCard;
   lastRoll: [number, number] | null;
+  lastRentPaid?: number;
   doubleCount: number;
   gameLog: LogEntry[];
   round: number;
   maxRounds: number;
   houses: Record<number, number>;
   currentEvent?: MicroEvent;
+  bankruptcyDebt?: number;
+  bankruptcyCreditor?: number | null;
 }
 
-export type GamePhase = 
-  | 'setup' 
-  | 'rolling' 
-  | 'moving' 
-  | 'landed' 
-  | 'buying' 
-  | 'auction' 
+export type GamePhase =
+  | 'setup'
+  | 'rolling'
+  | 'moving'
+  | 'landed'
+  | 'buying'
+  | 'auction'
   | 'paying-rent'
   | 'card-draw'
   | 'jail'
+  | 'pre-bankruptcy'
   | 'game-over';
 
 export interface AuctionState {
@@ -129,6 +140,15 @@ export interface Contract {
   category: Category;
   price: number;
   rentBonus: number;
+}
+
+export interface TradeOffer {
+  fromPlayer: number;
+  toPlayer: number;
+  offeredProperties: number[];
+  requestedProperties: number[];
+  offeredMoney: number;
+  requestedMoney: number;
 }
 
 export interface LocaleStrings {

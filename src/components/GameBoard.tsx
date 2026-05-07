@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -11,11 +11,31 @@ export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
+  const [justLandedIds, setJustLandedIds] = useState<Set<number>>(new Set());
+  const prevPositions = useRef<Record<number, number>>({});
+
+  useEffect(() => {
+    if (!gameState) return;
+    const movedIds: number[] = [];
+    gameState.players.forEach((p) => {
+      const prev = prevPositions.current[p.id];
+      if (prev !== undefined && prev !== p.position) {
+        movedIds.push(p.id);
+      }
+      prevPositions.current[p.id] = p.position;
+    });
+    if (movedIds.length > 0) {
+      setJustLandedIds(new Set(movedIds));
+      const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState?.players.map(p => p.position + ':' + p.id).join(',')]);
 
   if (!gameState) return null;
 
   const { players, currentPlayer: cpIdx, houses } = gameState;
   const currentPlayer = players[cpIdx];
+  const pname = (p: typeof players[0]) => p.displayName || t(`players.${p.nameKey}`);
 
   const getCellStyle = (position: { x: number; y: number }) => {
     const size = 80;
@@ -91,13 +111,13 @@ export const GameBoard = () => {
                 )}
 
                 {owner && !houseCount && (
-                  <div className="text-[10px] mt-0.5" title={t(`players.${owner.nameKey}`)}>
+                  <div className="text-[10px] mt-0.5" title={pname(owner)}>
                     {owner.token}
                   </div>
                 )}
 
                 {owner && houseCount > 0 && (
-                  <div className="text-[8px] mt-0.5 opacity-70" title={t(`players.${owner.nameKey}`)}>
+                  <div className="text-[8px] mt-0.5 opacity-70" title={pname(owner)}>
                     {owner.token}
                   </div>
                 )}
@@ -105,7 +125,13 @@ export const GameBoard = () => {
                 {playersHere.length > 0 && (
                   <div className="absolute -bottom-3 flex gap-0.5 bg-card/90 backdrop-blur-sm rounded-full px-1 shadow-sm border border-russia-gold/30 z-30">
                     {playersHere.map((player) => (
-                      <span key={player.id} className="text-base drop-shadow">
+                      <span
+                        key={player.id}
+                        className={cn(
+                          'text-base drop-shadow transition-transform',
+                          justLandedIds.has(player.id) && 'animate-bounce'
+                        )}
+                      >
                         {player.token}
                       </span>
                     ))}
@@ -133,7 +159,7 @@ export const GameBoard = () => {
                   </span>
                   <div className="text-left">
                     <p className="text-xl font-bold text-russia-gold">
-                      {t(`players.${currentPlayer.nameKey}`)}
+                      {pname(currentPlayer)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       💰 {(currentPlayer.money / 1_000).toFixed(0)}K₽
@@ -142,30 +168,37 @@ export const GameBoard = () => {
                 </div>
               </div>
 
-              {/* Legend */}
-              <div className="grid grid-cols-2 gap-1.5 text-[10px] text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded ring-2 ring-russia-blue bg-transparent" />
-                  <span>Вы здесь</span>
+              {/* Current event */}
+              {gameState.currentEvent && (
+                <div className="p-3 rounded-xl border border-russia-gold/40 bg-gradient-to-r from-russia-gold/10 to-russia-gold/5 text-left space-y-0.5">
+                  <p className="text-xs font-bold text-russia-gold">{gameState.currentEvent.nameKey}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">{gameState.currentEvent.descriptionKey}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded ring-2 ring-russia-gold/70 bg-transparent" />
-                  <span>Ваше</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded ring-2 ring-russia-red/40 bg-transparent" />
-                  <span>Чужое</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded border border-board-green/60 bg-transparent" />
-                  <span>Свободно</span>
-                </div>
+              )}
+
+              {/* Net worth standings */}
+              <div className="space-y-1">
+                {[...players]
+                  .map((p, i) => {
+                    const propVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (c.price || 0), 0);
+                    const houseVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (gameState.houses[c.id] || 0) * (c.houseCost || 0), 0);
+                    return { p, i, net: p.money + propVal + houseVal };
+                  })
+                  .sort((a, b) => b.net - a.net)
+                  .map(({ p, net }, rank) => (
+                    <div key={p.id} className={cn('flex items-center gap-2 text-[10px] px-2 py-0.5 rounded', p.id === currentPlayer.id && 'bg-russia-gold/10')}>
+                      <span className="text-muted-foreground w-3">{rank + 1}.</span>
+                      <span>{p.token}</span>
+                      <span className={cn('flex-1 truncate', p.id === currentPlayer.id && 'text-russia-gold font-bold')}>{pname(p)}</span>
+                      <span className="text-emerald-400 font-semibold">{(net / 1_000_000).toFixed(1)}M</span>
+                    </div>
+                  ))}
               </div>
 
               <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground pt-1">
                 <div className="flex items-center gap-1">
                   <span className="text-russia-gold">🔄</span>
-                  <span>Раунд {gameState.round}</span>
+                  <span>Раунд {gameState.round}/{gameState.maxRounds}</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-muted-foreground" />
                 <div className="flex items-center gap-1">

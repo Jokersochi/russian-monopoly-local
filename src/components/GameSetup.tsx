@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useGame } from '@/contexts/GameContext';
+import { getSlotInfo, SaveSlotInfo } from '@/contexts/GameContext';
 import { cn } from '@/lib/utils';
 
 const ROUNDS_OPTIONS = [20, 30, 50, 75, 100];
@@ -15,22 +16,42 @@ const MONEY_OPTIONS = [
   { label: '20M', value: 20_000_000 },
   { label: '30M', value: 30_000_000 },
 ];
+const SAVE_SLOTS = [1, 2, 3];
 
 export const GameSetup = () => {
+  const [selectedSlot, setSelectedSlot] = useState<number>(1);
+  const [slotInfos, setSlotInfos] = useState<Record<number, SaveSlotInfo | null>>({});
   const [playerCount, setPlayerCount] = useState(4);
   const [playerNames, setPlayerNames] = useState<string[]>(Array(6).fill(''));
   const [maxRounds, setMaxRounds] = useState(50);
   const [startingMoney, setStartingMoney] = useState(15_000_000);
   const { t, locale, setLocale } = useLocale();
-  const { initGame } = useGame();
+  const { initGame, loadSlot, activeSlot } = useGame();
+
+  useEffect(() => {
+    const infos: Record<number, SaveSlotInfo | null> = {};
+    SAVE_SLOTS.forEach(s => { infos[s] = getSlotInfo(s); });
+    setSlotInfos(infos);
+    // Pre-select the last active slot
+    setSelectedSlot(activeSlot);
+  }, [activeSlot]);
 
   const handleStart = () => {
-    const names = playerNames.slice(0, playerCount).map((n, i) => n.trim() || '');
+    const names = playerNames.slice(0, playerCount).map((n) => n.trim() || '');
     initGame(playerCount, {
       playerNames: names.some(n => n) ? names : undefined,
       maxRounds,
       startingMoney,
-    });
+    }, selectedSlot);
+  };
+
+  const handleContinue = (slot: number) => {
+    loadSlot(slot);
+  };
+
+  const formatDate = (ts: number) => {
+    const d = new Date(ts);
+    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -46,6 +67,58 @@ export const GameSetup = () => {
           </p>
         </CardHeader>
         <CardContent className="space-y-5">
+
+          {/* Save slots */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold flex items-center gap-2">
+              <span className="text-russia-gold">💾</span>
+              Слот сохранения
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {SAVE_SLOTS.map(slot => {
+                const info = slotInfos[slot];
+                const isSelected = selectedSlot === slot;
+                return (
+                  <div key={slot} className="space-y-1">
+                    <button
+                      onClick={() => setSelectedSlot(slot)}
+                      className={cn(
+                        'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs',
+                        isSelected
+                          ? 'border-russia-gold bg-russia-gold/10 shadow-strong'
+                          : 'border-border/40 hover:border-russia-gold/50 bg-card/50 hover:bg-card/80'
+                      )}
+                    >
+                      <div className="font-bold text-sm mb-1">Слот {slot}</div>
+                      {info ? (
+                        <>
+                          <div className="text-muted-foreground truncate">
+                            {info.playerNames.slice(0, 3).join(', ')}
+                            {info.playerNames.length > 3 && '…'}
+                          </div>
+                          <div className="text-russia-gold">
+                            Раунд {info.round}/{info.maxRounds}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-muted-foreground/60">Пусто</div>
+                      )}
+                    </button>
+                    {info && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleContinue(slot)}
+                        className="w-full h-7 text-xs bg-gradient-gold hover:opacity-90 font-bold"
+                      >
+                        ▶ Продолжить
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Player count */}
           <div className="space-y-3">
             <label className="text-sm font-semibold flex items-center gap-2">
@@ -182,7 +255,7 @@ export const GameSetup = () => {
             className="w-full bg-gradient-russian hover:opacity-90 text-lg py-7 shadow-strong transition-all hover:scale-105 font-bold"
             size="lg"
           >
-            ✨ {t('game.start')}
+            ✨ {t('game.start')} (слот {selectedSlot})
           </Button>
         </CardContent>
       </Card>

@@ -15,7 +15,7 @@ interface PropertyModalProps {
 const HOUSE_ICONS = ['—', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
 
 export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
-  const { gameState, buyHouse, mortgageProperty, unmortgageProperty, cells } = useGame();
+  const { gameState, buyHouse, sellHouse, mortgageProperty, unmortgageProperty, cells } = useGame();
   const { t } = useLocale();
 
   if (!cell || !gameState) return null;
@@ -24,12 +24,15 @@ export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
   const currentPlayer = players[cpIdx];
   const owner = players.find(p => p.properties.includes(cell.id));
   const isOwnedByCurrentPlayer = owner?.id === currentPlayer.id;
+  const canLiquidate = phase === 'rolling' || phase === 'pre-bankruptcy';
   const houseCount = houses[cell.id] || 0;
   const isMortgaged = isOwnedByCurrentPlayer && currentPlayer.mortgaged.includes(cell.id);
   const mortgageValue = cell.price ? Math.floor(cell.price / 2) : 0;
   const redemptionCost = cell.price ? Math.floor(cell.price / 2 * 1.1) : 0;
-  const canMortgage = isOwnedByCurrentPlayer && phase === 'rolling' && !isMortgaged && !!cell.price && houseCount === 0;
-  const canUnmortgage = isOwnedByCurrentPlayer && phase === 'rolling' && isMortgaged && currentPlayer.money >= redemptionCost;
+  const houseRefund = cell.houseCost ? Math.floor(cell.houseCost / 2) : 0;
+  const canMortgage = isOwnedByCurrentPlayer && canLiquidate && !isMortgaged && !!cell.price && houseCount === 0;
+  const canUnmortgage = isOwnedByCurrentPlayer && canLiquidate && isMortgaged && currentPlayer.money >= redemptionCost;
+  const canSellHouse = isOwnedByCurrentPlayer && canLiquidate && houseCount > 0;
 
   const sameColor = cell.color
     ? cells.filter(c => c.color === cell.color)
@@ -118,6 +121,17 @@ export const PropertyModal = ({ cell, onClose }: PropertyModalProps) => {
                 })}
               </div>
             </div>
+          )}
+
+          {/* Sell house */}
+          {canSellHouse && (
+            <Button
+              onClick={() => { sellHouse(cell.id); onClose(); }}
+              variant="outline"
+              className="w-full border-orange-400/50 text-orange-300 hover:bg-orange-400/10 text-sm"
+            >
+              🏚️ Снести {houseCount === 5 ? 'отель' : 'дом'} (+{(houseRefund / 1_000).toFixed(0)}K₽)
+            </Button>
           )}
 
           {/* Build house */}

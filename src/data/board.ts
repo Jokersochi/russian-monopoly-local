@@ -1,4 +1,4 @@
-import { Cell } from '@/types/game';
+import { Cell, MicroEvent } from '@/types/game';
 
 export const BOARD_CELLS: Cell[] = [
   // Bottom row (right to left)
@@ -83,4 +83,19 @@ export const PLAYER_TOKENS = [
   { id: 'bear', icon: '🐻', nameKey: 'bear' },
   { id: 'ushanka', icon: '🧢', nameKey: 'ushanka' },
   { id: 'rocket', icon: '🚀', nameKey: 'rocket' },
+];
+
+export const MICRO_EVENTS: MicroEvent[] = [
+  { id: 'tourism_boom',     nameKey: '🌍 Туристический бум',     descriptionKey: 'Аренда туристических объектов ×1.5 этот раунд', effects: { category: 'tourism',   rentMultiplier: 1.5 } },
+  { id: 'industry_crisis',  nameKey: '🏭 Промышленный спад',     descriptionKey: 'Аренда промышленных объектов ×0.5 этот раунд', effects: { category: 'industry',  rentMultiplier: 0.5 } },
+  { id: 'oil_boom',         nameKey: '🛢️ Нефтяной бум',           descriptionKey: 'Аренда промышленных объектов ×2 этот раунд',   effects: { category: 'industry',  rentMultiplier: 2   } },
+  { id: 'olympics',         nameKey: '🏅 Олимпийские игры',       descriptionKey: 'Аренда культурных объектов ×2 этот раунд',     effects: { category: 'culture',   rentMultiplier: 2   } },
+  { id: 'sanctions',        nameKey: '🚫 Санкции',                descriptionKey: 'Аренда транспорта ×0.5 этот раунд',            effects: { category: 'transport', rentMultiplier: 0.5 } },
+  { id: 'state_subsidies',  nameKey: '💰 Государственные дотации', descriptionKey: 'Все игроки получают 300 000₽',                effects: { bonus: 300_000  } },
+  { id: 'tax_audit',        nameKey: '🔍 Налоговая проверка',     descriptionKey: 'Все налоговые сборы ×1.5 этот раунд',          effects: { taxMultiplier: 1.5 } },
+  { id: 'tax_holiday',      nameKey: '🎉 Налоговые каникулы',     descriptionKey: 'Все налоговые сборы ×0 этот раунд',            effects: { taxMultiplier: 0   } },
+  { id: 'eco_tourism',      nameKey: '🌲 Эко-туризм',             descriptionKey: 'Аренда природных объектов ×2 этот раунд',      effects: { category: 'nature',    rentMultiplier: 2   } },
+  { id: 'crisis',           nameKey: '📉 Экономический кризис',   descriptionKey: 'Все игроки теряют 500 000₽',                   effects: { bonus: -500_000 } },
+  { id: 'culture_festival', nameKey: '🎭 Культурный фестиваль',   descriptionKey: 'Аренда культурных объектов ×1.5 этот раунд',   effects: { category: 'culture',   rentMultiplier: 1.5 } },
+  { id: 'logistic_boom',    nameKey: '🚂 Логистический бум',      descriptionKey: 'Аренда транспорта ×2 этот раунд',              effects: { category: 'transport', rentMultiplier: 2   } },
 ];
