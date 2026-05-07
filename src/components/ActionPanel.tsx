@@ -17,6 +17,7 @@ import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { TradingModal } from '@/components/TradingModal';
 import { PropertyModal } from '@/components/PropertyModal';
+import { ContractsModal } from '@/components/ContractsModal';
 import { BOARD_CELLS } from '@/data/board';
 import { Cell } from '@/types/game';
 
@@ -39,6 +40,7 @@ export const ActionPanel = () => {
   const { t } = useLocale();
   const [bidAmount, setBidAmount] = useState('');
   const [tradeOpen, setTradeOpen] = useState(false);
+  const [contractsOpen, setContractsOpen] = useState(false);
   const [inspectCell, setInspectCell] = useState<Cell | null>(null);
 
   const pname = (p: typeof gameState.players[0]) =>
@@ -542,14 +544,25 @@ export const ActionPanel = () => {
           )}
         </div>
 
-        {phase === 'rolling' && players.filter((_, i) => i !== cpIdx && !_.bankrupt).length > 0 && (
-          <Button
-            onClick={() => setTradeOpen(true)}
-            variant="outline"
-            className="w-full h-10 border-russia-blue/40 text-russia-blue hover:bg-russia-blue/10 text-sm font-semibold"
-          >
-            🤝 Предложить сделку
-          </Button>
+        {phase === 'rolling' && (
+          <div className="grid grid-cols-2 gap-2">
+            {players.filter((_, i) => i !== cpIdx && !_.bankrupt).length > 0 && (
+              <Button
+                onClick={() => setTradeOpen(true)}
+                variant="outline"
+                className="h-9 border-russia-blue/40 text-russia-blue hover:bg-russia-blue/10 text-xs font-semibold"
+              >
+                🤝 Сделка
+              </Button>
+            )}
+            <Button
+              onClick={() => setContractsOpen(true)}
+              variant="outline"
+              className="h-9 border-russia-gold/40 text-russia-gold hover:bg-russia-gold/10 text-xs font-semibold"
+            >
+              📜 Контракты
+            </Button>
+          </div>
         )}
 
         {/* Abandon game */}
@@ -589,6 +602,7 @@ export const ActionPanel = () => {
         </div>
       </div>
       <TradingModal open={tradeOpen} onClose={() => setTradeOpen(false)} />
+      <ContractsModal open={contractsOpen} onClose={() => setContractsOpen(false)} />
     </Card>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -6,17 +6,38 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
 
 export const DiceRoller = () => {
-  const { gameState, rollDice } = useGame();
+  const { gameState, rollDice, buyProperty, passProperty, endTurn } = useGame();
   const { t } = useLocale();
   const [rolling, setRolling] = useState(false);
-
-  if (!gameState) return null;
 
   const handleRoll = () => {
     setRolling(true);
     rollDice();
     setTimeout(() => setRolling(false), 600);
   };
+
+  useEffect(() => {
+    if (!gameState) return;
+    const onKey = (e: KeyboardEvent) => {
+      // Don't fire when typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const phase = gameState.phase;
+      if (e.code === 'Space' && (phase === 'rolling' || phase === 'jail')) {
+        e.preventDefault();
+        handleRoll();
+      } else if (e.key === 'b' || e.key === 'B') {
+        if (phase === 'landed') buyProperty();
+      } else if (e.key === 'p' || e.key === 'P') {
+        if (phase === 'landed') passProperty();
+      } else if (e.key === 'Enter') {
+        if (phase === 'landed' || phase === 'paying-rent' || phase === 'card-draw') endTurn();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [gameState, rollDice, buyProperty, passProperty, endTurn]);
+
+  if (!gameState) return null;
 
   const canRoll = gameState.phase === 'rolling' || gameState.phase === 'jail';
 

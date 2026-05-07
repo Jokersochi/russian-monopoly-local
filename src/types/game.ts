@@ -176,4 +176,7 @@ export interface LocaleStrings {
   log: {
     [key: string]: string;
   };
+  contracts: {
+    [key: string]: string;
+  };
 }

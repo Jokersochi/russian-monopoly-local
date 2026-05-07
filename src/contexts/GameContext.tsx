@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry, TradeOffer } from '@/types/game';
-import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS } from '@/data/board';
+import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS, CONTRACTS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 
@@ -39,6 +39,7 @@ interface GameContextType {
   executeTrade: (offer: TradeOffer) => void;
   confirmBankruptcy: () => void;
   resetGame: () => void;
+  buyContract: (contractId: string) => void;
   cells: Cell[];
 }
 
@@ -73,26 +74,34 @@ function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<num
     multiplier = event.effects.rentMultiplier;
   }
 
+  let contractBonus = 0;
+  if (cell.category) {
+    const contract = CONTRACTS.find(c => c.category === cell.category);
+    if (contract && owner.contracts.includes(contract.id)) {
+      contractBonus = contract.rentBonus;
+    }
+  }
+
   if (cell.type === 'transport') {
     const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'transport').length;
-    return Math.round(TRANSPORT_RENT[Math.min(count - 1, 3)] * multiplier);
+    return Math.round(TRANSPORT_RENT[Math.min(count - 1, 3)] * multiplier) + contractBonus;
   }
 
   if (cell.type === 'utility') {
     const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'utility').length;
-    return Math.round((count >= 2 ? diceSum * 100_000 : diceSum * 40_000) * multiplier);
+    return Math.round((count >= 2 ? diceSum * 100_000 : diceSum * 40_000) * multiplier) + contractBonus;
   }
 
   const houseCount = houses[cell.id] || 0;
   if (houseCount > 0) {
     const rentIdx = Math.min(houseCount, (cell.rent.length || 1) - 1);
-    return Math.round(cell.rent[rentIdx] * multiplier);
+    return Math.round(cell.rent[rentIdx] * multiplier) + contractBonus;
   }
 
   const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
   const ownsAll = sameColor.length > 0 && sameColor.every(c => owner.properties.includes(c.id));
   const base = cell.rent[0];
-  return Math.round((ownsAll ? base * 2 : base) * multiplier);
+  return Math.round((ownsAll ? base * 2 : base) * multiplier) + contractBonus;
 }
 
 function findNextBidder(
@@ -1045,6 +1054,41 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast({ title: '🤝 Сделка заключена!', description: `${pname(from)} ↔ ${pname(to)}` });
   }, [gameState, t]);
 
+  const buyContract = useCallback((contractId: string) => {
+    if (!gameState || gameState.phase !== 'rolling') return;
+    const contract = CONTRACTS.find(c => c.id === contractId);
+    if (!contract) return;
+    const player = gameState.players[gameState.currentPlayer];
+    if (player.contracts.includes(contractId)) {
+      toast({ title: 'Контракт уже заключён!', variant: 'destructive' });
+      return;
+    }
+    // Check no other player owns it
+    if (gameState.players.some(p => p.contracts.includes(contractId))) {
+      toast({ title: 'Этот контракт уже у другого игрока!', variant: 'destructive' });
+      return;
+    }
+    if (player.money < contract.price) {
+      toast({ title: 'Недостаточно средств!', variant: 'destructive' });
+      return;
+    }
+    const log = makeLog('log.contractBought', {
+      player: pname(player),
+      contract: contract.nameKey,
+      amount: contract.price.toLocaleString('ru-RU'),
+    }, 'success');
+    setGameState({
+      ...gameState,
+      players: gameState.players.map((p, i) =>
+        i === gameState.currentPlayer
+          ? { ...p, money: p.money - contract.price, contracts: [...p.contracts, contractId] }
+          : p
+      ),
+      gameLog: [...gameState.gameLog, log],
+    });
+    toast({ title: '📜 Контракт заключён!', description: contract.nameKey });
+  }, [gameState, t]);
+
   const confirmBankruptcy = useCallback(() => {
     if (!gameState || gameState.phase !== 'pre-bankruptcy') return;
     setGameState(eliminatePlayer(gameState));
@@ -1096,6 +1140,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         executeTrade,
         confirmBankruptcy,
         resetGame,
+        buyContract,
         cells: BOARD_CELLS,
       }}
     >

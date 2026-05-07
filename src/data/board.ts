@@ -1,4 +1,4 @@
-import { Cell, MicroEvent } from '@/types/game';
+import { Cell, MicroEvent, Contract } from '@/types/game';
 
 export const BOARD_CELLS: Cell[] = [
   // Bottom row (right to left)
@@ -98,4 +98,13 @@ export const MICRO_EVENTS: MicroEvent[] = [
   { id: 'crisis',           nameKey: '📉 Экономический кризис',   descriptionKey: 'Все игроки теряют 500 000₽',                   effects: { bonus: -500_000 } },
   { id: 'culture_festival', nameKey: '🎭 Культурный фестиваль',   descriptionKey: 'Аренда культурных объектов ×1.5 этот раунд',   effects: { category: 'culture',   rentMultiplier: 1.5 } },
   { id: 'logistic_boom',    nameKey: '🚂 Логистический бум',      descriptionKey: 'Аренда транспорта ×2 этот раунд',              effects: { category: 'transport', rentMultiplier: 2   } },
+];
+
+export const CONTRACTS: Contract[] = [
+  { id: 'tourism',   nameKey: 'contract_tourism',   category: 'tourism',   price: 2_000_000, rentBonus: 200_000 },
+  { id: 'transport', nameKey: 'contract_transport', category: 'transport', price: 1_500_000, rentBonus: 300_000 },
+  { id: 'industry',  nameKey: 'contract_industry',  category: 'industry',  price: 1_500_000, rentBonus: 150_000 },
+  { id: 'culture',   nameKey: 'contract_culture',   category: 'culture',   price: 1_800_000, rentBonus: 180_000 },
+  { id: 'education', nameKey: 'contract_education', category: 'education', price: 1_200_000, rentBonus: 120_000 },
+  { id: 'nature',    nameKey: 'contract_nature',    category: 'nature',    price: 1_200_000, rentBonus: 120_000 },
 ];

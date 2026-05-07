@@ -134,6 +134,22 @@
     "playerMortgaged": "{{player}} mortgaged {{property}} for {{amount}}₽",
     "playerUnmortgaged": "{{player}} unmortgaged {{property}} for {{amount}}₽",
     "tradeCompleted": "{{player1}} and {{player2}} completed a trade",
-    "microEvent": "{{event}} — {{amount}}₽"
+    "microEvent": "{{event}} — {{amount}}₽",
+    "contractBought": "{{player}} signed contract «{{contract}}» for {{amount}}₽",
+    "contractRentBonus": "{{player}} received +{{amount}}₽ contract bonus"
+  },
+  "contracts": {
+    "contract_tourism": "🌍 Tourism Contract",
+    "contract_transport": "🚂 Transport Contract",
+    "contract_industry": "🏭 Industry Contract",
+    "contract_culture": "🎭 Culture Contract",
+    "contract_education": "🎓 Education Contract",
+    "contract_nature": "🌲 Ecology Contract",
+    "contract_tourism_desc": "+200 000₽ rent bonus on tourism properties",
+    "contract_transport_desc": "+300 000₽ rent bonus on transport",
+    "contract_industry_desc": "+150 000₽ rent bonus on industry properties",
+    "contract_culture_desc": "+180 000₽ rent bonus on culture properties",
+    "contract_education_desc": "+120 000₽ rent bonus on education properties",
+    "contract_nature_desc": "+120 000₽ rent bonus on nature properties"
   }
 }

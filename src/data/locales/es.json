@@ -134,6 +134,22 @@
     "playerMortgaged": "{{player}} hipotecó {{property}} por {{amount}}₽",
     "playerUnmortgaged": "{{player}} desempeñó {{property}} por {{amount}}₽",
     "tradeCompleted": "{{player1}} y {{player2}} completaron un trato",
-    "microEvent": "{{event}} — {{amount}}₽"
+    "microEvent": "{{event}} — {{amount}}₽",
+    "contractBought": "{{player}} firmó contrato «{{contract}}» por {{amount}}₽",
+    "contractRentBonus": "{{player}} recibió +{{amount}}₽ bono de contrato"
+  },
+  "contracts": {
+    "contract_tourism": "🌍 Contrato Turístico",
+    "contract_transport": "🚂 Contrato de Transporte",
+    "contract_industry": "🏭 Contrato Industrial",
+    "contract_culture": "🎭 Contrato Cultural",
+    "contract_education": "🎓 Contrato Educativo",
+    "contract_nature": "🌲 Contrato Ecológico",
+    "contract_tourism_desc": "+200 000₽ bono de alquiler turístico",
+    "contract_transport_desc": "+300 000₽ bono de alquiler de transporte",
+    "contract_industry_desc": "+150 000₽ bono de alquiler industrial",
+    "contract_culture_desc": "+180 000₽ bono de alquiler cultural",
+    "contract_education_desc": "+120 000₽ bono de alquiler educativo",
+    "contract_nature_desc": "+120 000₽ bono de alquiler ecológico"
   }
 }
