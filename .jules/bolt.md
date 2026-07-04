@@ -1,0 +1,3 @@
+## 2026-04-19 - [useMemo optimization in GameLog]
+**Learning:** Found a performance bottleneck in `GameLog.tsx` where O(N) operations (slice, reverse, filter) were performed multiple times per render, leading to O(M*N) complexity. Wrapping these in `useMemo` and refactoring to a single-pass `reduce` reduced this to O(N) only when the log actually changes. Also learned that `useMemo` must be placed before early returns (like `if (!gameState)`) to satisfy the Rules of Hooks.
+**Action:** Always check for repeated array iterations in render loops and hoist them into memoized single-pass calculations. Ensure hooks are placed at the top of the component.
