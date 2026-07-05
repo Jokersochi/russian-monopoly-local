@@ -1,0 +1,3 @@
+## 2026-04-19 - Consolidated Log Processing in GameLog
+**Learning:** The `GameLog` component was performing multiple redundant $O(N)$ passes (one for reversing, and one for each type filter) on every render. This created a performance bottleneck as the game history grew. Consolidating these into a single-pass `reduce` inside `useMemo` significantly reduces computational overhead.
+**Action:** When aggregating counts or statistics from a list that also needs transformation (like reversing), use a single-pass `reduce` inside `useMemo` to achieve $O(N)$ complexity and ensure the work only repeats when the source data changes.
