@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -13,6 +13,8 @@ export const GameBoard = () => {
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
   const [justLandedIds, setJustLandedIds] = useState<Set<number>>(new Set());
   const prevPositions = useRef<Record<number, number>>({});
+
+  const playerPositions = gameState?.players.map(p => p.position);
 
   useEffect(() => {
     if (!gameState) return;
@@ -29,7 +31,45 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
-  }, [gameState?.players.map(p => p.position + ':' + p.id).join(',')]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(playerPositions)]);
+
+  // Optimization: Map-based lookups for O(1) cell access
+  const propertyOwners = useMemo(() => {
+    if (!gameState) return new Map<number, (typeof gameState.players)[0]>();
+    const map = new Map<number, (typeof gameState.players)[0]>();
+    gameState.players.forEach((p) => {
+      p.properties.forEach((id) => map.set(id, p));
+    });
+    return map;
+  }, [gameState]);
+
+  const playersOnCells = useMemo(() => {
+    if (!gameState) return new Map<number, (typeof gameState.players)[0][]>();
+    const map = new Map<number, (typeof gameState.players)[0][]>();
+    gameState.players.forEach((p) => {
+      const list = map.get(p.position) || [];
+      list.push(p);
+      map.set(p.position, list);
+    });
+    return map;
+  }, [gameState]);
+
+  // Optimization: Pre-calculate net worth standings
+  const playerStandings = useMemo(() => {
+    if (!gameState) return [];
+    return [...gameState.players]
+      .map((p, i) => {
+        // Use direct property lookup instead of filtering all cells
+        const propVal = p.properties.reduce((s, id) => s + (cells[id]?.price || 0), 0);
+        const houseVal = p.properties.reduce(
+          (s, id) => s + (gameState.houses[id] || 0) * (cells[id]?.houseCost || 0),
+          0
+        );
+        return { p, i, net: p.money + propVal + houseVal };
+      })
+      .sort((a, b) => b.net - a.net);
+  }, [gameState, cells]);
 
   if (!gameState) return null;
 
@@ -49,9 +89,6 @@ export const GameBoard = () => {
     };
   };
 
-  const getOwner = (cellId: number) => players.find(p => p.properties.includes(cellId));
-  const getPlayersOnCell = (cellId: number) => players.filter(p => p.position === cellId);
-
   return (
     <>
       <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
@@ -63,8 +100,8 @@ export const GameBoard = () => {
 
         <div className="relative" style={{ width: '902px', height: '902px' }}>
           {cells.map((cell) => {
-            const owner = getOwner(cell.id);
-            const playersHere = getPlayersOnCell(cell.id);
+            const owner = propertyOwners.get(cell.id);
+            const playersHere = playersOnCells.get(cell.id) || [];
             const houseCount = houses[cell.id] || 0;
             const isCurrentPlayerHere = currentPlayer.position === cell.id;
             const isOwnedByCurrentPlayer = owner?.id === currentPlayer.id;
@@ -178,14 +215,7 @@ export const GameBoard = () => {
 
               {/* Net worth standings */}
               <div className="space-y-1">
-                {[...players]
-                  .map((p, i) => {
-                    const propVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (c.price || 0), 0);
-                    const houseVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (gameState.houses[c.id] || 0) * (c.houseCost || 0), 0);
-                    return { p, i, net: p.money + propVal + houseVal };
-                  })
-                  .sort((a, b) => b.net - a.net)
-                  .map(({ p, net }, rank) => (
+                {playerStandings.map(({ p, net }, rank) => (
                     <div key={p.id} className={cn('flex items-center gap-2 text-[10px] px-2 py-0.5 rounded', p.id === currentPlayer.id && 'bg-russia-gold/10')}>
                       <span className="text-muted-foreground w-3">{rank + 1}.</span>
                       <span>{p.token}</span>

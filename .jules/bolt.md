@@ -1,0 +1,3 @@
+## 2026-04-19 - Optimization of GameBoard Render Loop
+**Learning:** The GameBoard rendered ~40 cells, and for each cell, it performed O(Players) lookups for owners and players present. This resulted in O(Cells * Players) complexity per render. Additionally, net worth standings were calculated and sorted on every render, involving O(Players * Cells) operations.
+**Action:** Use `useMemo` to build Map-based lookups (`propertyOwners`, `playersOnCells`) for O(1) access during the cell render loop. Memoize the sorted standings list and optimize its calculation by directly indexing the `cells` array with property IDs, leveraging the fact that cell IDs correspond to array indices in this project.
