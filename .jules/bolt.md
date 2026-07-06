@@ -1,0 +1,3 @@
+## 2026-04-19 - [Optimize GameBoard rendering and standings calculation]
+**Learning:** In a board game with many cells and few players, rendering each cell involves repeated lookups (finding owners, finding players on cell) which lead to $O(Cells \times Players)$ complexity. Additionally, calculating standings in each render can be $O(Players \times Cells)$ if using `filter` on the entire cells array for each player.
+**Action:** Use `useMemo` to pre-calculate `Map` objects for $O(1)$ lookups during cell rendering, reducing complexity to $O(Cells + Players)$. Memoize standings calculations and use direct indexing into the `BOARD_CELLS` array (when IDs match indices) to avoid $O(Cells)$ filter operations.
