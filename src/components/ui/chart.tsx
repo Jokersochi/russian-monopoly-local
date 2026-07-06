@@ -3,6 +3,12 @@ import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
 
+// Helper to sanitize CSS variables and selectors to prevent injection.
+const sanitizeCSS = (str: string) => str.replace(/[^a-zA-Z0-9_-]/g, "");
+
+// Helper to sanitize CSS values to prevent escaping the context (e.g., from color).
+const sanitizeCSSValue = (str: string) => str.replace(/[;{}]/g, "");
+
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
@@ -65,17 +71,19 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
+  const safeId = sanitizeCSS(id);
+
   return (
     <style
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+${prefix} [data-chart=${safeId}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
+    return color ? `  --color-${sanitizeCSS(key)}: ${color ? sanitizeCSSValue(color) : color};` : null;
   })
   .join("\n")}
 }
