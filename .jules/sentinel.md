@@ -1,0 +1,4 @@
+## 2026-04-19 - Implementation of Defense-in-Depth Security Headers
+**Vulnerability:** Missing security headers (CSP, X-Frame-Options, HSTS, etc.) in server configurations (`nginx.conf` and `vercel.json`).
+**Learning:** Modern SPAs often rely on client-side routing and static hosting. Without explicit configuration, browsers use permissive defaults that leave the app vulnerable to XSS, Clickjacking, and MIME-sniffing. In Nginx, `add_header` directives in a parent context are suppressed if the inner `location` block uses `add_header`, requiring duplication or a separate include.
+**Prevention:** Always define a baseline set of security headers in all deployment configurations. For Nginx, ensure headers are applied consistently across all location blocks, or use the `always` parameter and be aware of inheritance rules.
