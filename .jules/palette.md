@@ -1,0 +1,3 @@
+## 2026-04-19 - [Make player panel accordion keyboard accessible]
+**Learning:** Custom div-based accordions lack native accessibility features, meaning users relying on keyboard navigation or screen readers cannot access or interact with them properly without manual implementation of `role`, `tabIndex`, `aria-expanded`, `aria-controls`, and `onKeyDown` handlers (specifically for Space and Enter).
+**Action:** Always use semantic HTML elements (like `<button>` or `<details>/<summary>`) for interactive controls. When a custom `div` must be used for layout reasons, explicitly add keyboard support, ARIA attributes, and prevent default behaviors (like scrolling on Space) to ensure the component behaves like a native button.
