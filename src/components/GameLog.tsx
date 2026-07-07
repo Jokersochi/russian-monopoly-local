@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,39 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
-  if (!gameState) return null;
+  // Performance Pattern: Consolidate transformations and aggregations into a single-pass
+  // reduce (or loop) inside a useMemo hook to maintain O(N) complexity.
+  // This avoids multiple O(N) filter/reverse passes on every render.
+  const { filtered, counts, totalCount } = useMemo(() => {
+    const log = gameState?.gameLog || [];
+    const counts: Record<Exclude<Filter, 'all'>, number> = {
+      success: 0,
+      info: 0,
+      warning: 0,
+      error: 0,
+    };
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+    const filteredEntries: LogEntry[] = [];
+
+    // Single O(N) pass to count by type and filter entries
+    // Iterating backwards to get newest items first (replaces .reverse())
+    for (let i = log.length - 1; i >= 0; i--) {
+      const entry = log[i];
+      counts[entry.type]++;
+
+      if (filter === 'all' || entry.type === filter) {
+        filteredEntries.push(entry);
+      }
+    }
+
+    return {
+      filtered: filteredEntries,
+      counts,
+      totalCount: log.length
+    };
+  }, [gameState, filter]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
@@ -35,28 +63,31 @@ export const GameLog = () => {
         <h3 className="text-base font-bold flex items-center gap-2">
           <span className="text-russia-gold">📜</span>
           {t('game.gameLog')}
-          <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
+          <Badge variant="secondary" className="text-xs ml-1">{totalCount}</Badge>
         </h3>
         <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
-          ))}
+          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => {
+            const count = key === 'all' ? totalCount : counts[key as Exclude<Filter, 'all'>];
+            return (
+              <Button
+                key={key}
+                size="sm"
+                variant={filter === key ? 'default' : 'ghost'}
+                onClick={() => setFilter(key)}
+                className={cn(
+                  'h-6 px-1.5 text-xs',
+                  filter === key && 'bg-russia-gold text-black',
+                  key !== 'all' && count === 0 && 'opacity-30'
+                )}
+                title={key === 'all' ? 'Все события' : key}
+              >
+                {label}
+                {key !== 'all' && count > 0 && (
+                  <span className="ml-0.5 opacity-70">{count}</span>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
       <ScrollArea className="flex-1 p-2">
