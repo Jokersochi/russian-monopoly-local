@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -31,11 +31,50 @@ export const GameBoard = () => {
     }
   }, [gameState?.players.map(p => p.position + ':' + p.id).join(',')]);
 
-  if (!gameState) return null;
-
-  const { players, currentPlayer: cpIdx, houses } = gameState;
-  const currentPlayer = players[cpIdx];
+  const { players = [], currentPlayer: cpIdx = 0, houses = {} } = gameState || {};
+  const currentPlayer = players[cpIdx] || players[0];
   const pname = (p: typeof players[0]) => p.displayName || t(`players.${p.nameKey}`);
+
+  // Optimize property owner lookups: O(Players * Properties) -> O(Properties) to build Map, O(1) to lookup
+  const propertyOwners = useMemo(() => {
+    const owners = new Map<number, typeof players[0]>();
+    players.forEach(p => {
+      p.properties.forEach(cellId => owners.set(cellId, p));
+    });
+    return owners;
+  }, [players]);
+
+  // Optimize players on cell lookups: O(Cells * Players) -> O(Players) to build Map, O(1) to lookup
+  const playersOnCells = useMemo(() => {
+    const map = new Map<number, typeof players[0][]>();
+    players.forEach(p => {
+      const current = map.get(p.position) || [];
+      map.set(p.position, [...current, p]);
+    });
+    return map;
+  }, [players]);
+
+  // Optimize net worth calculation: O(Players * Cells) -> O(Players * AvgProperties)
+  // Uses direct indexing cells[id] because BOARD_CELLS are ordered by ID
+  const playerStandings = useMemo(() => {
+    if (!gameState) return [];
+    return [...players]
+      .map((p) => {
+        let propVal = 0;
+        let houseVal = 0;
+        p.properties.forEach(id => {
+          const cell = cells[id];
+          if (cell) {
+            propVal += cell.price || 0;
+            houseVal += (houses[cell.id] || 0) * (cell.houseCost || 0);
+          }
+        });
+        return { p, net: p.money + propVal + houseVal };
+      })
+      .sort((a, b) => b.net - a.net);
+  }, [players, cells, houses, gameState]);
+
+  if (!gameState) return null;
 
   const getCellStyle = (position: { x: number; y: number }) => {
     const size = 80;
@@ -49,9 +88,6 @@ export const GameBoard = () => {
     };
   };
 
-  const getOwner = (cellId: number) => players.find(p => p.properties.includes(cellId));
-  const getPlayersOnCell = (cellId: number) => players.filter(p => p.position === cellId);
-
   return (
     <>
       <div className="relative bg-gradient-board rounded-2xl shadow-board p-8 border-8 border-russia-gold backdrop-blur-sm">
@@ -63,8 +99,8 @@ export const GameBoard = () => {
 
         <div className="relative" style={{ width: '902px', height: '902px' }}>
           {cells.map((cell) => {
-            const owner = getOwner(cell.id);
-            const playersHere = getPlayersOnCell(cell.id);
+            const owner = propertyOwners.get(cell.id);
+            const playersHere = playersOnCells.get(cell.id) || [];
             const houseCount = houses[cell.id] || 0;
             const isCurrentPlayerHere = currentPlayer.position === cell.id;
             const isOwnedByCurrentPlayer = owner?.id === currentPlayer.id;
@@ -178,14 +214,7 @@ export const GameBoard = () => {
 
               {/* Net worth standings */}
               <div className="space-y-1">
-                {[...players]
-                  .map((p, i) => {
-                    const propVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (c.price || 0), 0);
-                    const houseVal = cells.filter(c => p.properties.includes(c.id)).reduce((s, c) => s + (gameState.houses[c.id] || 0) * (c.houseCost || 0), 0);
-                    return { p, i, net: p.money + propVal + houseVal };
-                  })
-                  .sort((a, b) => b.net - a.net)
-                  .map(({ p, net }, rank) => (
+                {playerStandings.map(({ p, net }, rank) => (
                     <div key={p.id} className={cn('flex items-center gap-2 text-[10px] px-2 py-0.5 rounded', p.id === currentPlayer.id && 'bg-russia-gold/10')}>
                       <span className="text-muted-foreground w-3">{rank + 1}.</span>
                       <span>{p.token}</span>
