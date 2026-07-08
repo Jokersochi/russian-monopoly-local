@@ -1,0 +1,4 @@
+## 2026-04-19 - Nginx Header Inheritance Pitfall
+**Vulnerability:** Security headers defined at the `server` level in Nginx were not being applied to static assets (images, CSS, JS) because the `location` block for those assets had its own `add_header Cache-Control` directive.
+**Learning:** In Nginx, `add_header` directives are only inherited from the previous level if there are no `add_header` directives defined at the current level. Adding a single header like `Cache-Control` in a `location` block silently suppresses all security headers defined at the `server` level for that location.
+**Prevention:** Always use the `always` parameter for security headers to ensure they apply to error pages. When a `location` block requires its own headers, critical security headers must be explicitly duplicated or moved to a shared configuration file that is included in all blocks.
