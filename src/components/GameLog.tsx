@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,37 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
-  if (!gameState) return null;
+  const { filteredEntries, counts } = useMemo(() => {
+    const counts: Record<LogEntry['type'], number> = {
+      success: 0,
+      info: 0,
+      warning: 0,
+      error: 0,
+    };
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+    if (!gameState) return { filteredEntries: [], counts };
+
+    const filtered: LogEntry[] = [];
+    const log = gameState.gameLog;
+
+    // Performance Optimization: Process in a single backward pass to:
+    // 1. Reverse the order (newest first)
+    // 2. Filter by type
+    // 3. Count occurrences by type
+    // This reduces complexity from O(N*K) where K is number of filters to O(N).
+    for (let i = log.length - 1; i >= 0; i--) {
+      const entry = log[i];
+      counts[entry.type]++;
+
+      if (filter === 'all' || entry.type === filter) {
+        filtered.push(entry);
+      }
+    }
+
+    return { filteredEntries: filtered, counts };
+  }, [gameState, filter]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
@@ -47,13 +73,13 @@ export const GameLog = () => {
               className={cn(
                 'h-6 px-1.5 text-xs',
                 filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
+                key !== 'all' && counts[key as LogEntry['type']] === 0 && 'opacity-30'
               )}
               title={key === 'all' ? 'Все события' : key}
             >
               {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
+              {key !== 'all' && counts[key as LogEntry['type']] > 0 && (
+                <span className="ml-0.5 opacity-70">{counts[key as LogEntry['type']]}</span>
               )}
             </Button>
           ))}
@@ -61,12 +87,12 @@ export const GameLog = () => {
       </div>
       <ScrollArea className="flex-1 p-2">
         <div className="space-y-1.5">
-          {filtered.length === 0 ? (
+          {filteredEntries.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
               {filter === 'all' ? 'Журнал событий пуст' : 'Нет событий этого типа'}
             </p>
           ) : (
-            filtered.map((entry) => (
+            filteredEntries.map((entry) => (
               <div
                 key={entry.id}
                 className={cn(
