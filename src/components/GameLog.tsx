@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
@@ -39,23 +40,30 @@ export const GameLog = () => {
         </h3>
         <div className="flex gap-1">
           {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
+            <Tooltip key={key}>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={filter === key ? 'default' : 'ghost'}
+                  onClick={() => setFilter(key)}
+                  className={cn(
+                    'h-6 px-1.5 text-xs',
+                    filter === key && 'bg-russia-gold text-black',
+                    key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
+                  )}
+                  aria-label={key === 'all' ? 'Все события' : `Фильтр: ${key}`}
+                  aria-pressed={filter === key}
+                >
+                  {label}
+                  {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
+                    <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{key === 'all' ? 'Все события' : key}</p>
+              </TooltipContent>
+            </Tooltip>
           ))}
         </div>
       </div>
