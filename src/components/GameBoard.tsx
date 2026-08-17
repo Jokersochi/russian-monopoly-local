@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
-import { Cell } from '@/types/game';
+import { Cell, Player } from '@/types/game';
 import { cn } from '@/lib/utils';
 
 const SPECIAL_CELL_ICONS: Partial<Record<Cell['type'], string>> = {
@@ -51,7 +51,7 @@ export const GameBoard = () => {
 
   const { players, currentPlayer: currentPlayerIndex, houses } = gameState;
   const currentPlayer = players[currentPlayerIndex];
-  const playerName = (player: typeof players[number]) =>
+  const playerName = (player: Player) =>
     player.displayName || t(`players.${player.nameKey}`);
 
   const getCellStyle = (position: { x: number; y: number }) => {
