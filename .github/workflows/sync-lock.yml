@@ -1,4 +1,4 @@
-name: Sync npm lockfile
+name: One-time branch maintenance
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  sync-lock:
+  maintain:
     if: github.head_ref == 'agent/premium-responsive-ui'
     runs-on: ubuntu-latest
     steps:
@@ -24,18 +24,21 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Regenerate package lock
-        run: npm install --package-lock-only --ignore-scripts
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Commit synchronized package lock
+      - name: Apply safe ESLint autofix to game context
+        run: npx eslint src/contexts/GameContext.tsx --fix
+
+      - name: Commit maintenance changes
         shell: bash
         run: |
-          if git diff --quiet -- package-lock.json; then
-            echo "package-lock.json is already synchronized"
+          if git diff --quiet -- src/contexts/GameContext.tsx; then
+            echo "No maintenance changes required"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "chore: synchronize npm lockfile"
+          git add src/contexts/GameContext.tsx
+          git commit -m "fix: apply safe game context lint autofix"
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
