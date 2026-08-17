@@ -23,8 +23,19 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Synchronize package lock
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Verify clean install
         run: npm ci
+
+      - name: Upload synchronized lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: synchronized-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Typecheck
         run: npx tsc -p tsconfig.app.json --noEmit
