@@ -353,7 +353,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     log('log.playerRolled', { player: pname(player), dice: `${dice1}+${dice2}=${sum}` });
     if (isDouble) log('log.playerDouble', { player: pname(player) }, 'success');
 
-    let updatedPlayers = gameState.players.map((p, i) =>
+    const updatedPlayers = gameState.players.map((p, i) =>
       i === gameState.currentPlayer
         ? { ...p, position: newPosition, money: passedStart ? p.money + START_BONUS : p.money }
         : p
