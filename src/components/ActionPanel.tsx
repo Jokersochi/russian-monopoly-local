@@ -183,14 +183,18 @@ export const ActionPanel = () => {
               {ownedCells.map(c => (
                 <button
                   key={c.id}
+                  type="button"
                   onClick={() => setInspectCell(c)}
-                  className="w-full flex items-center justify-between p-2 rounded border border-border/40 hover:border-russia-gold/50 hover:bg-russia-gold/5 transition-colors text-xs text-left"
+                  title={`${t(`cells.${c.nameKey}`)} — нажмите для управления`}
+                  aria-label={`${t(`cells.${c.nameKey}`)}${currentPlayer.mortgaged.includes(c.id) ? ' (залог)' : ''} — открыть карточку недвижимости`}
+                  className="w-full flex items-center justify-between p-2 rounded border border-border/40 hover:border-russia-gold/50 hover:bg-russia-gold/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-russia-gold focus-visible:ring-offset-1 transition-colors text-xs text-left"
                 >
                   <span className="flex items-center gap-1.5">
                     {c.color && (
                       <span
                         className="w-3 h-3 rounded-full flex-shrink-0 border border-black/20"
                         style={{ backgroundColor: c.color }}
+                        aria-hidden="true"
                       />
                     )}
                     <span className="truncate">{t(`cells.${c.nameKey}`)}</span>
