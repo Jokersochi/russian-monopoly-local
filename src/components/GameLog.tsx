@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,14 @@ const FILTER_LABELS: Record<Filter, string> = {
   info: 'ℹ️',
   warning: '⚠️',
   error: '❌',
+};
+
+const FILTER_DESCRIPTIONS: Record<Filter, string> = {
+  all: 'Все события',
+  success: 'Успешные действия',
+  info: 'Информация',
+  warning: 'Предупреждения',
+  error: 'Ошибки и убытки',
 };
 
 export const GameLog = () => {
@@ -37,25 +46,32 @@ export const GameLog = () => {
           {t('game.gameLog')}
           <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
         </h3>
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="toolbar" aria-label="Фильтр журнала событий">
           {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
+            <Tooltip key={key}>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={filter === key ? 'default' : 'ghost'}
+                  onClick={() => setFilter(key)}
+                  aria-label={FILTER_DESCRIPTIONS[key]}
+                  aria-pressed={filter === key}
+                  className={cn(
+                    'h-6 px-1.5 text-xs focus-visible:ring-2 focus-visible:ring-russia-gold',
+                    filter === key && 'bg-russia-gold text-black hover:bg-russia-gold/90',
+                    key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
+                  )}
+                >
+                  {label}
+                  {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
+                    <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {FILTER_DESCRIPTIONS[key]}
+              </TooltipContent>
+            </Tooltip>
           ))}
         </div>
       </div>
