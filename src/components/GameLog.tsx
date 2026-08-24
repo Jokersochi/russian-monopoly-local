@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
@@ -10,12 +11,18 @@ import { LogEntry } from '@/types/game';
 
 type Filter = 'all' | 'success' | 'info' | 'warning' | 'error';
 
-const FILTER_LABELS: Record<Filter, string> = {
-  all: 'Всё',
-  success: '✅',
-  info: 'ℹ️',
-  warning: '⚠️',
-  error: '❌',
+interface FilterInfo {
+  label: string;
+  ariaLabel: string;
+  tooltip: string;
+}
+
+const FILTER_CONFIG: Record<Filter, FilterInfo> = {
+  all: { label: 'Всё', ariaLabel: 'Все события', tooltip: 'Все события' },
+  success: { label: '✅', ariaLabel: 'Успешные действия', tooltip: 'Успешные действия' },
+  info: { label: 'ℹ️', ariaLabel: 'Информационные сообщения', tooltip: 'Информационные сообщения' },
+  warning: { label: '⚠️', ariaLabel: 'Предупреждения', tooltip: 'Предупреждения' },
+  error: { label: '❌', ariaLabel: 'Ошибки и убытки', tooltip: 'Ошибки и убытки' },
 };
 
 export const GameLog = () => {
@@ -37,26 +44,38 @@ export const GameLog = () => {
           {t('game.gameLog')}
           <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
         </h3>
-        <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
-          ))}
+        <div className="flex gap-1" role="group" aria-label="Фильтр журнала событий">
+          {(Object.entries(FILTER_CONFIG) as [Filter, FilterInfo][]).map(([key, config]) => {
+            const count = key === 'all' ? gameState.gameLog.length : countByType(key as LogEntry['type']);
+            const isActive = filter === key;
+
+            return (
+              <Tooltip key={key}>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={isActive ? 'default' : 'ghost'}
+                    onClick={() => setFilter(key)}
+                    aria-label={`${config.ariaLabel} (${count})`}
+                    aria-pressed={isActive}
+                    className={cn(
+                      'h-6 px-1.5 text-xs focus-visible:ring-russia-gold',
+                      isActive && 'bg-russia-gold text-black hover:bg-russia-gold/90',
+                      key !== 'all' && count === 0 && 'opacity-30'
+                    )}
+                  >
+                    <span aria-hidden="true">{config.label}</span>
+                    {key !== 'all' && count > 0 && (
+                      <span className="ml-0.5 opacity-70" aria-hidden="true">{count}</span>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {config.tooltip} ({count})
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
         </div>
       </div>
       <ScrollArea className="flex-1 p-2">
