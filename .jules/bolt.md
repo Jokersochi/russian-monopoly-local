@@ -1,0 +1,3 @@
+## 2026-08-20 - GameBoard Render Optimization with Map Lookups
+**Learning:** In `GameBoard.tsx`, evaluating property ownership, player cell presence, and net worth standings inline inside the render loop results in $O(P \times C)$ linear array scans on every render frame (40 cells per board). Precalculating these data structures into `Map` lookups inside a top-level `useMemo` hook reduces lookup time to $O(1)$ per cell and reduces garbage collection pressure during game state updates and movement animations.
+**Action:** Always pre-aggregate property owners and player locations into `Map<number, Player>` lookups within `useMemo` when rendering multi-cell game boards instead of running array filtering per cell.
