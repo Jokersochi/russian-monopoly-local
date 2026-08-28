@@ -25,13 +25,19 @@ export const DiceRoller = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.key === ' ') {
         const target = e.target as HTMLElement;
-        if (
-          target &&
-          (target.tagName === 'INPUT' ||
+        if (target) {
+          if (
+            target.tagName === 'INPUT' ||
             target.tagName === 'TEXTAREA' ||
-            target.isContentEditable)
-        ) {
-          return;
+            target.isContentEditable
+          ) {
+            return;
+          }
+          // Do not intercept if focus is on another interactive element (e.g. another button or link)
+          const interactiveParent = target.closest('button, a, select, [role="button"]');
+          if (interactiveParent && interactiveParent.getAttribute('data-roll-dice') !== 'true') {
+            return;
+          }
         }
         if (canRoll && !rolling) {
           e.preventDefault();
@@ -79,6 +85,7 @@ export const DiceRoller = () => {
         )}
 
         <Button
+          data-roll-dice="true"
           onClick={handleRoll}
           disabled={!canRoll || rolling}
           size="lg"
