@@ -1,0 +1,3 @@
+## 2026-08-20 - Single-Pass $O(N)$ Log Processing in React useMemo
+**Learning:** For components requiring 'newest entries first' display alongside aggregate counts (e.g., GameLog), multiple `.slice()`, `.reverse()`, `.filter()`, and repeated element counts cause 10+ $O(N)$ passes and array allocations per render. A single backward `for` loop starting from `array.length - 1` inside `useMemo` computes filtered items, type counts, and totals in a single pass without intermediate array allocations.
+**Action:** Consolidate array transformations (copying, reversing, filtering) and type counting into a single backward `for` loop inside `useMemo`, ensuring `useMemo` is declared before any conditional early returns.
