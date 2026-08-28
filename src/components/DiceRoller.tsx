@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useGame } from '@/contexts/GameContext';
@@ -12,13 +12,43 @@ export const DiceRoller = () => {
 
   if (!gameState) return null;
 
-  const handleRoll = () => {
+  const canRoll = gameState.phase === 'rolling' || gameState.phase === 'jail';
+
+  const handleRoll = useCallback(() => {
+    if (!canRoll || rolling) return;
     setRolling(true);
     rollDice();
     setTimeout(() => setRolling(false), 600);
-  };
+  }, [canRoll, rolling, rollDice]);
 
-  const canRoll = gameState.phase === 'rolling' || gameState.phase === 'jail';
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        const target = e.target as HTMLElement;
+        if (target) {
+          if (
+            target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.isContentEditable
+          ) {
+            return;
+          }
+          // Do not intercept if focus is on another interactive element (e.g. another button or link)
+          const interactiveParent = target.closest('button, a, select, [role="button"]');
+          if (interactiveParent && interactiveParent.getAttribute('data-roll-dice') !== 'true') {
+            return;
+          }
+        }
+        if (canRoll && !rolling) {
+          e.preventDefault();
+          handleRoll();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canRoll, rolling, handleRoll]);
 
   return (
     <Card className="shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-red/20">
@@ -55,15 +85,21 @@ export const DiceRoller = () => {
         )}
 
         <Button
+          data-roll-dice="true"
           onClick={handleRoll}
           disabled={!canRoll || rolling}
           size="lg"
           className={cn(
-            'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
+            'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105 flex items-center justify-center gap-2',
             rolling && 'pointer-events-none animate-pulse'
           )}
         >
-          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+          <span>{rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}</span>
+          {canRoll && !rolling && (
+            <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-mono font-normal bg-black/20 text-white/90 rounded border border-white/20 shadow-inner">
+              Space
+            </kbd>
+          )}
         </Button>
       </div>
     </Card>
