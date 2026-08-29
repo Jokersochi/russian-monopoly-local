@@ -223,9 +223,11 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                   return (
                     <button
                       key={id}
+                      type="button"
+                      aria-pressed={selected}
                       onClick={() => toggleProp(id, 'offer')}
                       className={cn(
-                        'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
+                        'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-russia-gold focus-visible:ring-offset-1',
                         selected
                           ? 'bg-russia-gold/20 border-russia-gold text-russia-gold font-bold'
                           : 'bg-muted/40 border-border hover:border-russia-gold/50'
@@ -267,9 +269,11 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                     return (
                       <button
                         key={id}
+                        type="button"
+                        aria-pressed={selected}
                         onClick={() => toggleProp(id, 'request')}
                         className={cn(
-                          'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
+                          'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-russia-blue focus-visible:ring-offset-1',
                           selected
                             ? 'bg-russia-blue/20 border-russia-blue text-russia-blue font-bold'
                             : 'bg-muted/40 border-border hover:border-russia-blue/50'
