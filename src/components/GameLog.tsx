@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,37 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
-  if (!gameState) return null;
+  // Single-pass optimization: count log types and reverse entries in one backward loop $O(N)$
+  const { entries, counts, filtered } = useMemo(() => {
+    const rawLog = gameState?.gameLog || [];
+    const reversed: LogEntry[] = new Array(rawLog.length);
+    const countsMap: Record<LogEntry['type'], number> = {
+      success: 0,
+      info: 0,
+      warning: 0,
+      error: 0,
+    };
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+    const filterTarget = filter !== 'all' ? filter : null;
+    const filteredList: LogEntry[] = [];
+
+    for (let i = rawLog.length - 1, j = 0; i >= 0; i--, j++) {
+      const entry = rawLog[i];
+      reversed[j] = entry;
+      countsMap[entry.type] = (countsMap[entry.type] || 0) + 1;
+      if (!filterTarget || entry.type === filterTarget) {
+        filteredList.push(entry);
+      }
+    }
+
+    return {
+      entries: reversed,
+      counts: countsMap,
+      filtered: filteredList,
+    };
+  }, [gameState?.gameLog, filter]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
@@ -47,13 +73,13 @@ export const GameLog = () => {
               className={cn(
                 'h-6 px-1.5 text-xs',
                 filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
+                key !== 'all' && (counts[key as LogEntry['type']] || 0) === 0 && 'opacity-30'
               )}
               title={key === 'all' ? 'Все события' : key}
             >
               {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
+              {key !== 'all' && (counts[key as LogEntry['type']] || 0) > 0 && (
+                <span className="ml-0.5 opacity-70">{counts[key as LogEntry['type']]}</span>
               )}
             </Button>
           ))}
