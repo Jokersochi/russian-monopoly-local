@@ -38,7 +38,7 @@ export const GameLog = () => {
     // Traverse backward (newest first) in a single O(N) loop
     for (let i = gameLog.length - 1; i >= 0; i--) {
       const entry = gameLog[i];
-      if (entry.type in counts) {
+      if (counts[entry.type] !== undefined) {
         counts[entry.type]++;
       }
       if (filter === 'all' || entry.type === filter) {
