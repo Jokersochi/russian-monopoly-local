@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,32 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
+  // Single-pass optimization: reverse log entries, count by type, and filter in O(N) time with memoization.
+  const { reversedLog, counts } = useMemo(() => {
+    const log = gameState?.gameLog || [];
+    const counts: Record<LogEntry['type'], number> = {
+      success: 0,
+      info: 0,
+      warning: 0,
+      error: 0,
+    };
+    const reversedLog: LogEntry[] = new Array(log.length);
+
+    for (let i = log.length - 1, j = 0; i >= 0; i--, j++) {
+      const entry = log[i];
+      reversedLog[j] = entry;
+      if (counts[entry.type] !== undefined) {
+        counts[entry.type]++;
+      }
+    }
+
+    return { reversedLog, counts };
+  }, [gameState?.gameLog]);
+
   if (!gameState) return null;
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+  const filtered = filter === 'all' ? reversedLog : reversedLog.filter(e => e.type === filter);
+  const countByType = (type: LogEntry['type']) => counts[type] || 0;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
