@@ -5,6 +5,8 @@ import { PropertyModal } from '@/components/PropertyModal';
 import { Cell, Player } from '@/types/game';
 import { cn } from '@/lib/utils';
 
+const HOUSE_DOTS = ['', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
+
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
   const { t } = useLocale();
