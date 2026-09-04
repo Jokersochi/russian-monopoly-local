@@ -46,9 +46,12 @@ export const PlayerPanel = () => {
                 player.bankrupt && 'opacity-50'
               )}
             >
-              <div
-                className="p-3 cursor-pointer select-none"
+              <button
+                type="button"
+                className="w-full text-left p-3 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-russia-gold"
                 onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                aria-expanded={isExpanded}
+                aria-controls={`player-panel-${player.id}`}
               >
                 <div className="flex items-center gap-3">
                   <div className="text-4xl drop-shadow">{player.token}</div>
@@ -90,10 +93,10 @@ export const PlayerPanel = () => {
                   </div>
                   <span className="text-muted-foreground text-xs">{isExpanded ? '▲' : '▼'}</span>
                 </div>
-              </div>
+              </button>
 
               {isExpanded && (
-                <div className="border-t border-border/30 px-3 pb-3 pt-2 space-y-1">
+                <div id={`player-panel-${player.id}`} className="border-t border-border/30 px-3 pb-3 pt-2 space-y-1">
                   <div className="flex justify-between text-xs text-muted-foreground mb-2">
                     <span>{t('game.netWorth')}: <strong className="text-emerald-400">{(netWorth / 1_000_000).toFixed(2)}M₽</strong></span>
                     {mortgagedValue > 0 && (
