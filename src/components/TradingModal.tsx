@@ -199,6 +199,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                   <Button
                     key={p.id}
                     size="sm"
+                    aria-pressed={config.targetPlayer === pIdx}
                     variant={config.targetPlayer === pIdx ? 'default' : 'outline'}
                     onClick={() => setConfig(c => ({ ...c, targetPlayer: pIdx, requestedProperties: [] }))}
                     className={cn(config.targetPlayer === pIdx && 'bg-russia-blue text-white shadow-strong')}
@@ -223,9 +224,10 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                   return (
                     <button
                       key={id}
+                      aria-pressed={selected}
                       onClick={() => toggleProp(id, 'offer')}
                       className={cn(
-                        'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
+                        'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-russia-gold',
                         selected
                           ? 'bg-russia-gold/20 border-russia-gold text-russia-gold font-bold'
                           : 'bg-muted/40 border-border hover:border-russia-gold/50'
@@ -267,9 +269,10 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                     return (
                       <button
                         key={id}
+                        aria-pressed={selected}
                         onClick={() => toggleProp(id, 'request')}
                         className={cn(
-                          'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
+                          'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-russia-blue',
                           selected
                             ? 'bg-russia-blue/20 border-russia-blue text-russia-blue font-bold'
                             : 'bg-muted/40 border-border hover:border-russia-blue/50'
