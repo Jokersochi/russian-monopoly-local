@@ -70,8 +70,26 @@ export const DiceRoller = () => {
   );
 };
 
+// Performance Optimization: Hoist static dot pattern mapping and grid indices array
+// out of render loops to prevent fresh object/array allocations per frame during dice animations.
+const GRID_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+const DICE_PATTERNS: Record<number, boolean[]> = {
+  1: [false, false, false, false, true, false, false, false, false],
+  2: [true, false, false, false, false, false, false, false, true],
+  3: [true, false, false, false, true, false, false, false, true],
+  4: [true, false, true, false, false, false, true, false, true],
+  5: [true, false, true, false, true, false, true, false, true],
+  6: [true, false, true, true, false, true, true, false, true],
+};
+
+const getDotPattern = (value: number): boolean[] => {
+  return DICE_PATTERNS[value] || DICE_PATTERNS[1];
+};
+
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
+  // Performance Optimization: Cache pattern array once per render instead of querying inside the 9-element iteration loop.
+  const dotPattern = getDotPattern(value);
 
   return (
     <div
@@ -81,8 +99,8 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
       )}
     >
       <div className="grid grid-cols-3 gap-1 w-full h-full p-2">
-        {[...Array(9)].map((_, idx) => {
-          const showDot = getDotPattern(value)[idx];
+        {GRID_INDICES.map((idx) => {
+          const showDot = dotPattern[idx];
           return (
             <div
               key={idx}
@@ -96,16 +114,4 @@ const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
       </div>
     </div>
   );
-};
-
-const getDotPattern = (value: number): boolean[] => {
-  const patterns: Record<number, boolean[]> = {
-    1: [false, false, false, false, true, false, false, false, false],
-    2: [true, false, false, false, false, false, false, false, true],
-    3: [true, false, false, false, true, false, false, false, true],
-    4: [true, false, true, false, false, false, true, false, true],
-    5: [true, false, true, false, true, false, true, false, true],
-    6: [true, false, true, true, false, true, true, false, true],
-  };
-  return patterns[value] || patterns[1];
 };
