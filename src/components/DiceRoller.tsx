@@ -70,6 +70,8 @@ export const DiceRoller = () => {
   );
 };
 
+// Performance Optimization: Hoist static dot pattern mapping and grid indices array
+// out of render loops to prevent fresh object/array allocations per frame during dice animations.
 const GRID_INDICES = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
 const DICE_PATTERNS: Record<number, boolean[]> = {
@@ -86,6 +88,7 @@ const getDotPattern = (value: number): boolean[] => {
 };
 
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
+  // Performance Optimization: Cache pattern array once per render instead of querying inside the 9-element iteration loop.
   const dotPattern = getDotPattern(value);
 
   return (
