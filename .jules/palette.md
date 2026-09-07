@@ -1,0 +1,3 @@
+## 2026-08-20 - [PlayerPanel Accordion Card Pattern]
+**Learning:** In PlayerPanel, an accordion-style expandable header was implemented using a non-interactive `<div>` element instead of a native `<button>` element. This prevents keyboard focus (Tab navigation) and screen reader announcement of the expanded state (`aria-expanded`).
+**Action:** When rendering expandable card headers, use semantic `<button type="button">` elements with `aria-expanded={isExpanded}` and `aria-controls` instead of `<div>` elements, and ensure focus styles are visible, to support keyboard focus and screen reader expansion states.
