@@ -18,9 +18,40 @@ const FILTER_LABELS: Record<Filter, string> = {
   error: '❌',
 };
 
+const FILTER_NAMES: Record<string, Record<Filter, string>> = {
+  ru: {
+    all: 'Все события',
+    success: 'Успех',
+    info: 'Информация',
+    warning: 'Предупреждения',
+    error: 'Ошибки',
+  },
+  en: {
+    all: 'All events',
+    success: 'Success',
+    info: 'Info',
+    warning: 'Warnings',
+    error: 'Errors',
+  },
+  de: {
+    all: 'Alle Ereignisse',
+    success: 'Erfolg',
+    info: 'Info',
+    warning: 'Warnungen',
+    error: 'Fehler',
+  },
+  es: {
+    all: 'Todos los eventos',
+    success: 'Éxito',
+    info: 'Información',
+    warning: 'Advertencias',
+    error: 'Errores',
+  },
+};
+
 export const GameLog = () => {
   const { gameState } = useGame();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
   if (!gameState) return null;
@@ -38,25 +69,33 @@ export const GameLog = () => {
           <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
         </h3>
         <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
-          ))}
+          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => {
+            const count = key !== 'all' ? countByType(key as LogEntry['type']) : gameState.gameLog.length;
+            const isSelected = filter === key;
+            const localizedNames = FILTER_NAMES[locale] || FILTER_NAMES.ru;
+            const filterName = localizedNames[key];
+            return (
+              <Button
+                key={key}
+                size="sm"
+                variant={isSelected ? 'default' : 'ghost'}
+                onClick={() => setFilter(key)}
+                aria-pressed={isSelected}
+                aria-label={`${filterName}${count > 0 ? `, ${count}` : ''}`}
+                className={cn(
+                  'h-6 px-1.5 text-xs focus-visible:ring-2 focus-visible:ring-russia-gold focus-visible:ring-offset-1',
+                  isSelected && 'bg-russia-gold text-black',
+                  key !== 'all' && count === 0 && 'opacity-30'
+                )}
+                title={`${filterName}${count > 0 ? ` (${count})` : ''}`}
+              >
+                {label}
+                {key !== 'all' && count > 0 && (
+                  <span className="ml-0.5 opacity-70">{count}</span>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
       <ScrollArea className="flex-1 p-2">
