@@ -18,6 +18,14 @@ const FILTER_LABELS: Record<Filter, string> = {
   error: '❌',
 };
 
+const FILTER_NAMES: Record<Filter, string> = {
+  all: 'Все события',
+  success: 'Успех',
+  info: 'Информация',
+  warning: 'Предупреждения',
+  error: 'Ошибки',
+};
+
 export const GameLog = () => {
   const { gameState } = useGame();
   const { t } = useLocale();
@@ -38,25 +46,31 @@ export const GameLog = () => {
           <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
         </h3>
         <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
-          ))}
+          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => {
+            const count = key !== 'all' ? countByType(key as LogEntry['type']) : gameState.gameLog.length;
+            const isSelected = filter === key;
+            return (
+              <Button
+                key={key}
+                size="sm"
+                variant={isSelected ? 'default' : 'ghost'}
+                onClick={() => setFilter(key)}
+                aria-pressed={isSelected}
+                aria-label={`${FILTER_NAMES[key]}${count > 0 ? `, ${count}` : ''}`}
+                className={cn(
+                  'h-6 px-1.5 text-xs focus-visible:ring-2 focus-visible:ring-russia-gold focus-visible:ring-offset-1',
+                  isSelected && 'bg-russia-gold text-black',
+                  key !== 'all' && count === 0 && 'opacity-30'
+                )}
+                title={`${FILTER_NAMES[key]}${count > 0 ? ` (${count})` : ''}`}
+              >
+                {label}
+                {key !== 'all' && count > 0 && (
+                  <span className="ml-0.5 opacity-70">{count}</span>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
       <ScrollArea className="flex-1 p-2">
