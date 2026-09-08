@@ -1,0 +1,3 @@
+## 2026-08-20 - Semantic Accordion Buttons for Interactive Cards
+**Learning:** When using custom `div` wrappers as toggleable accordion headers (like player cards), screen reader users are unaware they are interactive or what content they control, and keyboard users cannot easily navigate them. Using `w-full text-left` classes allows an inline `<button>` to behave identically to a block `div` structurally.
+**Action:** Always replace non-interactive interactive wrappers with `<button type="button">`, adding `aria-expanded` and `aria-controls` explicitly tied to the target container's ID, and using `focus-visible` styles to prevent ugly click-focus rings while maintaining keyboard support.
