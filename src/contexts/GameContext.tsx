@@ -591,6 +591,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const placeBid = useCallback((amount: number) => {
     if (!gameState || gameState.phase !== 'auction' || !gameState.auctionState) return;
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast({ title: 'Некорректная сумма ставки!', variant: 'destructive' });
+      return;
+    }
+
     const { auctionState } = gameState;
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
@@ -1005,10 +1010,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
 
+    // Security: Sanitize and validate monetary inputs to prevent negative money exploitation
+    const offeredMoney = Math.max(0, Number.isFinite(offer.offeredMoney) ? Math.floor(offer.offeredMoney) : 0);
+    const requestedMoney = Math.max(0, Number.isFinite(offer.requestedMoney) ? Math.floor(offer.requestedMoney) : 0);
+
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
-    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
+    if (!from || !to) return;
+
+    if (from.money < offeredMoney || to.money < requestedMoney) {
       toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
       return;
     }
@@ -1017,7 +1028,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (i === offer.fromPlayer) {
         return {
           ...p,
-          money: p.money - offer.offeredMoney + offer.requestedMoney,
+          money: p.money - offeredMoney + requestedMoney,
           properties: [
             ...p.properties.filter(id => !offer.offeredProperties.includes(id)),
             ...offer.requestedProperties,
@@ -1028,7 +1039,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (i === offer.toPlayer) {
         return {
           ...p,
-          money: p.money - offer.requestedMoney + offer.offeredMoney,
+          money: p.money - requestedMoney + offeredMoney,
           properties: [
             ...p.properties.filter(id => !offer.requestedProperties.includes(id)),
             ...offer.offeredProperties,
