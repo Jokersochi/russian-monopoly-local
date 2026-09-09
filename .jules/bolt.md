@@ -1,0 +1,3 @@
+## 2026-08-20 - Memoizing cell lookups and net worth calculations in GameBoard
+**Learning:** Performing per-cell linear array searches (`players.find`, `players.filter`) and full array iterations for net worth sorting inside `GameBoard.tsx` on every render frame creates avoidable computation overhead on state updates. Using `Map<number, Player>` lookups and memoizing net worth standings via `useMemo` reduces per-frame lookup complexity from $O(C \times P)$ to $O(1)$.
+**Action:** When rendering large grids or game boards where cells query property owners or player locations, pre-calculate lookup maps in top-level `useMemo` hooks using `Map` data structures.
