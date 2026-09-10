@@ -1,0 +1,3 @@
+## 2026-08-20 - Icon-Only Toggle Buttons UX Pattern
+**Learning:** In this project, replacing native `title` attributes with Shadcn `Tooltip` components on icon-only toggle buttons (like GameLog filters) greatly improves UI polish. However, to ensure screen readers properly announce the button's purpose and its active state, `aria-label` (including dynamic counts if applicable) and `aria-pressed={selected}` must be applied directly to the `<Button>` element wrapped in `<TooltipTrigger asChild>`.
+**Action:** Always replace native `title` with Shadcn `Tooltip` for custom icon-only toggle buttons, and apply `aria-label` and `aria-pressed` directly to the button element for screen reader accessibility.
