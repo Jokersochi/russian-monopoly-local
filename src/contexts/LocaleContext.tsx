@@ -20,11 +20,34 @@ export const useLocale = () => {
   return context;
 };
 
-const locales: Record<Locale, any> = {
-  ru: ruLocale,
-  en: enLocale,
-  de: deLocale,
-  es: esLocale,
+const locales: Record<Locale, Record<string, unknown>> = {
+  ru: ruLocale as Record<string, unknown>,
+  en: enLocale as Record<string, unknown>,
+  de: deLocale as Record<string, unknown>,
+  es: esLocale as Record<string, unknown>,
+};
+
+// Helper function to flatten nested translation objects at module load time
+const flattenTranslations = (obj: Record<string, unknown>, prefix = ''): Map<string, string> => {
+  const map = new Map<string, string>();
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'string') {
+      map.set(fullKey, value);
+    } else if (value && typeof value === 'object') {
+      const subMap = flattenTranslations(value as Record<string, unknown>, fullKey);
+      subMap.forEach((v, k) => map.set(k, v));
+    }
+  }
+  return map;
+};
+
+// Pre-flattened locale lookup maps for O(1) translation access
+const flatLocales: Record<Locale, Map<string, string>> = {
+  ru: flattenTranslations(locales.ru),
+  en: flattenTranslations(locales.en),
+  de: flattenTranslations(locales.de),
+  es: flattenTranslations(locales.es),
 };
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,17 +58,12 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('monopolyLocale', newLocale);
   }, []);
 
+  // O(1) lookup using pre-flattened translation maps without key splitting or object traversal
   const t = useCallback(
     (key: string, params?: Record<string, string | number>): string => {
-      const keys = key.split('.');
-      let value: any = locales[locale];
+      const value = flatLocales[locale].get(key);
 
-      for (const k of keys) {
-        value = value?.[k];
-        if (value === undefined) break;
-      }
-
-      if (typeof value !== 'string') return key;
+      if (value === undefined) return key;
 
       if (params) {
         return Object.entries(params).reduce(
