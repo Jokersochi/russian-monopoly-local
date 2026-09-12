@@ -44,7 +44,7 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
-  }, [gameState, playerPositionsKey, players]);
+  }, [playerPositionsKey]);
 
   // Pre-compute cell owner lookup: Map<cellId, Player>
   const ownerByCellId = useMemo(() => {
