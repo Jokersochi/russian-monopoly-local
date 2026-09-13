@@ -90,7 +90,7 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
-  }, [playerPositionsKey, gameState]);
+  }, [playerPositionsKey]);
 
   if (!gameState) return null;
 
