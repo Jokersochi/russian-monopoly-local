@@ -15,6 +15,11 @@ export const GameBoard = () => {
   const [justLandedIds, setJustLandedIds] = useState<Set<number>>(new Set());
   const prevPositions = useRef<Record<number, number>>({});
 
+  const playerPositionsKey = useMemo(() => {
+    if (!gameState) return '';
+    return gameState.players.map(p => `${p.id}:${p.position}`).join(',');
+  }, [gameState?.players]);
+
   useEffect(() => {
     if (!gameState) return;
     const movedIds: number[] = [];
@@ -30,7 +35,7 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
-  }, [gameState?.players]);
+  }, [playerPositionsKey]);
 
   // Precompute cell ownership map to convert O(C * P) search into O(1) lookups during board render
   const ownerByCellId = useMemo(() => {
