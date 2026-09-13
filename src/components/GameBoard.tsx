@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 
 const HOUSE_DOTS = ['', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
 
+// Hoisted static helper to avoid function re-creation on every render frame
 const getCellStyle = (position: { x: number; y: number }) => {
   const size = 80;
   const gap = 2;
@@ -28,6 +29,7 @@ export const GameBoard = () => {
 
   const { players = [], houses = {} } = gameState || {};
 
+  // Performance optimization: Pre-compute cell ownership map to convert O(C * P) array searches into O(1) lookups during cell rendering loop
   const ownerByCellId = useMemo(() => {
     const map = new Map<number, typeof players[0]>();
     for (const player of players) {
@@ -38,6 +40,7 @@ export const GameBoard = () => {
     return map;
   }, [players]);
 
+  // Performance optimization: Pre-compute player positions map to convert O(C * P) array filters into O(1) lookups during cell rendering loop
   const playersByCellId = useMemo(() => {
     const map = new Map<number, typeof players[0][]>();
     for (const player of players) {
@@ -51,6 +54,7 @@ export const GameBoard = () => {
     return map;
   }, [players]);
 
+  // Performance optimization: Memoize net worth standings to eliminate redundant array filter/reduce operations across players inside center area JSX render loop
   const netWorthStandings = useMemo(() => {
     const cellMap = new Map(cells.map(c => [c.id, c]));
     return [...players]
