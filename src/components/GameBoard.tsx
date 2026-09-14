@@ -85,6 +85,7 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerPositionsKey]);
 
   if (!gameState) return null;
