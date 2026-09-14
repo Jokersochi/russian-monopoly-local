@@ -1,0 +1,3 @@
+## 2026-08-20 - GameBoard O(1) Lookups and Calculation Memoization
+**Learning:** Rendering complex game board grids (40 cells) with dynamic ownership and player positioning causes $O(C \times P)$ array filtering on every render frame when computed inside loop bodies. Furthermore, inline `.map().join()` calls inside `useEffect` dependency arrays allocate temporary arrays and strings on every render.
+**Action:** Pre-compute ownership and player positioning Maps using `useMemo` for $O(1)$ lookups, memoize aggregate stats like net worth rankings, and derive scalar memoized keys for `useEffect` dependency arrays.
