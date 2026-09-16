@@ -6,6 +6,8 @@ import { Cell } from '@/types/game';
 import { cn } from '@/lib/utils';
 
 const HOUSE_DOTS = ['', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
+const EMPTY_PLAYERS: never[] = [];
+const EMPTY_HOUSES: Record<number, number> = {};
 
 export const GameBoard = () => {
   const { cells, gameState } = useGame();
@@ -14,7 +16,7 @@ export const GameBoard = () => {
   const [justLandedIds, setJustLandedIds] = useState<Set<number>>(new Set());
   const prevPositions = useRef<Record<number, number>>({});
 
-  const { players = [], houses = {} } = gameState || {};
+  const { players = EMPTY_PLAYERS, houses = EMPTY_HOUSES } = gameState || {};
 
   // Pre-compute cell ownership lookup map to avoid O(C * P) searches on every render
   const ownerByCellId = useMemo(() => {
