@@ -168,12 +168,13 @@ export function getSlotInfo(slot: number): SaveSlotInfo | null {
   try {
     const raw = localStorage.getItem(getSaveKey(slot));
     if (!raw) return null;
-    const s: GameState = JSON.parse(raw);
+    const s = JSON.parse(raw);
+    if (!s || typeof s !== 'object' || !Array.isArray(s.players)) return null;
     return {
       slot,
-      playerNames: s.players.map(p => p.displayName || p.nameKey),
-      round: s.round,
-      maxRounds: s.maxRounds,
+      playerNames: s.players.map((p: Partial<Player>) => (p && typeof p === 'object' ? (p.displayName || p.nameKey || '') : '')),
+      round: typeof s.round === 'number' ? s.round : 1,
+      maxRounds: typeof s.maxRounds === 'number' ? s.maxRounds : 50,
       savedAt: Date.now(),
     };
   } catch {
@@ -847,7 +848,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem(getSaveKey(activeSlot));
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.players)) {
+          setGameState(parsed);
+        }
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
@@ -1054,9 +1058,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const raw = localStorage.getItem(getSaveKey(slot));
       if (!raw) return;
-      setGameState(JSON.parse(raw));
-      setActiveSlot(slot);
-      localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.players)) {
+        setGameState(parsed);
+        setActiveSlot(slot);
+        localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
+      }
     } catch (e) {
       console.error('Failed to load slot', slot, e);
     }
