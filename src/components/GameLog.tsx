@@ -19,17 +19,17 @@ const FILTER_LABELS: Record<Filter, string> = {
   error: '❌',
 };
 
-const FILTER_NAMES: Record<Filter, string> = {
-  all: 'Все события',
-  success: 'Успешно',
-  info: 'Информация',
-  warning: 'Предупреждения',
-  error: 'Ошибки',
-};
-
 export const GameLog = () => {
   const { gameState } = useGame();
   const { t } = useLocale();
+
+  const filterNames: Record<Filter, string> = {
+    all: t('game.filterAll'),
+    success: t('game.filterSuccess'),
+    info: t('game.filterInfo'),
+    warning: t('game.filterWarning'),
+    error: t('game.filterError'),
+  };
   const [filter, setFilter] = useState<Filter>('all');
 
   if (!gameState) return null;
@@ -49,7 +49,7 @@ export const GameLog = () => {
         <div className="flex gap-1">
           {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => {
             const count = key === 'all' ? gameState.gameLog.length : countByType(key as LogEntry['type']);
-            const name = FILTER_NAMES[key];
+            const name = filterNames[key];
             const ariaLabel = count > 0 ? `${name}, ${count}` : name;
 
             return (
