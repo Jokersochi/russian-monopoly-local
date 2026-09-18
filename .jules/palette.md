@@ -18,3 +18,6 @@ Done in 1.3s using pnpm v10.30.3 due to mismatched versions, align  versions to 
 ## 2026-08-20 - Fix Docker CI ERR_PNPM_OUTDATED_LOCKFILE
 **Learning:** In CI, Docker builds fail if package.json specifiers do not precisely match pnpm-lock.yaml when using --frozen-lockfile. Modifying package.json to match the lockfile is a safer resolution in these CI pipelines to avoid massive dependency bumps.
 **Action:** When CI fails on pnpm install --frozen-lockfile due to mismatched versions, align package.json versions to match pnpm-lock.yaml.
+## 2026-08-20 - Fix Docker CI ERR_PNPM_IGNORED_BUILDS
+**Learning:** In CI, Docker builds fail on pnpm v10+ with `ERR_PNPM_IGNORED_BUILDS` when using `--frozen-lockfile` because postinstall scripts are ignored by default.
+**Action:** When encountering `ERR_PNPM_IGNORED_BUILDS` in a Dockerfile, safely resolve it by adding the `--ignore-scripts` flag to the `RUN pnpm install --frozen-lockfile` command, or by copying `pnpm-workspace.yaml` and `.npmrc`.
