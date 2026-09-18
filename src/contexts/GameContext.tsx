@@ -169,11 +169,12 @@ export function getSlotInfo(slot: number): SaveSlotInfo | null {
     const raw = localStorage.getItem(getSaveKey(slot));
     if (!raw) return null;
     const s: GameState = JSON.parse(raw);
+    if (!s || typeof s !== 'object' || !Array.isArray(s.players)) return null;
     return {
       slot,
-      playerNames: s.players.map(p => p.displayName || p.nameKey),
-      round: s.round,
-      maxRounds: s.maxRounds,
+      playerNames: s.players.map(p => p?.displayName || p?.nameKey || ''),
+      round: typeof s.round === 'number' ? s.round : 1,
+      maxRounds: typeof s.maxRounds === 'number' ? s.maxRounds : 50,
       savedAt: Date.now(),
     };
   } catch {
@@ -595,8 +596,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
 
-    if (amount <= auctionState.currentBid) {
-      toast({ title: 'Ставка должна быть выше текущей!', variant: 'destructive' });
+    if (!Number.isFinite(amount) || amount <= auctionState.currentBid || amount <= 0 || amount > bidder.money) {
+      toast({ title: 'Недопустимая ставка или недостаточно средств!', variant: 'destructive' });
       return;
     }
 
@@ -847,7 +848,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem(getSaveKey(activeSlot));
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.players)) {
+          setGameState(parsed);
+        }
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
@@ -1008,8 +1012,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
-    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
-      toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
+    if (!from || !to) return;
+
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.offeredMoney < 0 ||
+      offer.requestedMoney < 0 ||
+      from.money < offer.offeredMoney ||
+      to.money < offer.requestedMoney
+    ) {
+      toast({ title: 'Недействительная сумма или недостаточно средств для сделки!', variant: 'destructive' });
       return;
     }
 
@@ -1054,7 +1067,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const raw = localStorage.getItem(getSaveKey(slot));
       if (!raw) return;
-      setGameState(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.players)) return;
+      setGameState(parsed);
       setActiveSlot(slot);
       localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
     } catch (e) {
