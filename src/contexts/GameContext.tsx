@@ -168,12 +168,13 @@ export function getSlotInfo(slot: number): SaveSlotInfo | null {
   try {
     const raw = localStorage.getItem(getSaveKey(slot));
     if (!raw) return null;
-    const s: GameState = JSON.parse(raw);
+    const s = JSON.parse(raw);
+    if (!s || typeof s !== 'object' || !Array.isArray(s.players)) return null;
     return {
       slot,
-      playerNames: s.players.map(p => p.displayName || p.nameKey),
-      round: s.round,
-      maxRounds: s.maxRounds,
+      playerNames: s.players.map((p: Player) => p?.displayName || p?.nameKey || 'Игрок'),
+      round: typeof s.round === 'number' ? s.round : 1,
+      maxRounds: typeof s.maxRounds === 'number' ? s.maxRounds : 50,
       savedAt: Date.now(),
     };
   } catch {
@@ -591,6 +592,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const placeBid = useCallback((amount: number) => {
     if (!gameState || gameState.phase !== 'auction' || !gameState.auctionState) return;
 
+    // Security check: validate bid amount input bounds
+    if (!Number.isFinite(amount) || amount <= 0) return;
+
     const { auctionState } = gameState;
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
@@ -847,7 +851,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem(getSaveKey(activeSlot));
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.players)) {
+          setGameState(parsed);
+        }
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
@@ -1005,10 +1012,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
 
+    // Security check: validate monetary parameters in trade offers
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      offer.offeredMoney < 0 ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.requestedMoney < 0
+    ) {
+      toast({ title: 'Некорректная сумма сделки!', variant: 'destructive' });
+      return;
+    }
+
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
-    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
+    if (!from || !to || from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
       toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
       return;
     }
@@ -1054,9 +1072,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const raw = localStorage.getItem(getSaveKey(slot));
       if (!raw) return;
-      setGameState(JSON.parse(raw));
-      setActiveSlot(slot);
-      localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.players)) {
+        setGameState(parsed);
+        setActiveSlot(slot);
+        localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
+      }
     } catch (e) {
       console.error('Failed to load slot', slot, e);
     }
