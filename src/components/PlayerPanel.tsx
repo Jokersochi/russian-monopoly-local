@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,42 @@ export const PlayerPanel = () => {
   const { gameState, cells } = useGame();
   const { t } = useLocale();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  // Pre-compute player owned cells and net worth statistics to avoid repeating cell filtering on every render
+  const playerStats = useMemo(() => {
+    if (!gameState) return [];
+    const cellMap = new Map(cells.map(c => [c.id, c]));
+    const houses = gameState.houses || {};
+
+    return gameState.players.map((player) => {
+      const ownedCells: typeof cells = [];
+      let propertyValue = 0;
+      let houseValue = 0;
+      let mortgagedValue = 0;
+      const mortgagedSet = new Set(player.mortgaged);
+
+      for (const propId of player.properties) {
+        const cell = cellMap.get(propId) || (cells[propId]?.id === propId ? cells[propId] : undefined);
+        if (cell) {
+          ownedCells.push(cell);
+          propertyValue += cell.price || 0;
+          houseValue += (houses[cell.id] || 0) * (cell.houseCost || 0);
+          if (mortgagedSet.has(cell.id)) {
+            mortgagedValue += Math.floor((cell.price || 0) / 2);
+          }
+        }
+      }
+
+      const netWorth = player.money + propertyValue + houseValue;
+      return {
+        ownedCells,
+        propertyValue,
+        houseValue,
+        mortgagedValue,
+        netWorth,
+      };
+    });
+  }, [gameState?.players, gameState?.houses, cells]);
 
   if (!gameState) return null;
 
@@ -24,16 +60,7 @@ export const PlayerPanel = () => {
       <div className="p-3 space-y-2">
         {gameState.players.map((player, idx) => {
           const isCurrentPlayer = idx === gameState.currentPlayer;
-          const ownedCells = cells.filter(c => player.properties.includes(c.id));
-          const propertyValue = ownedCells.reduce((sum, c) => sum + (c.price || 0), 0);
-          const houseValue = ownedCells.reduce((sum, c) => {
-            const hc = gameState.houses[c.id] || 0;
-            return sum + hc * (c.houseCost || 0);
-          }, 0);
-          const mortgagedValue = ownedCells
-            .filter(c => player.mortgaged.includes(c.id))
-            .reduce((sum, c) => sum + Math.floor((c.price || 0) / 2), 0);
-          const netWorth = player.money + propertyValue + houseValue;
+          const { ownedCells = [], mortgagedValue = 0, netWorth = player.money } = playerStats[idx] || {};
           const isExpanded = expandedIdx === idx;
 
           return (
