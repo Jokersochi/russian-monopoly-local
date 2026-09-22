@@ -595,6 +595,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
 
+    // Security check: ensure amount is a finite positive number and bidder has sufficient funds
+    if (!Number.isFinite(amount) || amount <= 0 || amount > bidder.money) {
+      toast({ title: 'Недопустимая сумма ставки!', variant: 'destructive' });
+      return;
+    }
+
     if (amount <= auctionState.currentBid) {
       toast({ title: 'Ставка должна быть выше текущей!', variant: 'destructive' });
       return;
@@ -1004,6 +1010,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    // Security check: validate money amounts are non-negative finite numbers
+    if (
+      !Number.isFinite(offer.offeredMoney) || offer.offeredMoney < 0 ||
+      !Number.isFinite(offer.requestedMoney) || offer.requestedMoney < 0
+    ) {
+      toast({ title: 'Недопустимая сумма в сделке!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
