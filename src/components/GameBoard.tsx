@@ -44,7 +44,7 @@ export const GameBoard = () => {
         let propVal = 0;
         let houseVal = 0;
         p.properties.forEach((id) => {
-          const c = cells[id];
+          const c = cells[id]?.id === id ? cells[id] : cells.find(cell => cell.id === id);
           if (c) {
             propVal += c.price || 0;
             houseVal += (houses[id] || 0) * (c.houseCost || 0);
