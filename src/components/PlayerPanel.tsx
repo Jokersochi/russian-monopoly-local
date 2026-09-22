@@ -11,28 +11,25 @@ export const PlayerPanel = () => {
   const { t } = useLocale();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
-  // Pre-compute player owned cells and net worth statistics to avoid repeating cell filtering on every render
+  // Pre-compute player statistics while preserving board cell order
   const playerStats = useMemo(() => {
     if (!gameState) return [];
-    const cellMap = new Map(cells.map(c => [c.id, c]));
     const houses = gameState.houses || {};
 
     return gameState.players.map((player) => {
-      const ownedCells: typeof cells = [];
+      const propsSet = new Set(player.properties);
+      const mortgagedSet = new Set(player.mortgaged);
+      const ownedCells = cells.filter(c => propsSet.has(c.id));
+
       let propertyValue = 0;
       let houseValue = 0;
       let mortgagedValue = 0;
-      const mortgagedSet = new Set(player.mortgaged);
 
-      for (const propId of player.properties) {
-        const cell = cellMap.get(propId) || (cells[propId]?.id === propId ? cells[propId] : undefined);
-        if (cell) {
-          ownedCells.push(cell);
-          propertyValue += cell.price || 0;
-          houseValue += (houses[cell.id] || 0) * (cell.houseCost || 0);
-          if (mortgagedSet.has(cell.id)) {
-            mortgagedValue += Math.floor((cell.price || 0) / 2);
-          }
+      for (const cell of ownedCells) {
+        propertyValue += cell.price || 0;
+        houseValue += (houses[cell.id] || 0) * (cell.houseCost || 0);
+        if (mortgagedSet.has(cell.id)) {
+          mortgagedValue += Math.floor((cell.price || 0) / 2);
         }
       }
 
