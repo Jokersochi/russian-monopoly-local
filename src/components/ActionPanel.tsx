@@ -424,12 +424,17 @@ export const ActionPanel = () => {
             <Button
               onClick={() => {
                 const amt = parseInt(bidAmount, 10);
-                if (amt > 0) {
+                if (Number.isFinite(amt) && amt > auctionState.currentBid && amt <= bidder.money) {
                   placeBid(amt);
                   setBidAmount('');
                 }
               }}
-              disabled={!bidAmount || parseInt(bidAmount, 10) <= auctionState.currentBid}
+              disabled={
+                !bidAmount ||
+                !Number.isFinite(parseInt(bidAmount, 10)) ||
+                parseInt(bidAmount, 10) <= auctionState.currentBid ||
+                parseInt(bidAmount, 10) > bidder.money
+              }
               className="bg-gradient-gold hover:opacity-90 font-bold"
             >
               {t('game.bid')}
