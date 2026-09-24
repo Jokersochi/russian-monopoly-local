@@ -20,11 +20,27 @@ export const useLocale = () => {
   return context;
 };
 
-const locales: Record<Locale, any> = {
-  ru: ruLocale,
-  en: enLocale,
-  de: deLocale,
-  es: esLocale,
+// Pre-flatten nested locale objects into a Map<string, string> at module load time
+// for O(1) translation key lookups without runtime string split/traversal allocations.
+function flattenLocale(obj: Record<string, unknown>, prefix = ''): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'string') {
+      map.set(fullKey, value);
+    } else if (value && typeof value === 'object') {
+      const childMap = flattenLocale(value as Record<string, unknown>, fullKey);
+      childMap.forEach((v, k) => map.set(k, v));
+    }
+  }
+  return map;
+}
+
+const flatLocales: Record<Locale, Map<string, string>> = {
+  ru: flattenLocale(ruLocale as Record<string, unknown>),
+  en: flattenLocale(enLocale as Record<string, unknown>),
+  de: flattenLocale(deLocale as Record<string, unknown>),
+  es: flattenLocale(esLocale as Record<string, unknown>),
 };
 
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,15 +51,10 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('monopolyLocale', newLocale);
   }, []);
 
+  // Pre-flattened O(1) map lookup
   const t = useCallback(
     (key: string, params?: Record<string, string | number>): string => {
-      const keys = key.split('.');
-      let value: any = locales[locale];
-
-      for (const k of keys) {
-        value = value?.[k];
-        if (value === undefined) break;
-      }
+      const value = flatLocales[locale].get(key);
 
       if (typeof value !== 'string') return key;
 
