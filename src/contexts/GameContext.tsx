@@ -595,8 +595,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
 
-    if (amount <= auctionState.currentBid) {
-      toast({ title: 'Ставка должна быть выше текущей!', variant: 'destructive' });
+    // Security check: Validate monetary amount and available funds
+    if (!Number.isFinite(amount) || amount <= auctionState.currentBid || amount > bidder.money) {
+      toast({ title: 'Недействительная ставка!', variant: 'destructive' });
       return;
     }
 
@@ -1007,11 +1008,32 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
+    if (!from || !to) return;
 
-    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
-      toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
+    // Security check: Validate non-negative finite monetary amounts and funds
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.offeredMoney < 0 ||
+      offer.requestedMoney < 0 ||
+      from.money < offer.offeredMoney ||
+      to.money < offer.requestedMoney
+    ) {
+      toast({ title: 'Недействительные условия сделки!', variant: 'destructive' });
       return;
     }
+
+    // Security check: Verify property ownership
+    const fromOwnsAll = offer.offeredProperties.every(id => from.properties.includes(id));
+    const toOwnsAll = offer.requestedProperties.every(id => to.properties.includes(id));
+    if (!fromOwnsAll || !toOwnsAll) {
+      toast({ title: 'Недействительное владение недвижимостью!', variant: 'destructive' });
+      return;
+    }
+
+    // Preserve mortgaged state during property transfer
+    const offeredMortgaged = offer.offeredProperties.filter(id => from.mortgaged.includes(id));
+    const requestedMortgaged = offer.requestedProperties.filter(id => to.mortgaged.includes(id));
 
     const updatedPlayers = gameState.players.map((p, i) => {
       if (i === offer.fromPlayer) {
@@ -1022,7 +1044,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...p.properties.filter(id => !offer.offeredProperties.includes(id)),
             ...offer.requestedProperties,
           ],
-          mortgaged: p.mortgaged.filter(id => !offer.offeredProperties.includes(id)),
+          mortgaged: [
+            ...p.mortgaged.filter(id => !offer.offeredProperties.includes(id)),
+            ...requestedMortgaged,
+          ],
         };
       }
       if (i === offer.toPlayer) {
@@ -1033,7 +1058,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...p.properties.filter(id => !offer.requestedProperties.includes(id)),
             ...offer.offeredProperties,
           ],
-          mortgaged: p.mortgaged.filter(id => !offer.requestedProperties.includes(id)),
+          mortgaged: [
+            ...p.mortgaged.filter(id => !offer.requestedProperties.includes(id)),
+            ...offeredMortgaged,
+          ],
         };
       }
       return p;
