@@ -1,0 +1,3 @@
+## 2026-09-24 - Pre-flattening Locale Objects for O(1) Translation Lookups
+**Learning:** In React applications with heavy internationalization text rendering across frequent render cycles (like game board cells and logs), calling `key.split('.')` and traversing object properties dynamically in `t()` introduces runtime allocations and dynamic property lookup overhead. Pre-flattening JSON locale objects into flat `Map<string, string>` instances at module load time converts translation lookups into constant-time (1)$ operations with zero runtime allocations.
+**Action:** When implementing or optimizing translation helpers, pre-flatten translation dictionaries into a flat Map or record during module load.
