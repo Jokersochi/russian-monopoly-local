@@ -29,7 +29,7 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
-  }, [gameState, playerPositionsKey]);
+  }, [playerPositionsKey]);
 
   const activePlayers = gameState?.players || [];
   const activeHouses = gameState?.houses || {};
