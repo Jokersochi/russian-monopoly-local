@@ -168,12 +168,13 @@ export function getSlotInfo(slot: number): SaveSlotInfo | null {
   try {
     const raw = localStorage.getItem(getSaveKey(slot));
     if (!raw) return null;
-    const s: GameState = JSON.parse(raw);
+    const s = JSON.parse(raw);
+    if (!s || typeof s !== 'object' || !Array.isArray(s.players)) return null;
     return {
       slot,
-      playerNames: s.players.map(p => p.displayName || p.nameKey),
-      round: s.round,
-      maxRounds: s.maxRounds,
+      playerNames: s.players.map((p: any) => p?.displayName || p?.nameKey || ''),
+      round: typeof s.round === 'number' ? s.round : 1,
+      maxRounds: typeof s.maxRounds === 'number' ? s.maxRounds : 50,
       savedAt: Date.now(),
     };
   } catch {
@@ -591,6 +592,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const placeBid = useCallback((amount: number) => {
     if (!gameState || gameState.phase !== 'auction' || !gameState.auctionState) return;
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast({ title: 'Некорректная ставка!', variant: 'destructive' });
+      return;
+    }
+
     const { auctionState } = gameState;
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
@@ -847,7 +853,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem(getSaveKey(activeSlot));
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const s = JSON.parse(saved);
+        if (s && typeof s === 'object' && Array.isArray(s.players)) {
+          setGameState(s);
+        }
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
@@ -1008,6 +1017,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
+    if (!from || !to) return;
+
+    // Security validation: ensure monetary values are non-negative finite numbers
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.offeredMoney < 0 ||
+      offer.requestedMoney < 0
+    ) {
+      toast({ title: 'Некорректная сумма для сделки!', variant: 'destructive' });
+      return;
+    }
+
     if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
       toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
       return;
@@ -1054,9 +1076,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const raw = localStorage.getItem(getSaveKey(slot));
       if (!raw) return;
-      setGameState(JSON.parse(raw));
-      setActiveSlot(slot);
-      localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
+      const s = JSON.parse(raw);
+      if (s && typeof s === 'object' && Array.isArray(s.players)) {
+        setGameState(s);
+        setActiveSlot(slot);
+        localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
+      }
     } catch (e) {
       console.error('Failed to load slot', slot, e);
     }
