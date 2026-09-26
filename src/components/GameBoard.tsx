@@ -31,7 +31,8 @@ export const GameBoard = () => {
     }
   }, [gameState?.players.map(p => p.position + ':' + p.id).join(',')]);
 
-  // Pre-compute lookup maps before early returns to satisfy rules of hooks
+  // Performance optimization: Pre-compute O(1) hash maps for cell ownership and player positions
+  // to eliminate redundant O(C x P) array searches during board cell renders.
   const ownerByCellId = useMemo(() => {
     if (!gameState) return new Map<number, Player>();
     const map = new Map<number, Player>();
@@ -60,6 +61,7 @@ export const GameBoard = () => {
     return map;
   }, [cells]);
 
+  // Performance optimization: Pre-compute sorted net worth standings to eliminate O(P x C) nested property scans on render.
   const standings = useMemo(() => {
     if (!gameState) return [];
     const { players = [], houses = {} } = gameState;
