@@ -1,0 +1,3 @@
+## 2024-05-24 - Semantic Accordion Buttons
+**Learning:** When creating custom accordion or expandable card headers that contain rich text, using a non-interactive `<div>` with an `onClick` handler prevents keyboard focus and screen reader interaction. Also, adding an `aria-label` to a button wrapper overrides its rich text child content for screen readers.
+**Action:** Always use semantic `<button type="button">` elements for expandable headers, apply `w-full text-left` to maintain div-like layout, ensure `aria-expanded` and `aria-controls` are present, and avoid explicit `aria-label` attributes if the child content is already meaningful.
