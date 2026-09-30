@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,39 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
-  if (!gameState) return null;
+  // Single-pass O(N) calculation for reversed entries, filtering, and type counts
+  const { filtered, countByType } = useMemo(() => {
+    const counts: Record<LogEntry['type'], number> = {
+      info: 0,
+      success: 0,
+      warning: 0,
+      error: 0,
+    };
+    if (!gameState) {
+      return { filtered: [], countByType: (type: LogEntry['type']) => counts[type] || 0 };
+    }
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+    const log = gameState.gameLog;
+    const filteredList: LogEntry[] = [];
+
+    // Single backward pass computes counts and reverses order simultaneously
+    for (let i = log.length - 1; i >= 0; i--) {
+      const entry = log[i];
+      if (counts[entry.type] !== undefined) {
+        counts[entry.type]++;
+      }
+      if (filter === 'all' || entry.type === filter) {
+        filteredList.push(entry);
+      }
+    }
+
+    return {
+      filtered: filteredList,
+      countByType: (type: LogEntry['type']) => counts[type] || 0,
+    };
+  }, [gameState, filter]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
