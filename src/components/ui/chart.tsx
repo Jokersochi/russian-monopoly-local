@@ -6,6 +6,15 @@ import { cn } from "@/lib/utils";
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
+// Security helpers to prevent CSS injection vulnerabilities in dangerouslySetInnerHTML
+function sanitizeCssKey(key: string): string {
+  return key.replace(/[^\w-]/g, "");
+}
+
+function sanitizeCssValue(value: string): string {
+  return value.replace(/[^\w\s#.,()%/-]/g, "");
+}
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -75,7 +84,9 @@ ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
+    const sanitizedKey = sanitizeCssKey(key);
+    const sanitizedColor = color ? sanitizeCssValue(color) : null;
+    return sanitizedColor && sanitizedKey ? `  --color-${sanitizedKey}: ${sanitizedColor};` : null;
   })
   .join("\n")}
 }
