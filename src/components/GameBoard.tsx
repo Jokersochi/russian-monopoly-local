@@ -31,12 +31,16 @@ export const GameBoard = () => {
       const timer = setTimeout(() => setJustLandedIds(new Set()), 700);
       return () => clearTimeout(timer);
     }
-  }, [playerPositionsKey, gameState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerPositionsKey]);
 
   // Pre-compute cell ownership, player positions, and standings in a single memoization block
   const boardData = useMemo(() => {
     if (!gameState) return null;
     const { players = [], houses = {} } = gameState;
+
+    const cellById = new Map<number, typeof cells[0]>();
+    cells.forEach(c => cellById.set(c.id, c));
 
     const ownerByCellId = new Map<number, typeof players[0]>();
     const playersByCellId = new Map<number, typeof players[0][]>();
@@ -53,7 +57,7 @@ export const GameBoard = () => {
         let propVal = 0;
         let houseVal = 0;
         p.properties.forEach(cellId => {
-          const cell = cells[cellId];
+          const cell = cellById.get(cellId);
           if (cell) {
             propVal += cell.price || 0;
             houseVal += (houses[cellId] || 0) * (cell.houseCost || 0);
