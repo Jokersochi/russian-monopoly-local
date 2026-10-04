@@ -78,12 +78,18 @@ export const GameSetup = () => {
               {SAVE_SLOTS.map(slot => {
                 const info = slotInfos[slot];
                 const isSelected = selectedSlot === slot;
+                const slotLabel = info
+                  ? `Слот ${slot}, Игроки: ${info.playerNames.join(', ')}, Раунд ${info.round} из ${info.maxRounds}`
+                  : `Слот ${slot}, пусто`;
                 return (
                   <div key={slot} className="space-y-1">
                     <button
+                      type="button"
                       onClick={() => setSelectedSlot(slot)}
+                      aria-pressed={isSelected}
+                      aria-label={slotLabel}
                       className={cn(
-                        'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs',
+                        'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-russia-gold',
                         isSelected
                           ? 'border-russia-gold bg-russia-gold/10 shadow-strong'
                           : 'border-border/40 hover:border-russia-gold/50 bg-card/50 hover:bg-card/80'
@@ -108,6 +114,7 @@ export const GameSetup = () => {
                       <Button
                         size="sm"
                         onClick={() => handleContinue(slot)}
+                        aria-label={`Продолжить игру в слоте ${slot}`}
                         className="w-full h-7 text-xs bg-gradient-gold hover:opacity-90 font-bold"
                       >
                         ▶ Продолжить
@@ -131,6 +138,8 @@ export const GameSetup = () => {
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-pressed={playerCount === count}
+                  aria-label={`${count} ${t('game.playerCount')}`}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -179,6 +188,8 @@ export const GameSetup = () => {
                   size="sm"
                   variant={maxRounds === r ? 'default' : 'outline'}
                   onClick={() => setMaxRounds(r)}
+                  aria-pressed={maxRounds === r}
+                  aria-label={`${r} ${t('game.maxRounds')}`}
                   className={cn(
                     "transition-all font-bold",
                     maxRounds === r && "bg-russia-blue text-white shadow-strong"
@@ -203,6 +214,8 @@ export const GameSetup = () => {
                   size="sm"
                   variant={startingMoney === value ? 'default' : 'outline'}
                   onClick={() => setStartingMoney(value)}
+                  aria-pressed={startingMoney === value}
+                  aria-label={`${label} ${t('game.startMoney')}`}
                   className={cn(
                     "transition-all font-bold",
                     startingMoney === value && "bg-russia-gold text-black shadow-strong"
