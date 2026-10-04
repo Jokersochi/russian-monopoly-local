@@ -10,12 +10,12 @@ import { LogEntry } from '@/types/game';
 
 type Filter = 'all' | 'success' | 'info' | 'warning' | 'error';
 
-const FILTER_LABELS: Record<Filter, string> = {
-  all: 'Всё',
-  success: '✅',
-  info: 'ℹ️',
-  warning: '⚠️',
-  error: '❌',
+const FILTER_CONFIG: Record<Filter, { label: string; ariaLabel: string }> = {
+  all: { label: 'Всё', ariaLabel: 'Все события' },
+  success: { label: '✅', ariaLabel: 'Успешные события' },
+  info: { label: 'ℹ️', ariaLabel: 'Информационные сообщения' },
+  warning: { label: '⚠️', ariaLabel: 'Предупреждения' },
+  error: { label: '❌', ariaLabel: 'Ошибки' },
 };
 
 export const GameLog = () => {
@@ -38,20 +38,22 @@ export const GameLog = () => {
           <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
         </h3>
         <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
+          {(Object.entries(FILTER_CONFIG) as [Filter, { label: string; ariaLabel: string }][]).map(([key, config]) => (
             <Button
               key={key}
               size="sm"
               variant={filter === key ? 'default' : 'ghost'}
               onClick={() => setFilter(key)}
+              aria-label={config.ariaLabel}
+              aria-pressed={filter === key}
               className={cn(
-                'h-6 px-1.5 text-xs',
+                'h-6 px-1.5 text-xs focus-visible:ring-2 focus-visible:ring-russia-gold',
                 filter === key && 'bg-russia-gold text-black',
                 key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
               )}
-              title={key === 'all' ? 'Все события' : key}
+              title={config.ariaLabel}
             >
-              {label}
+              {config.label}
               {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
                 <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
               )}
