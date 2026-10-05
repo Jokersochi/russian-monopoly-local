@@ -17,6 +17,12 @@ import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { TradingModal } from '@/components/TradingModal';
 import { PropertyModal } from '@/components/PropertyModal';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { BOARD_CELLS } from '@/data/board';
 import { Cell } from '@/types/game';
 
@@ -273,13 +279,26 @@ export const ActionPanel = () => {
           <p className="text-sm text-muted-foreground text-center">
             Бросьте кубики на дубль, заплатите залог или используйте карту
           </p>
-          <Button
-            onClick={payBail}
-            disabled={currentPlayer.money < 500_000}
-            className="w-full h-12 bg-gradient-gold hover:opacity-90 font-bold"
-          >
-            💰 Заплатить залог (500K₽)
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block w-full" tabIndex={currentPlayer.money < 500_000 ? 0 : undefined}>
+                  <Button
+                    onClick={payBail}
+                    disabled={currentPlayer.money < 500_000}
+                    className="w-full h-12 bg-gradient-gold hover:opacity-90 font-bold"
+                  >
+                    💰 Заплатить залог (500K₽)
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {currentPlayer.money < 500_000 && (
+                <TooltipContent>
+                  <p>Необходимо минимум 500 000 ₽ для уплаты залога</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           {currentPlayer.getOutOfJailCards > 0 && (
             <Button
               onClick={useJailCard}
