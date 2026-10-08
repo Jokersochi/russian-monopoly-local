@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -47,12 +47,52 @@ export const GameBoard = () => {
     return () => window.clearTimeout(timer);
   }, [positionSignature, gameState]);
 
-  if (!gameState) return null;
-
-  const { players, currentPlayer: currentPlayerIndex, houses } = gameState;
+  const { players = [], currentPlayer: currentPlayerIndex = 0, houses = {} } = gameState || {};
   const currentPlayer = players[currentPlayerIndex];
   const playerName = (player: Player) =>
     player.displayName || t(`players.${player.nameKey}`);
+
+  const ownerByCellId = useMemo(() => {
+    const map = new Map<number, Player>();
+    for (const player of players) {
+      for (const propId of player.properties) {
+        map.set(propId, player);
+      }
+    }
+    return map;
+  }, [players]);
+
+  const playersByCellId = useMemo(() => {
+    const map = new Map<number, Player[]>();
+    for (const player of players) {
+      const list = map.get(player.position);
+      if (list) {
+        list.push(player);
+      } else {
+        map.set(player.position, [player]);
+      }
+    }
+    return map;
+  }, [players]);
+
+  const standings = useMemo(() => {
+    return [...players]
+      .map(player => {
+        const propertyValue = cells
+          .filter(cell => player.properties.includes(cell.id))
+          .reduce((sum, cell) => sum + (cell.price || 0), 0);
+        const houseValue = cells
+          .filter(cell => player.properties.includes(cell.id))
+          .reduce(
+            (sum, cell) => sum + (houses[cell.id] || 0) * (cell.houseCost || 0),
+            0
+          );
+        return { player, netWorth: player.money + propertyValue + houseValue };
+      })
+      .sort((a, b) => b.netWorth - a.netWorth);
+  }, [players, cells, houses]);
+
+  if (!gameState || !currentPlayer) return null;
 
   const getCellStyle = (position: { x: number; y: number }) => {
     const size = 80;
@@ -66,9 +106,6 @@ export const GameBoard = () => {
       height: `${size}px`,
     };
   };
-
-  const getOwner = (cellId: number) => players.find(player => player.properties.includes(cellId));
-  const getPlayersOnCell = (cellId: number) => players.filter(player => player.position === cellId);
 
   return (
     <>
@@ -88,8 +125,8 @@ export const GameBoard = () => {
 
         <div className="relative" style={{ width: '902px', height: '902px' }}>
           {cells.map(cell => {
-            const owner = getOwner(cell.id);
-            const playersHere = getPlayersOnCell(cell.id);
+            const owner = ownerByCellId.get(cell.id);
+            const playersHere = playersByCellId.get(cell.id) || [];
             const houseCount = houses[cell.id] || 0;
             const isCurrentPlayerHere = currentPlayer.position === cell.id;
             const isOwnedByCurrentPlayer = owner?.id === currentPlayer.id;
@@ -241,21 +278,7 @@ export const GameBoard = () => {
               )}
 
               <div className="grid grid-cols-2 gap-1.5">
-                {[...players]
-                  .map(player => {
-                    const propertyValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce((sum, cell) => sum + (cell.price || 0), 0);
-                    const houseValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce(
-                        (sum, cell) => sum + (gameState.houses[cell.id] || 0) * (cell.houseCost || 0),
-                        0
-                      );
-                    return { player, netWorth: player.money + propertyValue + houseValue };
-                  })
-                  .sort((a, b) => b.netWorth - a.netWorth)
-                  .map(({ player, netWorth }, rank) => (
+                {standings.map(({ player, netWorth }, rank) => (
                     <div
                       key={player.id}
                       className={cn(
