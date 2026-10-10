@@ -57,6 +57,15 @@ const BAIL_COST = 500_000;
 const TAX_AMOUNTS: Record<number, number> = { 4: 2_000_000, 38: 1_500_000 };
 const TRANSPORT_RENT = [250_000, 500_000, 1_000_000, 2_000_000];
 
+// Pre-computed static board color groupings for O(1) lookups during calcRent and buyHouse calculations
+const COLOR_GROUPS: Record<string, Cell[]> = BOARD_CELLS.reduce((acc, cell) => {
+  if (cell.color) {
+    if (!acc[cell.color]) acc[cell.color] = [];
+    acc[cell.color].push(cell);
+  }
+  return acc;
+}, {} as Record<string, Cell[]>);
+
 function makeLog(
   textKey: string,
   params: Record<string, string | number>,
@@ -89,7 +98,7 @@ function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<num
     return Math.round(cell.rent[rentIdx] * multiplier);
   }
 
-  const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
+  const sameColor = cell.color ? COLOR_GROUPS[cell.color] || [] : [];
   const ownsAll = sameColor.length > 0 && sameColor.every(c => owner.properties.includes(c.id));
   const base = cell.rent[0];
   return Math.round((ownsAll ? base * 2 : base) * multiplier);
@@ -869,7 +878,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
+    const sameColor = cell.color ? COLOR_GROUPS[cell.color] || [] : [];
     const ownsAll = sameColor.every(c => player.properties.includes(c.id));
     if (!ownsAll) {
       toast({ title: 'Нужно владеть всеми объектами цвета!', variant: 'destructive' });
