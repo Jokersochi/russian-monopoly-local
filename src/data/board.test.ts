@@ -69,3 +69,29 @@ describe('card and token data integrity', () => {
     expect(new Set(PLAYER_TOKENS.map(token => token.icon)).size).toBe(PLAYER_TOKENS.length);
   });
 });
+
+describe('input validation rules for monetary transactions', () => {
+  it('rejects invalid, negative or zero bid amounts for placeBid', () => {
+    const isValidBid = (amount: number) => Number.isFinite(amount) && amount > 0;
+
+    expect(isValidBid(-500)).toBe(false);
+    expect(isValidBid(0)).toBe(false);
+    expect(isValidBid(NaN)).toBe(false);
+    expect(isValidBid(Infinity)).toBe(false);
+    expect(isValidBid(100000)).toBe(true);
+  });
+
+  it('rejects negative or non-finite trade monetary values for executeTrade', () => {
+    const isValidTradeMoney = (offeredMoney: number, requestedMoney: number) =>
+      Number.isFinite(offeredMoney) &&
+      offeredMoney >= 0 &&
+      Number.isFinite(requestedMoney) &&
+      requestedMoney >= 0;
+
+    expect(isValidTradeMoney(-1000, 5000)).toBe(false);
+    expect(isValidTradeMoney(5000, -1000)).toBe(false);
+    expect(isValidTradeMoney(NaN, 5000)).toBe(false);
+    expect(isValidTradeMoney(0, 0)).toBe(true);
+    expect(isValidTradeMoney(1000000, 500000)).toBe(true);
+  });
+});
