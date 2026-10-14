@@ -69,3 +69,21 @@ describe('card and token data integrity', () => {
     expect(new Set(PLAYER_TOKENS.map(token => token.icon)).size).toBe(PLAYER_TOKENS.length);
   });
 });
+
+describe('trade validation rules', () => {
+  function isValidTradeAmount(amount: number): boolean {
+    return Number.isFinite(amount) && amount >= 0;
+  }
+
+  it('accepts valid non-negative monetary amounts', () => {
+    expect(isValidTradeAmount(0)).toBe(true);
+    expect(isValidTradeAmount(1000000)).toBe(true);
+  });
+
+  it('rejects negative numbers, NaN, and Infinity', () => {
+    expect(isValidTradeAmount(-500)).toBe(false);
+    expect(isValidTradeAmount(NaN)).toBe(false);
+    expect(isValidTradeAmount(Infinity)).toBe(false);
+    expect(isValidTradeAmount(-Infinity)).toBe(false);
+  });
+});
