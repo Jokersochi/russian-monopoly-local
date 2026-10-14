@@ -1005,6 +1005,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
 
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.offeredMoney < 0 ||
+      offer.requestedMoney < 0
+    ) {
+      toast({ title: 'Недопустимая сумма для сделки!', variant: 'destructive' });
+      return;
+    }
+
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
