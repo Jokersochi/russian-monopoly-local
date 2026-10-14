@@ -1,0 +1,3 @@
+## 2025-05-20 - Memoizing Board Cell Lookups & Hook Rules
+**Learning:** Calling `.find()` or `.filter()` inside grid iteration loops (e.g. 40 board cells) causes $O(C \times P)$ dynamic array scans on every render frame. Memoizing lookups into `Map` data structures reduces lookup cost to $O(1)$, but memoization hooks must be placed before early returns (e.g. `if (!gameState) return null;`) using default empty array/object fallbacks to strictly follow React's Hook rules.
+**Action:** Always pre-compute map-based lookups with `useMemo` for collection iteration and ensure hooks execute unconditionally before any early guard returns.
