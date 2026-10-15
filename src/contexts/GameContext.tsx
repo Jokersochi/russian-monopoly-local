@@ -1005,6 +1005,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
 
+    // Validate offer money inputs and player indices against negative money exploits and NaN corruption
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.offeredMoney < 0 ||
+      offer.requestedMoney < 0
+    ) {
+      return;
+    }
+
+    if (
+      offer.fromPlayer < 0 ||
+      offer.fromPlayer >= gameState.players.length ||
+      offer.toPlayer < 0 ||
+      offer.toPlayer >= gameState.players.length
+    ) {
+      return;
+    }
+
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
