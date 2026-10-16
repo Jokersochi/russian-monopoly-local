@@ -241,11 +241,12 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
             )}
             <Input
               type="number"
+              min="0"
               placeholder="Деньги от вас (₽)"
               value={offerMoneyStr}
               onChange={e => {
                 setOfferMoneyStr(e.target.value);
-                setConfig(c => ({ ...c, offeredMoney: parseInt(e.target.value) || 0 }));
+                setConfig(c => ({ ...c, offeredMoney: Math.max(0, parseInt(e.target.value) || 0) }));
               }}
               className="h-8 text-sm mt-2"
             />
@@ -285,11 +286,12 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
               )}
               <Input
                 type="number"
+                min="0"
                 placeholder={`Деньги от ${pname(targetPlayer)} (₽)`}
                 value={requestMoneyStr}
                 onChange={e => {
                   setRequestMoneyStr(e.target.value);
-                  setConfig(c => ({ ...c, requestedMoney: parseInt(e.target.value) || 0 }));
+                  setConfig(c => ({ ...c, requestedMoney: Math.max(0, parseInt(e.target.value) || 0) }));
                 }}
                 className="h-8 text-sm mt-2"
               />
