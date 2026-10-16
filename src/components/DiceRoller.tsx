@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { cn } from '@/lib/utils';
@@ -54,17 +60,31 @@ export const DiceRoller = () => {
           </div>
         )}
 
-        <Button
-          onClick={handleRoll}
-          disabled={!canRoll || rolling}
-          size="lg"
-          className={cn(
-            'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
-            rolling && 'pointer-events-none animate-pulse'
-          )}
-        >
-          {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block w-full" tabIndex={!canRoll && !rolling ? 0 : undefined}>
+                <Button
+                  onClick={handleRoll}
+                  disabled={!canRoll || rolling}
+                  aria-label="Бросить кубики"
+                  size="lg"
+                  className={cn(
+                    'w-full h-14 text-lg font-bold bg-gradient-russian hover:opacity-90 shadow-strong transition-all hover:scale-105',
+                    rolling && 'pointer-events-none animate-pulse'
+                  )}
+                >
+                  {rolling ? '🎲 Бросаем...' : `🎲 ${t('game.rollDice')}`}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!canRoll && (
+              <TooltipContent>
+                <p>Бросок кубиков недоступен в текущей фазе игры</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </Card>
   );
