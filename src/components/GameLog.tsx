@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,30 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
+  // Single-pass O(N) backward traversal to reverse entries and count log types simultaneously,
+  // avoiding slice().reverse(), array copying, and multiple .filter() calls per render frame.
+  const { entriesReversed, counts } = useMemo(() => {
+    const log = gameState?.gameLog;
+    if (!log || log.length === 0) {
+      return { entriesReversed: [], counts: { success: 0, info: 0, warning: 0, error: 0 } };
+    }
+    const len = log.length;
+    const entriesReversed: LogEntry[] = new Array(len);
+    const counts = { success: 0, info: 0, warning: 0, error: 0 };
+
+    for (let i = len - 1, j = 0; i >= 0; i--, j++) {
+      const entry = log[i];
+      entriesReversed[j] = entry;
+      counts[entry.type] = (counts[entry.type] || 0) + 1;
+    }
+
+    return { entriesReversed, counts };
+  }, [gameState?.gameLog]);
+
   if (!gameState) return null;
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+  const filtered = filter === 'all' ? entriesReversed : entriesReversed.filter(e => e.type === filter);
+  const countByType = (type: LogEntry['type']) => counts[type] || 0;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
