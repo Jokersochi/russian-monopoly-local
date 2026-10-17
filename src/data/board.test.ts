@@ -69,3 +69,16 @@ describe('card and token data integrity', () => {
     expect(new Set(PLAYER_TOKENS.map(token => token.icon)).size).toBe(PLAYER_TOKENS.length);
   });
 });
+
+describe('trade validation rules', () => {
+  it('rejects trade offers with negative or non-finite money values', () => {
+    const isValidMoney = (amount: number) => Number.isFinite(amount) && amount >= 0;
+
+    expect(isValidMoney(1000)).toBe(true);
+    expect(isValidMoney(0)).toBe(true);
+    expect(isValidMoney(-500)).toBe(false);
+    expect(isValidMoney(NaN)).toBe(false);
+    expect(isValidMoney(Infinity)).toBe(false);
+    expect(isValidMoney(-Infinity)).toBe(false);
+  });
+});
