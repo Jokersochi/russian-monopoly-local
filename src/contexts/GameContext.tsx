@@ -1008,7 +1008,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
-    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
+    if (
+      !Number.isFinite(offer.offeredMoney) ||
+      offer.offeredMoney < 0 ||
+      !Number.isFinite(offer.requestedMoney) ||
+      offer.requestedMoney < 0 ||
+      from.money < offer.offeredMoney ||
+      to.money < offer.requestedMoney
+    ) {
       toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
       return;
     }
