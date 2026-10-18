@@ -161,6 +161,15 @@ function advanceAfterAction(
   return { currentPlayer: nextIdx, round: newRound, phase: nextPl.inJail ? 'jail' : 'rolling', doubleCount: 0 };
 }
 
+export function isValidTradeMoney(offeredMoney: number, requestedMoney: number): boolean {
+  return (
+    Number.isFinite(offeredMoney) &&
+    Number.isFinite(requestedMoney) &&
+    offeredMoney >= 0 &&
+    requestedMoney >= 0
+  );
+}
+
 const SLOT_ACTIVE_KEY = 'russianMonopolyActiveSlot';
 const getSaveKey = (slot: number) => `russianMonopolyState_${slot}`;
 
@@ -1004,6 +1013,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    if (!isValidTradeMoney(offer.offeredMoney, offer.requestedMoney)) {
+      toast({ title: 'Некорректная сумма сделки!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
