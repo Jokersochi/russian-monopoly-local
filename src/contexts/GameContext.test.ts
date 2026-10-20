@@ -20,11 +20,9 @@ describe('isValidTradeMoney', () => {
   });
 
   it('rejects non-number inputs if passed at runtime', () => {
-    // @ts-expect-error testing runtime safeguard
+    // @ts-expect-error testing runtime safeguard with invalid type
     expect(isValidTradeMoney('100')).toBe(false);
-    // @ts-expect-error testing runtime safeguard
-    expect(isValidTradeMoney(null)).toBe(false);
-    // @ts-expect-error testing runtime safeguard
-    expect(isValidTradeMoney(undefined)).toBe(false);
+    expect(isValidTradeMoney(null as unknown as number)).toBe(false);
+    expect(isValidTradeMoney(undefined as unknown as number)).toBe(false);
   });
 });
