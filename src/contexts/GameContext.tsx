@@ -164,6 +164,10 @@ function advanceAfterAction(
 const SLOT_ACTIVE_KEY = 'russianMonopolyActiveSlot';
 const getSaveKey = (slot: number) => `russianMonopolyState_${slot}`;
 
+export function isValidTradeMoney(amount: number): boolean {
+  return typeof amount === 'number' && Number.isFinite(amount) && amount >= 0;
+}
+
 export function getSlotInfo(slot: number): SaveSlotInfo | null {
   try {
     const raw = localStorage.getItem(getSaveKey(slot));
@@ -1005,10 +1009,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
 
+    if (!isValidTradeMoney(offer.offeredMoney) || !isValidTradeMoney(offer.requestedMoney)) {
+      toast({ title: 'Некорректная сумма для сделки!', variant: 'destructive' });
+      return;
+    }
+
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
 
-    if (from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
+    if (!from || !to || from.money < offer.offeredMoney || to.money < offer.requestedMoney) {
       toast({ title: 'Недостаточно средств для сделки!', variant: 'destructive' });
       return;
     }
