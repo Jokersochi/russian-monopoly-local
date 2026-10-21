@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -47,6 +47,53 @@ export const GameBoard = () => {
     return () => window.clearTimeout(timer);
   }, [positionSignature, gameState]);
 
+  // Pre-compute cell ownership and player positions using Map lookups inside useMemo
+  // to avoid O(P * C) array scans on every cell iteration / render.
+  const ownerMap = useMemo(() => {
+    if (!gameState) return new Map<number, Player>();
+    const map = new Map<number, Player>();
+    gameState.players.forEach(player => {
+      player.properties.forEach(cellId => {
+        map.set(cellId, player);
+      });
+    });
+    return map;
+  }, [gameState]);
+
+  const playersByCellMap = useMemo(() => {
+    if (!gameState) return new Map<number, Player[]>();
+    const map = new Map<number, Player[]>();
+    gameState.players.forEach(player => {
+      const existing = map.get(player.position) || [];
+      existing.push(player);
+      map.set(player.position, existing);
+    });
+    return map;
+  }, [gameState]);
+
+  // Pre-compute leaderboard net worth calculations to eliminate O(P * C) nested filter/reduce scans during renders.
+  const leaderboard = useMemo(() => {
+    if (!gameState) return [];
+    const cellMap = new Map<number, Cell>();
+    cells.forEach(c => cellMap.set(c.id, c));
+
+    return [...gameState.players]
+      .map(player => {
+        let propertyValue = 0;
+        let houseValue = 0;
+        player.properties.forEach(cellId => {
+          const cell = cellMap.get(cellId);
+          if (cell) {
+            propertyValue += cell.price || 0;
+            const houseCount = gameState.houses[cellId] || 0;
+            houseValue += houseCount * (cell.houseCost || 0);
+          }
+        });
+        return { player, netWorth: player.money + propertyValue + houseValue };
+      })
+      .sort((a, b) => b.netWorth - a.netWorth);
+  }, [gameState, cells]);
+
   if (!gameState) return null;
 
   const { players, currentPlayer: currentPlayerIndex, houses } = gameState;
@@ -67,8 +114,8 @@ export const GameBoard = () => {
     };
   };
 
-  const getOwner = (cellId: number) => players.find(player => player.properties.includes(cellId));
-  const getPlayersOnCell = (cellId: number) => players.filter(player => player.position === cellId);
+  const getOwner = (cellId: number) => ownerMap.get(cellId);
+  const getPlayersOnCell = (cellId: number) => playersByCellMap.get(cellId) || [];
 
   return (
     <>
@@ -241,34 +288,20 @@ export const GameBoard = () => {
               )}
 
               <div className="grid grid-cols-2 gap-1.5">
-                {[...players]
-                  .map(player => {
-                    const propertyValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce((sum, cell) => sum + (cell.price || 0), 0);
-                    const houseValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce(
-                        (sum, cell) => sum + (gameState.houses[cell.id] || 0) * (cell.houseCost || 0),
-                        0
-                      );
-                    return { player, netWorth: player.money + propertyValue + houseValue };
-                  })
-                  .sort((a, b) => b.netWorth - a.netWorth)
-                  .map(({ player, netWorth }, rank) => (
-                    <div
-                      key={player.id}
-                      className={cn(
-                        'flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg bg-white/45 border border-[#8d6c36]/10',
-                        player.id === currentPlayer.id && 'bg-[#fff3bd] border-russia-gold/30'
-                      )}
-                    >
-                      <span className="text-[#766d5d] w-3">{rank + 1}.</span>
-                      <span>{player.token}</span>
-                      <span className="flex-1 truncate font-semibold">{playerName(player)}</span>
-                      <span className="text-emerald-700 font-black">{(netWorth / 1_000_000).toFixed(1)}M</span>
-                    </div>
-                  ))}
+                {leaderboard.map(({ player, netWorth }, rank) => (
+                  <div
+                    key={player.id}
+                    className={cn(
+                      'flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg bg-white/45 border border-[#8d6c36]/10',
+                      player.id === currentPlayer.id && 'bg-[#fff3bd] border-russia-gold/30'
+                    )}
+                  >
+                    <span className="text-[#766d5d] w-3">{rank + 1}.</span>
+                    <span>{player.token}</span>
+                    <span className="flex-1 truncate font-semibold">{playerName(player)}</span>
+                    <span className="text-emerald-700 font-black">{(netWorth / 1_000_000).toFixed(1)}M</span>
+                  </div>
+                ))}
               </div>
 
               <div className="flex items-center justify-center gap-4 text-[11px] text-[#6d6658] pt-1 font-semibold">
