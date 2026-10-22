@@ -57,6 +57,18 @@ const BAIL_COST = 500_000;
 const TAX_AMOUNTS: Record<number, number> = { 4: 2_000_000, 38: 1_500_000 };
 const TRANSPORT_RENT = [250_000, 500_000, 1_000_000, 2_000_000];
 
+// Pre-computed static board color groupings and property lookups for O(1) rent/building calculations
+const COLOR_GROUPS: Record<string, number[]> = BOARD_CELLS.reduce((acc, c) => {
+  if (c.color) {
+    if (!acc[c.color]) acc[c.color] = [];
+    acc[c.color].push(c.id);
+  }
+  return acc;
+}, {} as Record<string, number[]>);
+
+const TRANSPORT_CELL_IDS = new Set(BOARD_CELLS.filter(c => c.type === 'transport').map(c => c.id));
+const UTILITY_CELL_IDS = new Set(BOARD_CELLS.filter(c => c.type === 'utility').map(c => c.id));
+
 function makeLog(
   textKey: string,
   params: Record<string, string | number>,
@@ -74,12 +86,12 @@ function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<num
   }
 
   if (cell.type === 'transport') {
-    const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'transport').length;
+    const count = owner.properties.reduce((acc, pid) => acc + (TRANSPORT_CELL_IDS.has(pid) ? 1 : 0), 0);
     return Math.round(TRANSPORT_RENT[Math.min(count - 1, 3)] * multiplier);
   }
 
   if (cell.type === 'utility') {
-    const count = owner.properties.filter(pid => BOARD_CELLS[pid]?.type === 'utility').length;
+    const count = owner.properties.reduce((acc, pid) => acc + (UTILITY_CELL_IDS.has(pid) ? 1 : 0), 0);
     return Math.round((count >= 2 ? diceSum * 100_000 : diceSum * 40_000) * multiplier);
   }
 
@@ -89,8 +101,8 @@ function calcRent(cell: Cell, owner: Player, diceSum: number, houses: Record<num
     return Math.round(cell.rent[rentIdx] * multiplier);
   }
 
-  const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
-  const ownsAll = sameColor.length > 0 && sameColor.every(c => owner.properties.includes(c.id));
+  const colorGroup = cell.color ? COLOR_GROUPS[cell.color] : undefined;
+  const ownsAll = !!colorGroup && colorGroup.length > 0 && colorGroup.every(id => owner.properties.includes(id));
   const base = cell.rent[0];
   return Math.round((ownsAll ? base * 2 : base) * multiplier);
 }
@@ -869,8 +881,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const sameColor = BOARD_CELLS.filter(c => c.color && c.color === cell.color);
-    const ownsAll = sameColor.every(c => player.properties.includes(c.id));
+    const colorGroup = cell.color ? COLOR_GROUPS[cell.color] : undefined;
+    const ownsAll = !!colorGroup && colorGroup.every(id => player.properties.includes(id));
     if (!ownsAll) {
       toast({ title: 'Нужно владеть всеми объектами цвета!', variant: 'destructive' });
       return;
