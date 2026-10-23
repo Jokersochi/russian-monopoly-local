@@ -50,6 +50,10 @@ export const useGame = () => {
   return ctx;
 };
 
+export const isValidTradeMoney = (amount: number): boolean => {
+  return typeof amount === 'number' && Number.isFinite(amount) && amount >= 0;
+};
+
 const STARTING_MONEY = 15_000_000;
 const START_BONUS = 2_000_000;
 const JAIL_POSITION = 10;
@@ -1004,6 +1008,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    if (!isValidTradeMoney(offer.offeredMoney) || !isValidTradeMoney(offer.requestedMoney)) {
+      toast({ title: 'Некорректная сумма для сделки!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
