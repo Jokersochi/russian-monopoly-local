@@ -57,6 +57,10 @@ const BAIL_COST = 500_000;
 const TAX_AMOUNTS: Record<number, number> = { 4: 2_000_000, 38: 1_500_000 };
 const TRANSPORT_RENT = [250_000, 500_000, 1_000_000, 2_000_000];
 
+export function isValidTradeMoney(amount: unknown): boolean {
+  return typeof amount === 'number' && Number.isFinite(amount) && amount >= 0;
+}
+
 function makeLog(
   textKey: string,
   params: Record<string, string | number>,
@@ -1004,6 +1008,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    // Security check: ensure offered and requested money are non-negative, finite numbers
+    if (!isValidTradeMoney(offer.offeredMoney) || !isValidTradeMoney(offer.requestedMoney)) {
+      toast({ title: 'Некорректная сумма сделки!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
