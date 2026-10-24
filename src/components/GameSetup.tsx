@@ -152,6 +152,7 @@ export const GameSetup = () => {
               {Array.from({ length: playerCount }).map((_, i) => (
                 <Input
                   key={i}
+                  aria-label={t(`players.player${i + 1}`)}
                   placeholder={t(`players.player${i + 1}`)}
                   value={playerNames[i]}
                   onChange={(e) => {
