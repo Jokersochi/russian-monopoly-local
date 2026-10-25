@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOARD_CELLS, CHANCE_CARDS, PLAYER_TOKENS, TRIAL_CARDS } from './board';
+import { isValidTradeMoney } from '../contexts/GameContext';
 
 describe('board data integrity', () => {
   it('contains exactly 40 uniquely indexed perimeter cells', () => {
@@ -67,5 +68,17 @@ describe('card and token data integrity', () => {
     expect(PLAYER_TOKENS.length).toBeGreaterThanOrEqual(6);
     expect(new Set(PLAYER_TOKENS.map(token => token.id)).size).toBe(PLAYER_TOKENS.length);
     expect(new Set(PLAYER_TOKENS.map(token => token.icon)).size).toBe(PLAYER_TOKENS.length);
+  });
+});
+
+describe('trade security validation', () => {
+  it('validates trade monetary values correctly', () => {
+    expect(isValidTradeMoney(0)).toBe(true);
+    expect(isValidTradeMoney(1000)).toBe(true);
+    expect(isValidTradeMoney(-1)).toBe(false);
+    expect(isValidTradeMoney(-500)).toBe(false);
+    expect(isValidTradeMoney(NaN)).toBe(false);
+    expect(isValidTradeMoney(Infinity)).toBe(false);
+    expect(isValidTradeMoney(-Infinity)).toBe(false);
   });
 });

@@ -4,6 +4,10 @@ import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS } f
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 
+export function isValidTradeMoney(amount: number): boolean {
+  return Number.isFinite(amount) && amount >= 0;
+}
+
 export interface GameInitOptions {
   playerNames?: string[];
   maxRounds?: number;
@@ -1004,6 +1008,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    if (!isValidTradeMoney(offer.offeredMoney) || !isValidTradeMoney(offer.requestedMoney)) {
+      toast({ title: 'Некорректная сумма сделки!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
