@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry, TradeOffer } from '@/types/game';
 import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS } from '@/data/board';
+
+export function isValidTradeMoney(amount: number): boolean {
+  return Number.isFinite(amount) && amount >= 0;
+}
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
 
@@ -1004,6 +1008,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    if (!isValidTradeMoney(offer.offeredMoney) || !isValidTradeMoney(offer.requestedMoney)) {
+      toast({ title: 'Некорректная сумма сделки!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
