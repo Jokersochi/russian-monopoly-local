@@ -416,6 +416,7 @@ export const ActionPanel = () => {
           <div className="flex gap-2">
             <Input
               type="number"
+              aria-label="Сумма ставки"
               placeholder={`Мин. ${minBid.toLocaleString('ru-RU')}`}
               value={bidAmount}
               onChange={e => setBidAmount(e.target.value)}
