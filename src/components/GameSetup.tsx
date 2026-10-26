@@ -82,6 +82,7 @@ export const GameSetup = () => {
                   <div key={slot} className="space-y-1">
                     <button
                       onClick={() => setSelectedSlot(slot)}
+                      aria-pressed={isSelected}
                       className={cn(
                         'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs',
                         isSelected
@@ -152,6 +153,7 @@ export const GameSetup = () => {
               {Array.from({ length: playerCount }).map((_, i) => (
                 <Input
                   key={i}
+                  aria-label={t(`players.player${i + 1}`)}
                   placeholder={t(`players.player${i + 1}`)}
                   value={playerNames[i]}
                   onChange={(e) => {
