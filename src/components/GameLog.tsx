@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -18,16 +18,39 @@ const FILTER_LABELS: Record<Filter, string> = {
   error: '❌',
 };
 
+const EMPTY_LOG: LogEntry[] = [];
+
 export const GameLog = () => {
   const { gameState } = useGame();
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
-  if (!gameState) return null;
+  const gameLog = gameState?.gameLog ?? EMPTY_LOG;
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+  // Pre-compute log counts by type in a single O(N) pass to avoid multiple O(N) scans per render
+  const countsByType = useMemo(() => {
+    const counts: Record<LogEntry['type'], number> = {
+      info: 0,
+      success: 0,
+      warning: 0,
+      error: 0,
+    };
+    for (let i = 0; i < gameLog.length; i++) {
+      const type = gameLog[i].type;
+      if (type in counts) {
+        counts[type]++;
+      }
+    }
+    return counts;
+  }, [gameLog]);
+
+  // Memoize reversed and filtered entries to avoid redundant O(N) array copying and filtering
+  const filtered = useMemo(() => {
+    const entries = gameLog.slice().reverse();
+    return filter === 'all' ? entries : entries.filter(e => e.type === filter);
+  }, [gameLog, filter]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
@@ -35,28 +58,31 @@ export const GameLog = () => {
         <h3 className="text-base font-bold flex items-center gap-2">
           <span className="text-russia-gold">📜</span>
           {t('game.gameLog')}
-          <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
+          <Badge variant="secondary" className="text-xs ml-1">{gameLog.length}</Badge>
         </h3>
         <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={key === 'all' ? 'Все события' : key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
-          ))}
+          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => {
+            const count = key !== 'all' ? countsByType[key as LogEntry['type']] ?? 0 : gameLog.length;
+            return (
+              <Button
+                key={key}
+                size="sm"
+                variant={filter === key ? 'default' : 'ghost'}
+                onClick={() => setFilter(key)}
+                className={cn(
+                  'h-6 px-1.5 text-xs',
+                  filter === key && 'bg-russia-gold text-black',
+                  key !== 'all' && count === 0 && 'opacity-30'
+                )}
+                title={key === 'all' ? 'Все события' : key}
+              >
+                {label}
+                {key !== 'all' && count > 0 && (
+                  <span className="ml-0.5 opacity-70">{count}</span>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
       <ScrollArea className="flex-1 p-2">
