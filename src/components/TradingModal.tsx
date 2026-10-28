@@ -245,7 +245,8 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
               value={offerMoneyStr}
               onChange={e => {
                 setOfferMoneyStr(e.target.value);
-                setConfig(c => ({ ...c, offeredMoney: parseInt(e.target.value) || 0 }));
+                const parsed = parseInt(e.target.value, 10);
+                setConfig(c => ({ ...c, offeredMoney: Number.isFinite(parsed) && parsed > 0 ? parsed : 0 }));
               }}
               className="h-8 text-sm mt-2"
             />
@@ -289,7 +290,8 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                 value={requestMoneyStr}
                 onChange={e => {
                   setRequestMoneyStr(e.target.value);
-                  setConfig(c => ({ ...c, requestedMoney: parseInt(e.target.value) || 0 }));
+                  const parsed = parseInt(e.target.value, 10);
+                  setConfig(c => ({ ...c, requestedMoney: Number.isFinite(parsed) && parsed > 0 ? parsed : 0 }));
                 }}
                 className="h-8 text-sm mt-2"
               />
