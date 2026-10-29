@@ -82,6 +82,7 @@ export const GameSetup = () => {
                   <div key={slot} className="space-y-1">
                     <button
                       onClick={() => setSelectedSlot(slot)}
+                      aria-pressed={isSelected}
                       className={cn(
                         'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs',
                         isSelected
@@ -159,6 +160,7 @@ export const GameSetup = () => {
                     next[i] = e.target.value;
                     setPlayerNames(next);
                   }}
+                  aria-label={`${t('game.playerNames')} ${i + 1}`}
                   maxLength={20}
                   className="h-9 text-sm bg-background/60"
                 />
