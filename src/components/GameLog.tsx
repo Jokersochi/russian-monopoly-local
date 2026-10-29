@@ -50,6 +50,7 @@ export const GameLog = () => {
                 key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
               )}
               title={key === 'all' ? 'Все события' : key}
+              aria-pressed={filter === key}
             >
               {label}
               {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (

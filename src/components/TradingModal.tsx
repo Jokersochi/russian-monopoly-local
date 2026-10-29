@@ -202,6 +202,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                     variant={config.targetPlayer === pIdx ? 'default' : 'outline'}
                     onClick={() => setConfig(c => ({ ...c, targetPlayer: pIdx, requestedProperties: [] }))}
                     className={cn(config.targetPlayer === pIdx && 'bg-russia-blue text-white shadow-strong')}
+                    aria-pressed={config.targetPlayer === pIdx}
                   >
                     {p.token} {pname(p)}
                   </Button>
@@ -230,6 +231,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                           ? 'bg-russia-gold/20 border-russia-gold text-russia-gold font-bold'
                           : 'bg-muted/40 border-border hover:border-russia-gold/50'
                       )}
+                      aria-pressed={selected}
                     >
                       {c.color && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />}
                       {t(`cells.${c.nameKey}`)}
@@ -248,6 +250,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                 setConfig(c => ({ ...c, offeredMoney: parseInt(e.target.value) || 0 }));
               }}
               className="h-8 text-sm mt-2"
+              aria-label="Деньги от вас"
             />
           </div>
 
@@ -274,6 +277,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                             ? 'bg-russia-blue/20 border-russia-blue text-russia-blue font-bold'
                             : 'bg-muted/40 border-border hover:border-russia-blue/50'
                         )}
+                        aria-pressed={selected}
                       >
                         {c.color && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />}
                         {t(`cells.${c.nameKey}`)}
@@ -292,6 +296,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                   setConfig(c => ({ ...c, requestedMoney: parseInt(e.target.value) || 0 }));
                 }}
                 className="h-8 text-sm mt-2"
+                aria-label={`Деньги от ${pname(targetPlayer)}`}
               />
             </div>
           )}
