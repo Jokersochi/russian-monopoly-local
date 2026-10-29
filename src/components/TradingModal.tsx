@@ -6,6 +6,7 @@ import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { TradeOffer } from '@/types/game';
 import { cn } from '@/lib/utils';
+import { canExecuteTrade } from '@/lib/transactions';
 
 interface TradingModalProps {
   open: boolean;
@@ -74,6 +75,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
 
   const canPropose =
     config.targetPlayer !== null &&
+    canExecuteTrade(gameState, { ...config, fromPlayer: cpIdx, toPlayer: config.targetPlayer }) &&
     (config.offeredProperties.length > 0 || config.offeredMoney > 0 ||
       config.requestedProperties.length > 0 || config.requestedMoney > 0);
 
@@ -202,6 +204,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                     variant={config.targetPlayer === pIdx ? 'default' : 'outline'}
                     onClick={() => setConfig(c => ({ ...c, targetPlayer: pIdx, requestedProperties: [] }))}
                     className={cn(config.targetPlayer === pIdx && 'bg-russia-blue text-white shadow-strong')}
+                    aria-pressed={config.targetPlayer === pIdx}
                   >
                     {p.token} {pname(p)}
                   </Button>
@@ -230,6 +233,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                           ? 'bg-russia-gold/20 border-russia-gold text-russia-gold font-bold'
                           : 'bg-muted/40 border-border hover:border-russia-gold/50'
                       )}
+                      aria-pressed={selected}
                     >
                       {c.color && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />}
                       {t(`cells.${c.nameKey}`)}
@@ -245,9 +249,10 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
               value={offerMoneyStr}
               onChange={e => {
                 setOfferMoneyStr(e.target.value);
-                setConfig(c => ({ ...c, offeredMoney: parseInt(e.target.value) || 0 }));
+                setConfig(c => ({ ...c, offeredMoney: Number(e.target.value) }));
               }}
               className="h-8 text-sm mt-2"
+              aria-label="Деньги от вас"
             />
           </div>
 
@@ -274,6 +279,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                             ? 'bg-russia-blue/20 border-russia-blue text-russia-blue font-bold'
                             : 'bg-muted/40 border-border hover:border-russia-blue/50'
                         )}
+                        aria-pressed={selected}
                       >
                         {c.color && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }} />}
                         {t(`cells.${c.nameKey}`)}
@@ -289,9 +295,10 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                 value={requestMoneyStr}
                 onChange={e => {
                   setRequestMoneyStr(e.target.value);
-                  setConfig(c => ({ ...c, requestedMoney: parseInt(e.target.value) || 0 }));
+                  setConfig(c => ({ ...c, requestedMoney: Number(e.target.value) }));
                 }}
                 className="h-8 text-sm mt-2"
+                aria-label={`Деньги от ${pname(targetPlayer)}`}
               />
             </div>
           )}
