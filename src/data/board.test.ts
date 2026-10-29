@@ -69,3 +69,21 @@ describe('card and token data integrity', () => {
     expect(new Set(PLAYER_TOKENS.map(token => token.icon)).size).toBe(PLAYER_TOKENS.length);
   });
 });
+
+describe('auction bid validation logic', () => {
+  function isValidBid(amount: number, currentBid: number, playerMoney: number): boolean {
+    if (!Number.isFinite(amount) || amount <= 0) return false;
+    if (amount > playerMoney) return false;
+    if (amount <= currentBid) return false;
+    return true;
+  }
+
+  it('rejects bids exceeding player money or non-finite / non-positive bids', () => {
+    expect(isValidBid(1000, 500, 2000)).toBe(true);
+    expect(isValidBid(2500, 500, 2000)).toBe(false); // exceeds money
+    expect(isValidBid(500, 500, 2000)).toBe(false); // not higher than current bid
+    expect(isValidBid(-100, 500, 2000)).toBe(false); // non-positive
+    expect(isValidBid(NaN, 500, 2000)).toBe(false); // non-finite
+    expect(isValidBid(Infinity, 500, 2000)).toBe(false); // non-finite
+  });
+});

@@ -595,6 +595,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
 
+    // Security check: validate bid amount is finite, positive, and within bidder's funds
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast({ title: 'Недопустимая сумма ставки!', variant: 'destructive' });
+      return;
+    }
+
+    if (amount > bidder.money) {
+      toast({ title: 'Недостаточно средств для этой ставки!', variant: 'destructive' });
+      return;
+    }
+
     if (amount <= auctionState.currentBid) {
       toast({ title: 'Ставка должна быть выше текущей!', variant: 'destructive' });
       return;
