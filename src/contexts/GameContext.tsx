@@ -3,6 +3,7 @@ import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry,
 import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
+import { canExecuteTrade, canPlaceBid } from '@/lib/transactions';
 
 export interface GameInitOptions {
   playerNames?: string[];
@@ -595,8 +596,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const bidder = gameState.players[auctionState.currentBidder];
     const cell = BOARD_CELLS[auctionState.cellId];
 
-    if (amount <= auctionState.currentBid) {
-      toast({ title: 'Ставка должна быть выше текущей!', variant: 'destructive' });
+    if (!canPlaceBid(gameState, amount)) {
+      toast({ title: 'Введите целую ставку выше текущей и в пределах баланса!', variant: 'destructive' });
       return;
     }
 
@@ -1004,6 +1005,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeTrade = useCallback((offer: TradeOffer) => {
     if (!gameState) return;
+
+    if (!canExecuteTrade(gameState, offer)) {
+      toast({ title: 'Недопустимая сделка: проверьте суммы и собственность!', variant: 'destructive' });
+      return;
+    }
 
     const from = gameState.players[offer.fromPlayer];
     const to = gameState.players[offer.toPlayer];
