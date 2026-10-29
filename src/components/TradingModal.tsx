@@ -224,6 +224,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                     <button
                       key={id}
                       onClick={() => toggleProp(id, 'offer')}
+                      aria-pressed={selected}
                       className={cn(
                         'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
                         selected
@@ -247,6 +248,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                 setOfferMoneyStr(e.target.value);
                 setConfig(c => ({ ...c, offeredMoney: parseInt(e.target.value) || 0 }));
               }}
+              aria-label="Предлагаемая сумма денег"
               className="h-8 text-sm mt-2"
             />
           </div>
@@ -268,6 +270,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                       <button
                         key={id}
                         onClick={() => toggleProp(id, 'request')}
+                        aria-pressed={selected}
                         className={cn(
                           'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
                           selected
@@ -291,6 +294,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                   setRequestMoneyStr(e.target.value);
                   setConfig(c => ({ ...c, requestedMoney: parseInt(e.target.value) || 0 }));
                 }}
+                aria-label="Запрашиваемая сумма денег"
                 className="h-8 text-sm mt-2"
               />
             </div>
