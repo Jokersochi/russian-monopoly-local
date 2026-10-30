@@ -71,28 +71,27 @@ export const DiceRoller = () => {
 };
 
 const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
-  const dots = Array.from({ length: value }, (_, i) => i);
+  const dots = getDotPattern(value);
 
   return (
     <div
+      role="img"
+      aria-label={`Кубик: ${value}`}
       className={cn(
         'w-20 h-20 bg-russia-white border-4 border-foreground rounded-xl shadow-lg flex items-center justify-center transition-transform',
         rolling && 'dice-rolling'
       )}
     >
-      <div className="grid grid-cols-3 gap-1 w-full h-full p-2">
-        {[...Array(9)].map((_, idx) => {
-          const showDot = getDotPattern(value)[idx];
-          return (
-            <div
-              key={idx}
-              className={cn(
-                'rounded-full transition-all',
-                showDot ? 'bg-foreground' : 'bg-transparent'
-              )}
-            />
-          );
-        })}
+      <div className="grid grid-cols-3 gap-1 w-full h-full p-2" aria-hidden="true">
+        {dots.map((showDot, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              'rounded-full transition-all',
+              showDot ? 'bg-foreground' : 'bg-transparent'
+            )}
+          />
+        ))}
       </div>
     </div>
   );
