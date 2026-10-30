@@ -82,6 +82,8 @@ export const GameSetup = () => {
                   <div key={slot} className="space-y-1">
                     <button
                       onClick={() => setSelectedSlot(slot)}
+                      aria-pressed={isSelected}
+                      aria-label={`Слот ${slot}`}
                       className={cn(
                         'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs',
                         isSelected
@@ -132,6 +134,8 @@ export const GameSetup = () => {
                   key={count}
                   variant={playerCount === count ? 'default' : 'outline'}
                   onClick={() => setPlayerCount(count)}
+                  aria-pressed={playerCount === count}
+                  aria-label={`${count} игрока`}
                   className={cn(
                     "transition-all h-12 text-lg font-bold",
                     playerCount === count && "bg-gradient-russian shadow-strong scale-110"
@@ -154,6 +158,7 @@ export const GameSetup = () => {
                 <Input
                   key={i}
                   placeholder={t(`players.player${i + 1}`)}
+                  aria-label={`${t('game.playerNames')} ${i + 1}`}
                   value={playerNames[i]}
                   onChange={(e) => {
                     const next = [...playerNames];
@@ -181,6 +186,8 @@ export const GameSetup = () => {
                   size="sm"
                   variant={maxRounds === r ? 'default' : 'outline'}
                   onClick={() => setMaxRounds(r)}
+                  aria-pressed={maxRounds === r}
+                  aria-label={`${r} раундов`}
                   className={cn(
                     "transition-all font-bold",
                     maxRounds === r && "bg-russia-blue text-white shadow-strong"
@@ -205,6 +212,8 @@ export const GameSetup = () => {
                   size="sm"
                   variant={startingMoney === value ? 'default' : 'outline'}
                   onClick={() => setStartingMoney(value)}
+                  aria-pressed={startingMoney === value}
+                  aria-label={`Стартовый капитал ${label}`}
                   className={cn(
                     "transition-all font-bold",
                     startingMoney === value && "bg-russia-gold text-black shadow-strong"
