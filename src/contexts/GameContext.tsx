@@ -3,7 +3,7 @@ import { GameState, Player, Cell, GamePhase, AuctionState, ChanceCard, LogEntry,
 import { BOARD_CELLS, PLAYER_TOKENS, CHANCE_CARDS, TRIAL_CARDS, MICRO_EVENTS } from '@/data/board';
 import { useToast } from '@/hooks/use-toast';
 import { useLocale } from '@/contexts/LocaleContext';
-import { canExecuteTrade, canPlaceBid } from '@/lib/transactions';
+import { canExecuteTrade, canPlaceBid, isValidGameState } from '@/lib/transactions';
 
 export interface GameInitOptions {
   playerNames?: string[];
@@ -169,7 +169,8 @@ export function getSlotInfo(slot: number): SaveSlotInfo | null {
   try {
     const raw = localStorage.getItem(getSaveKey(slot));
     if (!raw) return null;
-    const s: GameState = JSON.parse(raw);
+    const s = JSON.parse(raw);
+    if (!isValidGameState(s)) return null;
     return {
       slot,
       playerNames: s.players.map(p => p.displayName || p.nameKey),
@@ -848,7 +849,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem(getSaveKey(activeSlot));
     if (saved) {
       try {
-        setGameState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (isValidGameState(parsed)) {
+          setGameState(parsed);
+        }
       } catch (e) {
         console.error('Failed to load saved game', e);
       }
@@ -1060,7 +1064,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const raw = localStorage.getItem(getSaveKey(slot));
       if (!raw) return;
-      setGameState(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      if (!isValidGameState(parsed)) return;
+      setGameState(parsed);
       setActiveSlot(slot);
       localStorage.setItem(SLOT_ACTIVE_KEY, String(slot));
     } catch (e) {
