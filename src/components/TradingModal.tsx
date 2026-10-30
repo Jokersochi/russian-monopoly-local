@@ -251,6 +251,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                 setOfferMoneyStr(e.target.value);
                 setConfig(c => ({ ...c, offeredMoney: Number(e.target.value) }));
               }}
+              aria-label="Предлагаемая сумма денег"
               className="h-8 text-sm mt-2"
               aria-label="Деньги от вас"
             />
@@ -297,6 +298,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                   setRequestMoneyStr(e.target.value);
                   setConfig(c => ({ ...c, requestedMoney: Number(e.target.value) }));
                 }}
+                aria-label={`Запрашиваемая сумма денег от ${pname(targetPlayer)}`}
                 className="h-8 text-sm mt-2"
                 aria-label={`Деньги от ${pname(targetPlayer)}`}
               />
