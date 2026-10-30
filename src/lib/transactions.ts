@@ -2,6 +2,19 @@ import type { GameState, TradeOffer } from '../types/game';
 
 export const isMoney = (value: number): boolean => Number.isSafeInteger(value) && value >= 0;
 
+export function isValidGameState(s: unknown): s is GameState {
+  if (!s || typeof s !== 'object') return false;
+  const state = s as Partial<GameState>;
+  if (!Array.isArray(state.players) || state.players.length === 0) return false;
+  if (typeof state.currentPlayer !== 'number' || state.currentPlayer < 0 || state.currentPlayer >= state.players.length) return false;
+  if (typeof state.phase !== 'string' || typeof state.round !== 'number' || typeof state.maxRounds !== 'number') return false;
+  return state.players.every(
+    p => p && typeof p === 'object' && typeof p.id === 'number' && typeof p.money === 'number' &&
+      typeof p.position === 'number' && Array.isArray(p.properties) && Array.isArray(p.mortgaged) &&
+      typeof p.bankrupt === 'boolean'
+  );
+}
+
 export function canPlaceBid(state: GameState, amount: number): boolean {
   const auction = state.auctionState;
   if (state.phase !== 'auction' || !auction || !isMoney(amount)) return false;

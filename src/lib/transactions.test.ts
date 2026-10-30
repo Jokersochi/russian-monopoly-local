@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameState, Player, TradeOffer } from '../types/game';
-import { canExecuteTrade, canPlaceBid } from './transactions';
+import { canExecuteTrade, canPlaceBid, isValidGameState } from './transactions';
 
 const player = (id: number, properties: number[]): Player => ({
   id, nameKey: `player${id}`, token: '', money: 100, position: 0, properties, mortgaged: [],
@@ -49,5 +49,28 @@ describe('transaction boundaries', () => {
     game.players[1].bankrupt = false;
     game.players[0].money = Number.MAX_SAFE_INTEGER;
     expect(canExecuteTrade(game, offer())).toBe(false);
+  });
+});
+
+describe('isValidGameState', () => {
+  it('accepts valid state object', () => {
+    expect(isValidGameState(state())).toBe(true);
+  });
+
+  it('rejects null, non-objects, and missing required properties', () => {
+    expect(isValidGameState(null)).toBe(false);
+    expect(isValidGameState('invalid')).toBe(false);
+    expect(isValidGameState({})).toBe(false);
+    expect(isValidGameState({ players: [] })).toBe(false);
+    expect(isValidGameState({ players: null })).toBe(false);
+  });
+
+  it('rejects invalid currentPlayer or malformed player objects', () => {
+    const s = state();
+    expect(isValidGameState({ ...s, currentPlayer: 99 })).toBe(false);
+    expect(isValidGameState({ ...s, currentPlayer: -1 })).toBe(false);
+    expect(isValidGameState({ ...s, phase: 123 })).toBe(false);
+    const badPlayer = { ...s.players[0], money: 'not a number' };
+    expect(isValidGameState({ ...s, players: [badPlayer] })).toBe(false);
   });
 });
