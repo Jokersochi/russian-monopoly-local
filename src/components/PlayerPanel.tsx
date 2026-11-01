@@ -47,8 +47,18 @@ export const PlayerPanel = () => {
               )}
             >
               <div
-                className="p-3 cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                aria-label={`${player.displayName || t(`players.${player.nameKey}`)}, ${isExpanded ? 'скрыть' : 'показать'} владения`}
+                className="p-3 cursor-pointer select-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-russia-blue/60"
                 onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setExpandedIdx(isExpanded ? null : idx);
+                  }
+                }}
               >
                 <div className="flex items-center gap-3">
                   <div className="text-4xl drop-shadow">{player.token}</div>
@@ -88,7 +98,7 @@ export const PlayerPanel = () => {
                       </span>
                     </div>
                   </div>
-                  <span className="text-muted-foreground text-xs">{isExpanded ? '▲' : '▼'}</span>
+                  <span className="text-muted-foreground text-xs" aria-hidden="true">{isExpanded ? '▲' : '▼'}</span>
                 </div>
               </div>
 
