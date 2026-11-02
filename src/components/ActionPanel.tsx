@@ -184,7 +184,7 @@ export const ActionPanel = () => {
                 <button
                   key={c.id}
                   onClick={() => setInspectCell(c)}
-                  className="w-full flex items-center justify-between p-2 rounded border border-border/40 hover:border-russia-gold/50 hover:bg-russia-gold/5 transition-colors text-xs text-left"
+                  className="w-full flex items-center justify-between p-2 rounded border border-border/40 hover:border-russia-gold/50 hover:bg-russia-gold/5 transition-colors text-xs text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <span className="flex items-center gap-1.5">
                     {c.color && (

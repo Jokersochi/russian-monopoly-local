@@ -229,6 +229,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                       onClick={() => toggleProp(id, 'offer')}
                       className={cn(
                         'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                         selected
                           ? 'bg-russia-gold/20 border-russia-gold text-russia-gold font-bold'
                           : 'bg-muted/40 border-border hover:border-russia-gold/50'
@@ -275,6 +276,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                         onClick={() => toggleProp(id, 'request')}
                         className={cn(
                           'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                           selected
                             ? 'bg-russia-blue/20 border-russia-blue text-russia-blue font-bold'
                             : 'bg-muted/40 border-border hover:border-russia-blue/50'
