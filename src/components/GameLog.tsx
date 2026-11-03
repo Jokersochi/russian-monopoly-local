@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -23,16 +23,52 @@ const FILTER_DESCRIPTIONS: Record<Filter, string> = {
   warning: 'Предупреждения', error: 'Ошибки',
 };
 
+const EMPTY_LOG: LogEntry[] = [];
+const DEFAULT_COUNTS: Record<LogEntry['type'], number> = {
+  info: 0,
+  success: 0,
+  warning: 0,
+  error: 0,
+};
+
 export const GameLog = () => {
   const { gameState } = useGame();
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
+  const gameLog = gameState?.gameLog ?? EMPTY_LOG;
+
+  // ⚡ Bolt: Single-pass O(N) backward traversal reverses entries and computes log counts simultaneously.
+  // This avoids redundant O(N) array copies (.slice().reverse()) and multiple O(N) .filter() scans per render.
+  const { entriesReversed, countsByType } = useMemo(() => {
+    if (gameLog.length === 0) {
+      return { entriesReversed: EMPTY_LOG, countsByType: DEFAULT_COUNTS };
+    }
+
+    const len = gameLog.length;
+    const entriesReversed: LogEntry[] = new Array(len);
+    const countsByType: Record<LogEntry['type'], number> = {
+      info: 0,
+      success: 0,
+      warning: 0,
+      error: 0,
+    };
+
+    for (let i = len - 1, j = 0; i >= 0; i--, j++) {
+      const entry = gameLog[i];
+      entriesReversed[j] = entry;
+      if (countsByType[entry.type] !== undefined) {
+        countsByType[entry.type]++;
+      }
+    }
+
+    return { entriesReversed, countsByType };
+  }, [gameLog]);
+
   if (!gameState) return null;
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+  const filtered = filter === 'all' ? entriesReversed : entriesReversed.filter(e => e.type === filter);
+  const countByType = (type: LogEntry['type']) => countsByType[type] || 0;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
