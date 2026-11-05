@@ -30,3 +30,36 @@ export function canExecuteTrade(state: GameState, offer: TradeOffer): boolean {
   return validProperties(offer.offeredProperties, from) && validProperties(offer.requestedProperties, to) &&
     !offer.offeredProperties.some(id => offer.requestedProperties.includes(id));
 }
+
+/**
+ * Validates untrusted deserialized GameState from localStorage to prevent
+ * prototype pollution, state corruption, and client-side denial of service.
+ */
+export function isValidGameState(state: unknown): state is GameState {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
+  const s = state as Record<string, unknown>;
+  if (!Array.isArray(s.players) || s.players.length < 2 || s.players.length > 6) return false;
+  const validPlayers = s.players.every((p: unknown) => {
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return false;
+    const player = p as Record<string, unknown>;
+    return Number.isInteger(player.id) &&
+      typeof player.nameKey === 'string' &&
+      isMoney(player.money as number) &&
+      Number.isInteger(player.position) &&
+      (player.position as number) >= 0 &&
+      (player.position as number) < 40 &&
+      Array.isArray(player.properties) &&
+      Array.isArray(player.mortgaged) &&
+      typeof player.inJail === 'boolean' &&
+      typeof player.bankrupt === 'boolean';
+  });
+  if (!validPlayers) return false;
+  return Number.isInteger(s.currentPlayer) &&
+    (s.currentPlayer as number) >= 0 &&
+    (s.currentPlayer as number) < s.players.length &&
+    typeof s.phase === 'string' &&
+    Number.isInteger(s.round) && (s.round as number) >= 1 &&
+    Number.isInteger(s.maxRounds) && (s.maxRounds as number) >= 1 &&
+    Array.isArray(s.gameLog) &&
+    Boolean(s.houses) && typeof s.houses === 'object' && !Array.isArray(s.houses);
+}

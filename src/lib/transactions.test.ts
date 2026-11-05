@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameState, Player, TradeOffer } from '../types/game';
-import { canExecuteTrade, canPlaceBid } from './transactions';
+import { canExecuteTrade, canPlaceBid, isValidGameState } from './transactions';
 
 const player = (id: number, properties: number[]): Player => ({
   id, nameKey: `player${id}`, token: '', money: 100, position: 0, properties, mortgaged: [],
@@ -49,5 +49,36 @@ describe('transaction boundaries', () => {
     game.players[1].bankrupt = false;
     game.players[0].money = Number.MAX_SAFE_INTEGER;
     expect(canExecuteTrade(game, offer())).toBe(false);
+  });
+
+  it('validates game state structure from deserialization', () => {
+    expect(isValidGameState(state())).toBe(true);
+    expect(isValidGameState(null)).toBe(false);
+    expect(isValidGameState({})).toBe(false);
+    expect(isValidGameState([])).toBe(false);
+    expect(isValidGameState('invalid')).toBe(false);
+
+    // Reject invalid player count
+    const singlePlayer = { ...state(), players: [player(0, [])] };
+    expect(isValidGameState(singlePlayer)).toBe(false);
+
+    // Reject negative money or non-safe integer
+    const negativeMoney = state();
+    negativeMoney.players[0].money = -10;
+    expect(isValidGameState(negativeMoney)).toBe(false);
+
+    // Reject out-of-bounds player position
+    const invalidPosition = state();
+    invalidPosition.players[0].position = 45;
+    expect(isValidGameState(invalidPosition)).toBe(false);
+
+    // Reject invalid currentPlayer index
+    const invalidCurrentPlayer = { ...state(), currentPlayer: 5 };
+    expect(isValidGameState(invalidCurrentPlayer)).toBe(false);
+
+    // Reject non-array properties
+    const malformedProperties = state();
+    (malformedProperties.players[0] as unknown as { properties: unknown }).properties = 'invalid';
+    expect(isValidGameState(malformedProperties)).toBe(false);
   });
 });
