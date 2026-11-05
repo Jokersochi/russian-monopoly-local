@@ -1,15 +1,73 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Player, Cell } from '@/types/game';
+
+const EMPTY_PLAYERS: Player[] = [];
+const EMPTY_HOUSES: Record<number, number> = {};
+
+interface PlayerMetrics {
+  player: Player;
+  ownedCells: Cell[];
+  propertyValue: number;
+  houseValue: number;
+  mortgagedValue: number;
+  netWorth: number;
+}
 
 export const PlayerPanel = () => {
   const { gameState, cells } = useGame();
   const { t } = useLocale();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  // Performance optimization: Pre-compute cell lookup map O(1) from cell ID to avoid O(C) array scans
+  const cellMap = useMemo(() => {
+    const map = new Map<number, Cell>();
+    cells.forEach(c => map.set(c.id, c));
+    return map;
+  }, [cells]);
+
+  const players = gameState?.players ?? EMPTY_PLAYERS;
+  const houses = gameState?.houses ?? EMPTY_HOUSES;
+
+  // Performance optimization: Pre-calculate player financial metrics (owned cells, house values, net worth)
+  // in a single memoized pass to avoid redundant O(P * C) filtering and multiple reduce passes on every render.
+  const playerMetrics = useMemo<PlayerMetrics[]>(() => {
+    return players.map(player => {
+      const mortgagedSet = new Set(player.mortgaged);
+      const owned: Cell[] = [];
+      let propertyValue = 0;
+      let houseValue = 0;
+      let mortgagedValue = 0;
+
+      for (const id of player.properties) {
+        const c = cellMap.get(id);
+        if (c) {
+          owned.push(c);
+          propertyValue += c.price || 0;
+          const hc = houses[id] || 0;
+          houseValue += hc * (c.houseCost || 0);
+          if (mortgagedSet.has(id)) {
+            mortgagedValue += Math.floor((c.price || 0) / 2);
+          }
+        }
+      }
+
+      const netWorth = player.money + propertyValue + houseValue;
+      return {
+        player,
+        ownedCells: owned,
+        propertyValue,
+        houseValue,
+        mortgagedValue,
+        netWorth,
+      };
+    });
+  }, [players, houses, cellMap]);
 
   if (!gameState) return null;
 
@@ -22,18 +80,8 @@ export const PlayerPanel = () => {
         </h3>
       </div>
       <div className="p-3 space-y-2">
-        {gameState.players.map((player, idx) => {
+        {playerMetrics.map(({ player, ownedCells, mortgagedValue, netWorth }, idx) => {
           const isCurrentPlayer = idx === gameState.currentPlayer;
-          const ownedCells = cells.filter(c => player.properties.includes(c.id));
-          const propertyValue = ownedCells.reduce((sum, c) => sum + (c.price || 0), 0);
-          const houseValue = ownedCells.reduce((sum, c) => {
-            const hc = gameState.houses[c.id] || 0;
-            return sum + hc * (c.houseCost || 0);
-          }, 0);
-          const mortgagedValue = ownedCells
-            .filter(c => player.mortgaged.includes(c.id))
-            .reduce((sum, c) => sum + Math.floor((c.price || 0) / 2), 0);
-          const netWorth = player.money + propertyValue + houseValue;
           const isExpanded = expandedIdx === idx;
 
           return (
