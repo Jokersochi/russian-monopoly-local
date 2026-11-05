@@ -1,0 +1,3 @@
+## 2026-08-20 - Custom toggle button accessibility
+**Learning:** Custom interactive `<button>` elements used as toggles (like property selectors in TradingModal) often lack standard semantic state indication (`aria-pressed`) and visual focus outlines (`focus-visible`), rendering them inaccessible to screen readers and keyboard users compared to native checkbox/radio inputs.
+**Action:** When implementing custom toggle buttons, always include `aria-pressed={selected}` to announce the active state programmatically, and apply `focus-visible:ring-2 focus-visible:ring-offset-1` with context-appropriate theme colors to ensure keyboard navigation visibility matches standard UI components.
