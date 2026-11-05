@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
@@ -47,10 +47,55 @@ export const GameBoard = () => {
     return () => window.clearTimeout(timer);
   }, [positionSignature, gameState]);
 
+  const players = gameState?.players;
+  const houses = gameState?.houses;
+
+  // Pre-compute cell ownership and player positions unconditionally to satisfy React Rules of Hooks
+  const ownerByCellId = useMemo(() => {
+    const map: Record<number, Player> = {};
+    if (!players) return map;
+    players.forEach(player => {
+      player.properties.forEach(cellId => {
+        map[cellId] = player;
+      });
+    });
+    return map;
+  }, [players]);
+
+  const playersByCellId = useMemo(() => {
+    const map: Record<number, Player[]> = {};
+    if (!players) return map;
+    players.forEach(player => {
+      if (!map[player.position]) {
+        map[player.position] = [];
+      }
+      map[player.position].push(player);
+    });
+    return map;
+  }, [players]);
+
+  // Pre-compute sorted net worth standings to avoid O(P * C) array scans during renders
+  const sortedStandings = useMemo(() => {
+    if (!players || !houses) return [];
+    return [...players]
+      .map(player => {
+        const propertyValue = cells
+          .filter(cell => player.properties.includes(cell.id))
+          .reduce((sum, cell) => sum + (cell.price || 0), 0);
+        const houseValue = cells
+          .filter(cell => player.properties.includes(cell.id))
+          .reduce(
+            (sum, cell) => sum + (houses[cell.id] || 0) * (cell.houseCost || 0),
+            0
+          );
+        return { player, netWorth: player.money + propertyValue + houseValue };
+      })
+      .sort((a, b) => b.netWorth - a.netWorth);
+  }, [players, cells, houses]);
+
   if (!gameState) return null;
 
-  const { players, currentPlayer: currentPlayerIndex, houses } = gameState;
-  const currentPlayer = players[currentPlayerIndex];
+  const currentPlayer = players[gameState.currentPlayer];
   const playerName = (player: Player) =>
     player.displayName || t(`players.${player.nameKey}`);
 
@@ -66,9 +111,6 @@ export const GameBoard = () => {
       height: `${size}px`,
     };
   };
-
-  const getOwner = (cellId: number) => players.find(player => player.properties.includes(cellId));
-  const getPlayersOnCell = (cellId: number) => players.filter(player => player.position === cellId);
 
   return (
     <>
@@ -88,8 +130,8 @@ export const GameBoard = () => {
 
         <div className="relative" style={{ width: '902px', height: '902px' }}>
           {cells.map(cell => {
-            const owner = getOwner(cell.id);
-            const playersHere = getPlayersOnCell(cell.id);
+            const owner = ownerByCellId[cell.id];
+            const playersHere = playersByCellId[cell.id] || [];
             const houseCount = houses[cell.id] || 0;
             const isCurrentPlayerHere = currentPlayer.position === cell.id;
             const isOwnedByCurrentPlayer = owner?.id === currentPlayer.id;
@@ -241,34 +283,20 @@ export const GameBoard = () => {
               )}
 
               <div className="grid grid-cols-2 gap-1.5">
-                {[...players]
-                  .map(player => {
-                    const propertyValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce((sum, cell) => sum + (cell.price || 0), 0);
-                    const houseValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce(
-                        (sum, cell) => sum + (gameState.houses[cell.id] || 0) * (cell.houseCost || 0),
-                        0
-                      );
-                    return { player, netWorth: player.money + propertyValue + houseValue };
-                  })
-                  .sort((a, b) => b.netWorth - a.netWorth)
-                  .map(({ player, netWorth }, rank) => (
-                    <div
-                      key={player.id}
-                      className={cn(
-                        'flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg bg-white/45 border border-[#8d6c36]/10',
-                        player.id === currentPlayer.id && 'bg-[#fff3bd] border-russia-gold/30'
-                      )}
-                    >
-                      <span className="text-[#766d5d] w-3">{rank + 1}.</span>
-                      <span>{player.token}</span>
-                      <span className="flex-1 truncate font-semibold">{playerName(player)}</span>
-                      <span className="text-emerald-700 font-black">{(netWorth / 1_000_000).toFixed(1)}M</span>
-                    </div>
-                  ))}
+                {sortedStandings.map(({ player, netWorth }, rank) => (
+                  <div
+                    key={player.id}
+                    className={cn(
+                      'flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg bg-white/45 border border-[#8d6c36]/10',
+                      player.id === currentPlayer.id && 'bg-[#fff3bd] border-russia-gold/30'
+                    )}
+                  >
+                    <span className="text-[#766d5d] w-3">{rank + 1}.</span>
+                    <span>{player.token}</span>
+                    <span className="flex-1 truncate font-semibold">{playerName(player)}</span>
+                    <span className="text-emerald-700 font-black">{(netWorth / 1_000_000).toFixed(1)}M</span>
+                  </div>
+                ))}
               </div>
 
               <div className="flex items-center justify-center gap-4 text-[11px] text-[#6d6658] pt-1 font-semibold">
