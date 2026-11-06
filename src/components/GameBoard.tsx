@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { PropertyModal } from '@/components/PropertyModal';
 import { Cell, Player } from '@/types/game';
 import { cn } from '@/lib/utils';
+
+const EMPTY_PLAYERS: Player[] = [];
+const EMPTY_HOUSES: Record<number, number> = {};
 
 const SPECIAL_CELL_ICONS: Partial<Record<Cell['type'], string>> = {
   start: '▶',
@@ -47,9 +50,67 @@ export const GameBoard = () => {
     return () => window.clearTimeout(timer);
   }, [positionSignature, gameState]);
 
+  const players = gameState?.players ?? EMPTY_PLAYERS;
+  const houses = gameState?.houses ?? EMPTY_HOUSES;
+
+  // Bolt optimization: Pre-index cell ownership to O(1) Map lookups.
+  // Replaces O(C * P) repetitive player/properties array scans on every board render.
+  const ownerMap = useMemo(() => {
+    const map = new Map<number, Player>();
+    for (const player of players) {
+      for (const propertyId of player.properties) {
+        map.set(propertyId, player);
+      }
+    }
+    return map;
+  }, [players]);
+
+  // Bolt optimization: Pre-index player positions to O(1) Map lookups.
+  // Eliminates O(C * P) array filters across all 40 cells on every board render.
+  const playersByCellMap = useMemo(() => {
+    const map = new Map<number, Player[]>();
+    for (const player of players) {
+      const list = map.get(player.position);
+      if (list) {
+        list.push(player);
+      } else {
+        map.set(player.position, [player]);
+      }
+    }
+    return map;
+  }, [players]);
+
+  // Bolt optimization: Pre-compute cell lookup map for O(1) cell property access.
+  const cellByIdMap = useMemo(() => {
+    const map = new Map<number, Cell>();
+    for (const cell of cells) {
+      map.set(cell.id, cell);
+    }
+    return map;
+  }, [cells]);
+
+  // Bolt optimization: Pre-compute player net worth leaderboard rankings.
+  // Eliminates nested O(P * C) array filtering and sum reductions on every GameBoard re-render.
+  const leaderboard = useMemo(() => {
+    return [...players]
+      .map(player => {
+        let propertyValue = 0;
+        let houseValue = 0;
+        for (const propId of player.properties) {
+          const c = cellByIdMap.get(propId);
+          if (c) {
+            propertyValue += c.price || 0;
+            houseValue += (houses[propId] || 0) * (c.houseCost || 0);
+          }
+        }
+        return { player, netWorth: player.money + propertyValue + houseValue };
+      })
+      .sort((a, b) => b.netWorth - a.netWorth);
+  }, [players, houses, cellByIdMap]);
+
   if (!gameState) return null;
 
-  const { players, currentPlayer: currentPlayerIndex, houses } = gameState;
+  const currentPlayerIndex = gameState.currentPlayer;
   const currentPlayer = players[currentPlayerIndex];
   const playerName = (player: Player) =>
     player.displayName || t(`players.${player.nameKey}`);
@@ -67,8 +128,8 @@ export const GameBoard = () => {
     };
   };
 
-  const getOwner = (cellId: number) => players.find(player => player.properties.includes(cellId));
-  const getPlayersOnCell = (cellId: number) => players.filter(player => player.position === cellId);
+  const getOwner = (cellId: number) => ownerMap.get(cellId);
+  const getPlayersOnCell = (cellId: number) => playersByCellMap.get(cellId) ?? EMPTY_PLAYERS;
 
   return (
     <>
@@ -241,34 +302,20 @@ export const GameBoard = () => {
               )}
 
               <div className="grid grid-cols-2 gap-1.5">
-                {[...players]
-                  .map(player => {
-                    const propertyValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce((sum, cell) => sum + (cell.price || 0), 0);
-                    const houseValue = cells
-                      .filter(cell => player.properties.includes(cell.id))
-                      .reduce(
-                        (sum, cell) => sum + (gameState.houses[cell.id] || 0) * (cell.houseCost || 0),
-                        0
-                      );
-                    return { player, netWorth: player.money + propertyValue + houseValue };
-                  })
-                  .sort((a, b) => b.netWorth - a.netWorth)
-                  .map(({ player, netWorth }, rank) => (
-                    <div
-                      key={player.id}
-                      className={cn(
-                        'flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg bg-white/45 border border-[#8d6c36]/10',
-                        player.id === currentPlayer.id && 'bg-[#fff3bd] border-russia-gold/30'
-                      )}
-                    >
-                      <span className="text-[#766d5d] w-3">{rank + 1}.</span>
-                      <span>{player.token}</span>
-                      <span className="flex-1 truncate font-semibold">{playerName(player)}</span>
-                      <span className="text-emerald-700 font-black">{(netWorth / 1_000_000).toFixed(1)}M</span>
-                    </div>
-                  ))}
+                {leaderboard.map(({ player, netWorth }, rank) => (
+                  <div
+                    key={player.id}
+                    className={cn(
+                      'flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg bg-white/45 border border-[#8d6c36]/10',
+                      player.id === currentPlayer.id && 'bg-[#fff3bd] border-russia-gold/30'
+                    )}
+                  >
+                    <span className="text-[#766d5d] w-3">{rank + 1}.</span>
+                    <span>{player.token}</span>
+                    <span className="flex-1 truncate font-semibold">{playerName(player)}</span>
+                    <span className="text-emerald-700 font-black">{(netWorth / 1_000_000).toFixed(1)}M</span>
+                  </div>
+                ))}
               </div>
 
               <div className="flex items-center justify-center gap-4 text-[11px] text-[#6d6658] pt-1 font-semibold">
