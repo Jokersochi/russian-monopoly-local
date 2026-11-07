@@ -18,6 +18,11 @@ const FILTER_LABELS: Record<Filter, string> = {
   error: '❌',
 };
 
+const FILTER_DESCRIPTIONS: Record<Filter, string> = {
+  all: 'Все события', success: 'Успешные события', info: 'Информация',
+  warning: 'Предупреждения', error: 'Ошибки',
+};
+
 export const GameLog = () => {
   const { gameState } = useGame();
   const { t } = useLocale();
@@ -49,7 +54,9 @@ export const GameLog = () => {
                 filter === key && 'bg-russia-gold text-black',
                 key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
               )}
-              title={key === 'all' ? 'Все события' : key}
+              title={FILTER_DESCRIPTIONS[key]}
+              aria-label={FILTER_DESCRIPTIONS[key]}
+              aria-pressed={filter === key}
             >
               {label}
               {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
