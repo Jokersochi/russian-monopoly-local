@@ -51,7 +51,7 @@ export const PlayerPanel = () => {
                 tabIndex={0}
                 aria-expanded={isExpanded}
                 aria-controls={`player-details-${player.id}`}
-                aria-label={`${player.displayName || t(`players.${player.nameKey}`)}: ${isExpanded ? t('common.collapse', 'Свернуть') : t('common.expand', 'Подробнее')}`}
+                aria-label={player.displayName || t(`players.${player.nameKey}`)}
                 className="p-3 cursor-pointer select-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={() => setExpandedIdx(isExpanded ? null : idx)}
                 onKeyDown={(e) => {
