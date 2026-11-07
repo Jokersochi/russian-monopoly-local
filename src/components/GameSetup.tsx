@@ -88,6 +88,7 @@ export const GameSetup = () => {
                           ? 'border-russia-gold bg-russia-gold/10 shadow-strong'
                           : 'border-border/40 hover:border-russia-gold/50 bg-card/50 hover:bg-card/80'
                       )}
+                      aria-pressed={isSelected}
                     >
                       <div className="font-bold text-sm mb-1">Слот {slot}</div>
                       {info ? (
@@ -161,6 +162,7 @@ export const GameSetup = () => {
                   }}
                   maxLength={20}
                   className="h-9 text-sm bg-background/60"
+                  aria-label={t(`players.player${i + 1}`)}
                 />
               ))}
             </div>
