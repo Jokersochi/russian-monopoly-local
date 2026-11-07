@@ -47,8 +47,17 @@ export const PlayerPanel = () => {
               )}
             >
               <div
-                className="p-3 cursor-pointer select-none"
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                className="p-3 cursor-pointer select-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setExpandedIdx(isExpanded ? null : idx);
+                  }
+                }}
               >
                 <div className="flex items-center gap-3">
                   <div className="text-4xl drop-shadow">{player.token}</div>
