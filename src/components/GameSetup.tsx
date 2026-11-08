@@ -83,7 +83,7 @@ export const GameSetup = () => {
                     <button
                       onClick={() => setSelectedSlot(slot)}
                       className={cn(
-                        'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs',
+                        'w-full rounded-lg border-2 p-2.5 text-left transition-all text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                         isSelected
                           ? 'border-russia-gold bg-russia-gold/10 shadow-strong'
                           : 'border-border/40 hover:border-russia-gold/50 bg-card/50 hover:bg-card/80'
