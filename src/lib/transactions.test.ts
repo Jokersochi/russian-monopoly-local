@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GameState, Player, TradeOffer } from '../types/game';
-import { canExecuteTrade, canPlaceBid } from './transactions';
+import { canExecuteTrade, canPlaceBid, isValidGameState } from './transactions';
 
 const player = (id: number, properties: number[]): Player => ({
   id, nameKey: `player${id}`, token: '', money: 100, position: 0, properties, mortgaged: [],
@@ -49,5 +49,44 @@ describe('transaction boundaries', () => {
     game.players[1].bankrupt = false;
     game.players[0].money = Number.MAX_SAFE_INTEGER;
     expect(canExecuteTrade(game, offer())).toBe(false);
+  });
+});
+
+describe('isValidGameState', () => {
+  it('accepts a valid game state', () => {
+    expect(isValidGameState(state())).toBe(true);
+  });
+
+  it('rejects null, non-objects, and missing required properties', () => {
+    expect(isValidGameState(null)).toBe(false);
+    expect(isValidGameState(undefined)).toBe(false);
+    expect(isValidGameState('invalid')).toBe(false);
+    expect(isValidGameState(123)).toBe(false);
+    expect(isValidGameState({})).toBe(false);
+    expect(isValidGameState({ ...state(), players: [] })).toBe(false);
+    expect(isValidGameState({ ...state(), currentPlayer: -1 })).toBe(false);
+    expect(isValidGameState({ ...state(), currentPlayer: 2 })).toBe(false);
+    expect(isValidGameState({ ...state(), phase: '' })).toBe(false);
+    expect(isValidGameState({ ...state(), round: -1 })).toBe(false);
+    expect(isValidGameState({ ...state(), maxRounds: 0 })).toBe(false);
+    expect(isValidGameState({ ...state(), gameLog: null })).toBe(false);
+  });
+
+  it('rejects corrupted player records', () => {
+    const invalidMoneyState = state();
+    (invalidMoneyState.players[0] as unknown as { money: number }).money = NaN;
+    expect(isValidGameState(invalidMoneyState)).toBe(false);
+
+    const invalidPositionState = state();
+    invalidPositionState.players[0].position = 40;
+    expect(isValidGameState(invalidPositionState)).toBe(false);
+
+    const invalidPropertiesState = state();
+    invalidPropertiesState.players[0].properties = [-1];
+    expect(isValidGameState(invalidPropertiesState)).toBe(false);
+
+    const nonArrayMortgagedState = state();
+    (nonArrayMortgagedState.players[0] as unknown as { mortgaged: unknown }).mortgaged = null;
+    expect(isValidGameState(nonArrayMortgagedState)).toBe(false);
   });
 });
