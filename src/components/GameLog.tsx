@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { LogEntry } from '@/types/game';
 
 type Filter = 'all' | 'success' | 'info' | 'warning' | 'error';
+
+const EMPTY_LOG: LogEntry[] = [];
 
 const FILTER_LABELS: Record<Filter, string> = {
   all: 'Всё',
@@ -28,11 +30,33 @@ export const GameLog = () => {
   const { t } = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
 
-  if (!gameState) return null;
+  // Single-pass optimization: Pre-compute reversed entries and counts by type in O(N)
+  // instead of allocating slice().reverse() and running multi-pass .filter() calls on every render.
+  const gameLog = gameState?.gameLog ?? EMPTY_LOG;
+  const { entries, countsByType } = useMemo(() => {
+    const reversed: LogEntry[] = new Array(gameLog.length);
+    const counts: Record<LogEntry['type'], number> = {
+      success: 0,
+      info: 0,
+      warning: 0,
+      error: 0,
+    };
 
-  const entries = gameState.gameLog.slice().reverse();
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
-  const countByType = (type: LogEntry['type']) => gameState.gameLog.filter(e => e.type === type).length;
+    for (let i = gameLog.length - 1, j = 0; i >= 0; i--, j++) {
+      const entry = gameLog[i];
+      reversed[j] = entry;
+      counts[entry.type] = (counts[entry.type] || 0) + 1;
+    }
+
+    return { entries: reversed, countsByType: counts };
+  }, [gameLog]);
+
+  const filtered = useMemo(() => {
+    if (filter === 'all') return entries;
+    return entries.filter(e => e.type === filter);
+  }, [entries, filter]);
+
+  if (!gameState) return null;
 
   return (
     <Card className="h-full shadow-board backdrop-blur-sm bg-card/95 border-2 border-russia-gold/20 flex flex-col">
@@ -43,27 +67,30 @@ export const GameLog = () => {
           <Badge variant="secondary" className="text-xs ml-1">{gameState.gameLog.length}</Badge>
         </h3>
         <div className="flex gap-1">
-          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => (
-            <Button
-              key={key}
-              size="sm"
-              variant={filter === key ? 'default' : 'ghost'}
-              onClick={() => setFilter(key)}
-              className={cn(
-                'h-6 px-1.5 text-xs',
-                filter === key && 'bg-russia-gold text-black',
-                key !== 'all' && countByType(key as LogEntry['type']) === 0 && 'opacity-30'
-              )}
-              title={FILTER_DESCRIPTIONS[key]}
-              aria-label={FILTER_DESCRIPTIONS[key]}
-              aria-pressed={filter === key}
-            >
-              {label}
-              {key !== 'all' && countByType(key as LogEntry['type']) > 0 && (
-                <span className="ml-0.5 opacity-70">{countByType(key as LogEntry['type'])}</span>
-              )}
-            </Button>
-          ))}
+          {(Object.entries(FILTER_LABELS) as [Filter, string][]).map(([key, label]) => {
+            const count = key === 'all' ? gameState.gameLog.length : (countsByType[key as LogEntry['type']] || 0);
+            return (
+              <Button
+                key={key}
+                size="sm"
+                variant={filter === key ? 'default' : 'ghost'}
+                onClick={() => setFilter(key)}
+                className={cn(
+                  'h-6 px-1.5 text-xs',
+                  filter === key && 'bg-russia-gold text-black',
+                  key !== 'all' && count === 0 && 'opacity-30'
+                )}
+                title={FILTER_DESCRIPTIONS[key]}
+                aria-label={FILTER_DESCRIPTIONS[key]}
+                aria-pressed={filter === key}
+              >
+                {label}
+                {key !== 'all' && count > 0 && (
+                  <span className="ml-0.5 opacity-70">{count}</span>
+                )}
+              </Button>
+            );
+          })}
         </div>
       </div>
       <ScrollArea className="flex-1 p-2">
