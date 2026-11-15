@@ -125,12 +125,12 @@ function restoreRoom(value: unknown): Room {
     || !Array.isArray(value.sessions) || value.sessions.length > 36
     || !value.sessions.every((entry: unknown) => Array.isArray(entry) && entry.length === 2
       && typeof entry[0] === 'string' && HASH_PATTERN.test(entry[0])
-      && isRecord(entry[1]) && value.seats.some((seat: Seat) => seat.id === entry[1].playerId)
+      && isRecord(entry[1]) && (value.seats as Seat[]).some((seat) => seat.id === entry[1].playerId)
       && isNonnegativeNumber(entry[1].lastSeen) && isNonnegativeNumber(entry[1].lastChatAt))
     || !Array.isArray(value.messages) || value.messages.length > 60
     || !value.messages.every((message: unknown) => isRecord(message)
       && typeof message.id === 'string' && message.id.length <= 32
-      && typeof message.playerId === 'string' && value.seats.some((seat: Seat) => seat.id === message.playerId)
+      && typeof message.playerId === 'string' && (value.seats as Seat[]).some((seat) => seat.id === message.playerId)
       && typeof message.name === 'string' && message.name.length <= 20
       && typeof message.text === 'string' && message.text.length >= 1 && message.text.length <= 280
       && isNonnegativeNumber(message.at))
