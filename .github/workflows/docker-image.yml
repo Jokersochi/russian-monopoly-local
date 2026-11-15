@@ -46,11 +46,23 @@ jobs:
           set -euo pipefail
           trap 'docker compose --profile ops down --remove-orphans' EXIT
           docker compose --profile ops up --no-build -d online monopoly
-          count=0
-          for attempt in $(seq 1 60); do
-            status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
-              http://127.0.0.1:3002/api/health)
-            if [ "$status" = "429" ]; then count=$((count + 1)); fi
+          # A started container can still be initializing; distinguish readiness from throttling.
+          ready=0
+          for attempt in $(seq 1 30); do
+            status=$(curl --max-time 2 --silent --output /dev/null --write-out '%{http_code}' \
+              http://127.0.0.1:3002/api/health || true)
+            if [ "$status" = "200" ]; then
+              ready=1
+              break
+            fi
+            sleep 1
           done
-          echo "Throttled requests: $count"
-          test "$count" -gt 0
+          test "$ready" -eq 1
+          codes=$(mktemp)
+          trap 'rm -f "$codes"; docker compose --profile ops down --remove-orphans' EXIT
+          seq 1 60 | xargs -P 16 -I{} sh -c \
+            'curl --max-time 5 --silent --output /dev/null --write-out "%{http_code}\n" http://127.0.0.1:3002/api/health || true' \
+            > "$codes"
+          throttled=$(grep -cx '429' "$codes" || true)
+          echo "Throttled requests: $throttled"
+          test "$throttled" -gt 0
