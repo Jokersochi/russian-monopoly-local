@@ -106,8 +106,12 @@ function bankrupt(game: OnlineGame, player: OnlinePlayer): void {
   player.bankrupt = true;
   player.inJail = false;
   game.lastEvent = player.name + ' объявлен банкротом';
-  game.doubleCount = 0;
-  advanceTurn(game);
+  if (game.players[game.currentPlayer].id === player.id) {
+    game.doubleCount = 0;
+    advanceTurn(game);
+  } else {
+    checkWinner(game);
+  }
 }
 
 function charge(game: OnlineGame, payer: OnlinePlayer, amount: number, creditor?: OnlinePlayer): void {
@@ -192,7 +196,13 @@ function resolveCell(game: OnlineGame, player: OnlinePlayer, diceSum: number, ra
     const previous = player.position;
     player.position = effect.moveToCell;
     if (player.position === 0 && previous !== 0) player.money += START_BONUS;
-    resolveCell(game, player, diceSum, random, false);
+    if (player.position === 10) {
+      player.inJail = true;
+      player.jailTurns = 0;
+      game.doubleCount = 0;
+    } else {
+      resolveCell(game, player, diceSum, random, false);
+    }
   }
 }
 
