@@ -57,4 +57,21 @@ describe('HTTP room protocol', () => {
       version: started.data.version, type: 'roll',
     })).status).toBe(409);
   });
+  it('rejects invalid JSON, wrong content type and missing routes', async () => {
+    const invalid = await fetch(baseUrl + '/api/rooms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{',
+    });
+    expect(invalid.status).toBe(400);
+    const wrongType = await fetch(baseUrl + '/api/rooms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'name=alice',
+    });
+    expect(wrongType.status).toBe(415);
+    expect((await request('/api/missing')).status).toBe(404);
+    expect((await request('/api/rooms', 'POST', undefined, { name: 'x' })).status).toBe(400);
+  });
+
 });
