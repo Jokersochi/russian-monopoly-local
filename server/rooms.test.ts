@@ -48,4 +48,24 @@ describe('online rooms and reconnect', () => {
     service.cleanup(Date.now() + 25 * 60 * 60 * 1000);
     expect(() => service.get(host.room.roomId, host.sessionId)).toThrow('Комната не найдена');
   });
+  it('rejects invalid names, unauthorized actions and invalid round limits', () => {
+    const service = new RoomService();
+    expect(() => service.create('a')).toThrow('от 2 до 20');
+    const host = service.create('Алиса');
+    expect(() => service.start(host.room.roomId, host.sessionId)).toThrow('от 2 до 6');
+    expect(() => service.join(host.room.roomId, 'Алиса')).toThrow('Имя уже занято');
+    service.join(host.room.roomId, 'Борис');
+    expect(() => service.start(host.room.roomId, host.sessionId, 101)).toThrow('от 1 до 100');
+    const started = service.start(host.room.roomId, host.sessionId);
+    expect(() => service.act(host.room.roomId, host.sessionId, started.version, 'forged')).toThrow('Неизвестное действие');
+    expect(() => service.act(host.room.roomId, 'fake', started.version, 'roll')).toThrow('Недействительный ключ');
+  });
+
+  it('rate limits repeated chat messages from one session', () => {
+    const service = new RoomService();
+    const host = service.create('Алиса');
+    service.chat(host.room.roomId, host.sessionId, 'Привет');
+    expect(() => service.chat(host.room.roomId, host.sessionId, 'Ещё раз')).toThrow('Подождите');
+  });
+
 });
