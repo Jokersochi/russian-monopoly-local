@@ -141,6 +141,10 @@ function movePlayer(game: OnlineGame, player: OnlinePlayer, steps: number): void
   player.position = total % BOARD_CELLS.length;
 }
 
+function isStopped(game: OnlineGame, player: OnlinePlayer): boolean {
+  return game.phase === 'game-over' || player.bankrupt;
+}
+
 function resolveCell(game: OnlineGame, player: OnlinePlayer, diceSum: number, random: (min: number, max: number) => number, allowCard = true): void {
   const cell = BOARD_CELLS[player.position];
   if (cell.type === 'go-to-jail') {
@@ -178,19 +182,20 @@ function resolveCell(game: OnlineGame, player: OnlinePlayer, diceSum: number, ra
     if (effect.money < 0) charge(game, player, -effect.money);
     else player.money += effect.money;
   }
-  if (game.phase === 'game-over' || player.bankrupt) return;
+  if (isStopped(game, player)) return;
   if (effect.taxPerProperty) {
     const cost = effect.taxPerProperty > 0
       ? effect.taxPerProperty * player.properties.length
       : Math.round(-effect.taxPerProperty * player.properties.reduce((sum, id) => sum + (BOARD_CELLS[id].price ?? 0), 0));
     charge(game, player, cost);
   }
-  if (game.phase === 'game-over' || player.bankrupt) return;
+  if (isStopped(game, player)) return;
   if (effect.collectFromPlayers) {
     for (const other of game.players) {
       if (other.id !== player.id && !other.bankrupt) charge(game, other, effect.collectFromPlayers, player);
     }
   }
+  if (isStopped(game, player)) return;
   if (effect.getOutOfJail) player.jailCards++;
   if (effect.moveToCell !== undefined) {
     const previous = player.position;
