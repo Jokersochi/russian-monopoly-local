@@ -13,15 +13,31 @@ services:
       - online-data:/app/data
     restart: unless-stopped
 
+  # Manually invoked only; no unsupervised restores or retention deletions.
+  backup:
+    profiles: ["ops"]
+    build:
+      context: .
+      dockerfile: Dockerfile.online
+    entrypoint: ["node", "scripts/online-state-backup.mjs"]
+    environment:
+      - ONLINE_DATA_FILE=/app/data/rooms.json
+      - ONLINE_BACKUP_DIR=/app/backups
+    volumes:
+      - online-data:/app/data:ro
+      - online-backups:/app/backups
+    restart: "no"
+
   monopoly:
     build: .
     depends_on:
       - online
     ports:
-      - "3002:80"
+      - "127.0.0.1:3002:80"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
 
 volumes:
   online-data:
+  online-backups:
