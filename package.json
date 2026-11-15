@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:server": "npm run build:server && node dist-server/index.js",
+    "build:server": "vite build --ssr server/index.ts --outDir dist-server",
+    "typecheck:server": "tsc -p tsconfig.server.json --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
