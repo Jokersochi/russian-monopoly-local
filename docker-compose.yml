@@ -1,6 +1,19 @@
 services:
+  online:
+    build:
+      context: .
+      dockerfile: Dockerfile.online
+    expose:
+      - "3001"
+    environment:
+      - ONLINE_HOST=0.0.0.0
+      - ONLINE_PORT=3001
+    restart: unless-stopped
+
   monopoly:
     build: .
+    depends_on:
+      - online
     ports:
       - "3002:80"
     environment:
