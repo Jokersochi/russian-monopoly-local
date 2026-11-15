@@ -43,18 +43,15 @@ export class JsonRoomStore implements RoomStore {
       renameSync(temporary, this.filename);
       // Best-effort directory sync makes the rename durable on POSIX filesystems.
       if (process.platform !== 'win32') {
-        const directory = openSync(dirname(this.filename), 'r');
+        let directory: number | undefined;
         try {
-          // Some mounted filesystems reject directory fsync. The atomic
-          // rename has already committed, so a late error must not cause
-          // the in-memory transaction to roll back behind the disk state.
-          try {
-            fsyncSync(directory);
-          } catch {
-            // Best effort: file contents were fsynced before the rename.
-          }
+          directory = openSync(dirname(this.filename), 'r');
+          fsyncSync(directory);
+        } catch {
+          // Best effort: file contents were flushed before the rename.
+          // A late directory-sync error must not roll back a committed file.
         } finally {
-          closeSync(directory);
+          if (directory !== undefined) closeSync(directory);
         }
       }
     } finally {
