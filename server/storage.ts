@@ -45,7 +45,14 @@ export class JsonRoomStore implements RoomStore {
       if (process.platform !== 'win32') {
         const directory = openSync(dirname(this.filename), 'r');
         try {
-          fsyncSync(directory);
+          // Some mounted filesystems reject directory fsync. The atomic
+          // rename has already committed, so a late error must not cause
+          // the in-memory transaction to roll back behind the disk state.
+          try {
+            fsyncSync(directory);
+          } catch {
+            // Best effort: file contents were fsynced before the rename.
+          }
         } finally {
           closeSync(directory);
         }
