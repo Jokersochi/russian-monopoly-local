@@ -67,7 +67,6 @@ function streamRoom(
     'X-Content-Type-Options': 'nosniff',
   });
   response.flushHeaders();
-  send(subscription.snapshot);
 
   const heartbeat = setInterval(() => {
     if (response.destroyed || response.writableEnded) return;
@@ -83,6 +82,7 @@ function streamRoom(
     clearInterval(heartbeat);
     subscription.unsubscribe();
   });
+  send(subscription.snapshot);
 }
 
 export function createOnlineServer(service = new RoomService()) {
