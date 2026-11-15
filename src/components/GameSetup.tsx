@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -67,6 +68,7 @@ export const GameSetup = () => {
           </p>
         </CardHeader>
         <CardContent className="space-y-5">
+          <Link to="/online" className="block rounded-xl border border-amber-300/35 bg-[#18212a] px-4 py-3 text-center font-bold text-[#f3d69c] hover:bg-[#2b343b] transition-colors">🌐 Онлайн-комнаты (Alpha)</Link>
 
           {/* Save slots */}
           <div className="space-y-2">

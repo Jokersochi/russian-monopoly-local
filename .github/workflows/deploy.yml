@@ -1,33 +1,37 @@
-name: Deploy
-
+name: Deploy - manual production gate
 on:
-  push:
-    branches: [main]
-
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Reviewed commit SHA on main
+        required: true
+        type: string
 permissions:
   contents: read
-
 jobs:
-  deploy:
+  deploy-frontend:
     runs-on: ubuntu-latest
+    environment: production
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
         with:
-          node-version: '20'
+          ref: ${{ inputs.release_sha }}
+      - name: Ensure revision is on main
+        run: |
+          git fetch origin main --depth=50
+          git merge-base --is-ancestor HEAD origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
           cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Deploy to Vercel
+      - name: Verify build
+        run: |
+          npm ci
+          npm audit --omit=dev --audit-level=high
+          npm run lint
+          npm run test
+          npm run build
+      - name: Deploy reviewed frontend
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}

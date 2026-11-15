@@ -1,21 +1,18 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
+Only the latest production-tagged release is eligible for security support.
+Experimental branches and in-memory online alpha are not production-supported.
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+## Reporting
+Do not open public issues containing credentials or exploit details.
+Use GitHub Private Vulnerability Reporting if enabled:
+https://github.com/Jokersochi/russian-monopoly-local/security/advisories/new
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+If unavailable, contact the repository owner privately. Do not test against other users without permission.
 
-## Reporting a Vulnerability
+## Scope
+WebSocket authentication, command authorization, transactions, XSS, rate limits,
+cryptographic randomness, dependencies, infrastructure credentials and data persistence.
 
-Use this section to tell people how to report a vulnerability.
-
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+No response SLA is claimed at this stage.
