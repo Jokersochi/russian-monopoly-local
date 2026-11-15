@@ -61,7 +61,10 @@ function tokenHash(token: string): string {
 function normalizeName(name: unknown): string {
   if (typeof name !== 'string') throw new RoomError(400, 'Укажите имя игрока');
   const normalized = name.trim().replace(/\s+/g, ' ');
-  if (normalized.length < 2 || normalized.length > 20 || /[\u0000-\u001f\u007f]/.test(normalized)) {
+  if (normalized.length < 2 || normalized.length > 20 || [...normalized].some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || code === 127;
+  })) {
     throw new RoomError(400, 'Имя должно содержать от 2 до 20 символов');
   }
   return normalized;
