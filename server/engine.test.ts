@@ -78,4 +78,70 @@ describe('server-authoritative engine', () => {
     expect(game.phase).toBe('game-over');
     expect(game.winnerId).not.toBeNull();
   });
+  it('charges taxes and declares bankruptcy when the balance is insufficient', () => {
+    const game = createOnlineGame(seats);
+    const taxed = roll(game, 'alice', 2, 2);
+    expect(taxed.players[0].money).toBe(13_000_000);
+    const insolvent = createOnlineGame(seats);
+    insolvent.players[0].money = 100;
+    const finished = roll(insolvent, 'alice', 2, 2);
+    expect(finished.players[0].bankrupt).toBe(true);
+    expect(finished.phase).toBe('game-over');
+    expect(finished.winnerId).toBe('bob');
+  });
+
+  it('awards the start bonus and resolves a chance bonus on the server', () => {
+    const game = createOnlineGame(seats);
+    game.players[0].position = 39;
+    expect(roll(game, 'alice', 1, 2).players[0].money).toBe(17_000_000);
+    game.players[0].position = 4;
+    const chance = roll(game, 'alice', 1, 2);
+    expect(chance.players[0].money).toBe(15_500_000);
+  });
+
+  it('supports bail and a forced release after three failed jail attempts', () => {
+    const game = createOnlineGame(seats);
+    game.players[0].position = 10;
+    game.players[0].inJail = true;
+    const released = applyOnlineAction(game, 'alice', 'pay-bail');
+    expect(released.players[0].inJail).toBe(false);
+    expect(released.players[0].money).toBe(14_500_000);
+    game.players[0].jailTurns = 2;
+    const forced = roll(game, 'alice', 1, 2);
+    expect(forced.players[0].inJail).toBe(false);
+    expect(forced.players[0].position).toBe(13);
+    expect(forced.players[0].money).toBe(14_500_000);
+  });
+
+  it('calculates transport and utility rent using the owner portfolio', () => {
+    const transport = createOnlineGame(seats);
+    transport.players[0].properties = [5, 15];
+    transport.currentPlayer = 1;
+    transport.players[1].position = 2;
+    const transportPaid = roll(transport, 'bob', 1, 2);
+    expect(transportPaid.players[0].money).toBe(15_500_000);
+    expect(transportPaid.players[1].money).toBe(14_500_000);
+
+    const utility = createOnlineGame(seats);
+    utility.players[0].properties = [12];
+    utility.currentPlayer = 1;
+    utility.players[1].position = 9;
+    const utilityPaid = roll(utility, 'bob', 1, 2);
+    expect(utilityPaid.players[0].money).toBe(15_120_000);
+    expect(utilityPaid.players[1].money).toBe(14_880_000);
+  });
+
+  it('applies card movement into jail and protects game state from mutation', () => {
+    const game = createOnlineGame(seats);
+    game.players[0].position = 14;
+    let calls = 0;
+    const next = applyOnlineAction(game, 'alice', 'roll', (min) => {
+      calls++;
+      return calls === 1 ? 1 : calls === 2 ? 2 : 9;
+    });
+    expect(next.players[0].position).toBe(10);
+    expect(next.players[0].inJail).toBe(true);
+    expect(game.players[0].position).toBe(14);
+  });
+
 });
