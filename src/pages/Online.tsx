@@ -13,7 +13,8 @@ function OnlineBoard({ game }: { game: OnlineGame }) {
   const { t } = useLocale();
   return (
     <div className="overflow-x-auto rounded-2xl border-8 border-amber-950/80 bg-[#55351f] p-2 shadow-2xl">
-      <div className="relative grid aspect-square min-w-[700px] grid-cols-11 grid-rows-11 gap-0.5 bg-[#f4e8ce] p-1">
+      <div className="relative grid aspect-square min-w-[700px] gap-0.5 bg-[#f4e8ce] p-1"
+        style={{ gridTemplateColumns: "repeat(11, minmax(0, 1fr))", gridTemplateRows: "repeat(11, minmax(0, 1fr))" }}>
         {BOARD_CELLS.map((cell) => {
           const owner = game.players.find((player) => player.properties.includes(cell.id));
           const occupants = game.players.filter((player) => !player.bankrupt && player.position === cell.id);
@@ -39,7 +40,7 @@ function OnlineBoard({ game }: { game: OnlineGame }) {
             </div>
           );
         })}
-        <div className="col-start-2 col-end-11 row-start-2 row-end-11 flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-amber-900/20 bg-[radial-gradient(ellipse_at_center,#fef8e8,#d8c6a2)] p-8 text-center text-amber-950">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-amber-900/20 bg-[radial-gradient(ellipse_at_center,#fef8e8,#d8c6a2)] p-8 text-center text-amber-950" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
           <p className="text-xs font-bold uppercase tracking-[0.35em]">Russian Empire Online</p>
           <h2 className="text-5xl font-black tracking-tight">МОНОПОЛИЯ</h2>
           <p className="text-lg">Серверная партия · Раунд {game.round}/{game.maxRounds}</p>
