@@ -40,7 +40,7 @@ jobs:
           # Validate recovery preflight (dry-run only): live games remain unchanged.
           backup_name=$(docker compose --profile ops run --rm --no-deps \
             --entrypoint sh restore -c \
-            'find /app/backups -maxdepth 1 -type f -name "rooms-*.json" -printf "%f\\n" | head -n 1' | tail -n 1)
+            'find /app/backups -maxdepth 1 -type f -name "rooms-*.json" -print | sed "s#.*/##" | head -n 1' | tail -n 1)
           test -n "$backup_name"
           docker compose --profile ops run --rm --no-deps restore --file "$backup_name"
           docker compose --profile ops run --rm --no-deps \
