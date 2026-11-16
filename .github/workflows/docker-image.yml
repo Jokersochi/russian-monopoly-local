@@ -37,6 +37,12 @@ jobs:
             -d '{"name":"Alice"}' \
             http://127.0.0.1:3002/api/rooms > /dev/null
           docker compose --profile ops run --rm --no-deps backup
+          # Validate recovery preflight (dry-run only): live games remain unchanged.
+          backup_name=$(docker compose --profile ops run --rm --no-deps \
+            --entrypoint sh restore -c \
+            'find /app/backups -maxdepth 1 -type f -name "rooms-*.json" -printf "%f\\n" | head -n 1' | tail -n 1)
+          test -n "$backup_name"
+          docker compose --profile ops run --rm --no-deps restore --file "$backup_name"
           docker compose --profile ops run --rm --no-deps \
             --entrypoint sh backup -c \
             'test "$(find /app/backups -maxdepth 1 -type f -name "rooms-*.json" | wc -l)" -ge 1'
