@@ -8,7 +8,11 @@ RUN npm run build:server
 FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/dist-server ./dist-server
-RUN mkdir -p /app/data && chown node:node /app/data
+COPY --from=builder /app/scripts/online-state-backup.mjs ./scripts/online-state-backup.mjs
+COPY --from=builder /app/scripts/online-state-restore.mjs ./scripts/online-state-restore.mjs
+RUN mkdir -p /app/data /app/backups \
+    && chown node:node /app/data /app/backups \
+    && chmod 0700 /app/backups
 ENV ONLINE_HOST=0.0.0.0
 ENV ONLINE_PORT=3001
 ENV ONLINE_DATA_FILE=/app/data/rooms.json

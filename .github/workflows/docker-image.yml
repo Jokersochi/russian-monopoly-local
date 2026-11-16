@@ -6,15 +6,69 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag russian-monopoly-web:test
-    - name: Build the Online API image
-      run: docker build . --file Dockerfile.online --tag russian-monopoly-online:test
+      - uses: actions/checkout@v4
+
+      - name: Build web, online API, and manual backup images
+        run: docker compose --profile ops build
+
+      - name: Smoke test local-only proxy, private state snapshot, and backup
+        run: |
+          set -euo pipefail
+          trap 'docker compose --profile ops down --remove-orphans' EXIT
+          docker compose --profile ops up --no-build -d online monopoly
+          healthy=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3002/api/health > /dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          test "$healthy" -eq 1
+          curl --fail --silent --show-error \
+            -H 'Content-Type: application/json' \
+            -d '{"name":"Alice"}' \
+            http://127.0.0.1:3002/api/rooms > /dev/null
+          docker compose --profile ops run --rm --no-deps backup
+          # Validate recovery preflight (dry-run only): live games remain unchanged.
+          backup_name=$(docker compose --profile ops run --rm --no-deps \
+            --entrypoint sh restore -c \
+            'find /app/backups -maxdepth 1 -type f -name "rooms-*.json" -print | sed "s#.*/##" | head -n 1' | tail -n 1)
+          test -n "$backup_name"
+          docker compose --profile ops run --rm --no-deps restore --file "$backup_name"
+          docker compose --profile ops run --rm --no-deps \
+            --entrypoint sh backup -c \
+            'test "$(find /app/backups -maxdepth 1 -type f -name "rooms-*.json" | wc -l)" -ge 1'
+
+      - name: Check rate limit returns HTTP 429 under repeated traffic
+        run: |
+          set -euo pipefail
+          trap 'docker compose --profile ops down --remove-orphans' EXIT
+          docker compose --profile ops up --no-build -d online monopoly
+          # A started container can still be initializing; distinguish readiness from throttling.
+          ready=0
+          for attempt in $(seq 1 30); do
+            status=$(curl --max-time 2 --silent --output /dev/null --write-out '%{http_code}' \
+              http://127.0.0.1:3002/api/health || true)
+            if [ "$status" = "200" ]; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" -eq 1
+          codes=$(mktemp)
+          trap 'rm -f "$codes"; docker compose --profile ops down --remove-orphans' EXIT
+          seq 1 60 | xargs -P 16 -I{} sh -c \
+            'curl --max-time 5 --silent --output /dev/null --write-out "%{http_code}\n" http://127.0.0.1:3002/api/health || true' \
+            > "$codes"
+          throttled=$(grep -cx '429' "$codes" || true)
+          echo "Throttled requests: $throttled"
+          test "$throttled" -gt 0
