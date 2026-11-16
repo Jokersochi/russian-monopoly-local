@@ -26,6 +26,24 @@ services:
     volumes:
       - online-data:/app/data:ro
       - online-backups:/app/backups
+    network_mode: "none"
+    restart: "no"
+
+  # Destructive recovery is always manual and requires explicit --apply --confirm-offline.
+  # The operator must STOP online before applying and review the dry-run report.
+  restore:
+    profiles: ["ops"]
+    build:
+      context: .
+      dockerfile: Dockerfile.online
+    entrypoint: ["node", "scripts/online-state-restore.mjs"]
+    environment:
+      - ONLINE_DATA_FILE=/app/data/rooms.json
+      - ONLINE_BACKUP_DIR=/app/backups
+    volumes:
+      - online-data:/app/data
+      - online-backups:/app/backups
+    network_mode: "none"
     restart: "no"
 
   monopoly:
