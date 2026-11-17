@@ -32,6 +32,9 @@ jobs:
       - name: Typecheck
         run: npx tsc -p tsconfig.app.json --noEmit
 
+      - name: Typecheck online server
+        run: npm run typecheck:server
+
       - name: Lint
         run: npm run lint
 
@@ -40,3 +43,19 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Build online server
+        run: npm run build:server
+
+      - name: Online API smoke test
+        run: |
+          ONLINE_PORT=3001 node dist-server/index.js &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent http://127.0.0.1:3001/api/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1

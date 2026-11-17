@@ -259,6 +259,9 @@ export const GameSetup = () => {
           >
             ✨ {t('game.start')} (слот {selectedSlot})
           </Button>
+          <a href="/online" className="block w-full rounded-xl border border-russia-gold/40 bg-russia-gold/10 p-4 text-center font-bold transition-colors hover:bg-russia-gold/20">
+            🌐 Онлайн-комнаты (Beta)
+          </a>
         </CardContent>
       </Card>
     </div>

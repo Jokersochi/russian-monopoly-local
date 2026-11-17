@@ -1,8 +1,27 @@
 services:
+  online:
+    build:
+      context: .
+      dockerfile: Dockerfile.online
+    expose:
+      - "3001"
+    environment:
+      - ONLINE_HOST=0.0.0.0
+      - ONLINE_PORT=3001
+      - ONLINE_DATA_FILE=/app/data/rooms.json
+    volumes:
+      - online-data:/app/data
+    restart: unless-stopped
+
   monopoly:
     build: .
+    depends_on:
+      - online
     ports:
       - "3002:80"
     environment:
       - NODE_ENV=production
     restart: unless-stopped
+
+volumes:
+  online-data:
