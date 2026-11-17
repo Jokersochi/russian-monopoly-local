@@ -8,6 +8,9 @@ services:
     environment:
       - ONLINE_HOST=0.0.0.0
       - ONLINE_PORT=3001
+      - ONLINE_DATA_FILE=/app/data/rooms.json
+    volumes:
+      - online-data:/app/data
     restart: unless-stopped
 
   monopoly:
@@ -19,3 +22,6 @@ services:
     environment:
       - NODE_ENV=production
     restart: unless-stopped
+
+volumes:
+  online-data:

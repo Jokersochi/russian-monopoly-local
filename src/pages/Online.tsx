@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { BOARD_CELLS } from '@/data/board';
+import { streamOnlineRoom } from '@/lib/onlineStream';
 import { LocaleProvider, useLocale } from '@/contexts/LocaleContext';
 import {
   clearRoomToken, getRoomToken, onlineRequest, saveRoomToken,
@@ -67,32 +68,61 @@ function OnlineContent() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [connection, setConnection] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
   const { t } = useLocale();
 
   useEffect(() => {
     if (!token || !activeRoom) return;
-    let active = true;
-    const refresh = async () => {
+    let cancelled = false;
+    let reconnectTimer: number | undefined;
+    let currentAbort: AbortController | undefined;
+    let attempts = 0;
+
+    const connect = async () => {
+      currentAbort = new AbortController();
+      setConnection(attempts === 0 ? 'connecting' : 'reconnecting');
       try {
-        const data = await onlineRequest<OnlineSnapshot>('/rooms/' + activeRoom, 'GET', token);
-        if (active) {
-          setSnapshot((previous) => !previous || data.version >= previous.version ? data : previous);
-          setError('');
-        }
+        await streamOnlineRoom(
+          activeRoom,
+          token,
+          currentAbort.signal,
+          (data) => {
+            if (cancelled) return;
+            setSnapshot((previous) => !previous || data.version >= previous.version ? data : previous);
+            setError('');
+          },
+          () => {
+            if (cancelled) return;
+            setConnection('live');
+            attempts = 0;
+          },
+        );
+        if (!cancelled) setError('Соединение с сервером прервано');
       } catch (failure) {
-        if (!active) return;
+        if (cancelled) return;
         const apiError = failure as Error & { status?: number };
         if (apiError.status === 401 || apiError.status === 404) {
           clearRoomToken(activeRoom);
           setToken(null);
           setSnapshot(null);
+          setError(apiError.message);
+          return;
         }
         setError(apiError.message || 'Нет связи с сервером');
       }
+      if (cancelled) return;
+      setConnection('reconnecting');
+      const delay = Math.min(15_000, 1000 * 2 ** Math.min(attempts, 4));
+      attempts++;
+      reconnectTimer = window.setTimeout(() => void connect(), delay);
     };
-    void refresh();
-    const timer = window.setInterval(() => void refresh(), 1500);
-    return () => { active = false; window.clearInterval(timer); };
+
+    void connect();
+    return () => {
+      cancelled = true;
+      currentAbort?.abort();
+      if (reconnectTimer !== undefined) window.clearTimeout(reconnectTimer);
+    };
   }, [activeRoom, token]);
 
   const activate = (result: OnlineSession) => {
@@ -164,13 +194,14 @@ function OnlineContent() {
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-amber-300">Premium multiplayer · Beta</p>
             <h1 className="text-3xl font-black">🎲 Русская Монополия Online</h1>
-            <p className="mt-1 text-sm text-white/60">Комнаты · Серверные ходы · Переподключение · Чат</p>
+            <p className="mt-1 text-sm text-white/60">Комнаты · Серверные ходы · Переподключение · Чат · SSE</p>
           </div>
           <Link to="/" className="rounded-lg border border-amber-400/40 px-4 py-2 text-sm hover:bg-white/10">
             ← Локальная игра
           </Link>
         </header>
 
+        {snapshot && <p role="status" className="text-sm text-amber-200/80">{connection === 'live' ? '● Онлайн · события в реальном времени' : connection === 'connecting' ? '◌ Подключение к комнате…' : '◌ Восстанавливаем соединение…'}</p>}
         {error && <div role="alert" className="rounded-xl border border-red-400/50 bg-red-950/60 p-3 text-sm">{error}</div>}
 
         {!snapshot ? (

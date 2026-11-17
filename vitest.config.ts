@@ -11,7 +11,7 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      include: ['src/data/board.ts', 'server/engine.ts', 'server/rooms.ts', 'server/http.ts'],
+      include: ['src/data/board.ts', 'server/engine.ts', 'server/rooms.ts', 'server/http.ts', 'server/storage.ts'],
       reporter: ['text', 'json-summary'],
       thresholds: {
         lines: 60,

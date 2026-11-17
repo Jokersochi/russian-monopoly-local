@@ -1,7 +1,9 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { RoomError, RoomService } from './rooms';
+import type { RoomSnapshot } from './rooms';
 
 const MAX_BODY_BYTES = 8 * 1024;
+const HEARTBEAT_MS = 10_000;
 
 function respond(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, {
@@ -40,6 +42,49 @@ function bearerToken(request: IncomingMessage): string {
   return match[1];
 }
 
+/** Streams per-player snapshots without exposing session credentials in URLs. */
+function streamRoom(
+  request: IncomingMessage,
+  response: ServerResponse,
+  service: RoomService,
+  roomId: string,
+): void {
+  const token = bearerToken(request);
+  const send = (snapshot: RoomSnapshot) => {
+    if (response.destroyed || response.writableEnded) return;
+    if (!response.write('event: snapshot\ndata: ' + JSON.stringify(snapshot) + '\n\n')) {
+      // A stalled client must not consume unbounded memory on the server.
+      response.destroy();
+    }
+  };
+  // Authenticate and register before sending any response headers.
+  const subscription = service.subscribe(roomId, token, send);
+  response.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  response.flushHeaders();
+
+  const heartbeat = setInterval(() => {
+    if (response.destroyed || response.writableEnded) return;
+    try {
+      service.touch(roomId, token);
+      if (!response.write(': ping\n\n')) response.destroy();
+    } catch {
+      response.end();
+    }
+  }, HEARTBEAT_MS);
+  heartbeat.unref();
+  response.once('close', () => {
+    clearInterval(heartbeat);
+    subscription.unsubscribe();
+  });
+  send(subscription.snapshot);
+}
+
 export function createOnlineServer(service = new RoomService()) {
   return createServer(async (request, response) => {
     try {
@@ -54,13 +99,17 @@ export function createOnlineServer(service = new RoomService()) {
         respond(response, 201, service.create(body.name));
         return;
       }
-      const match = /^\/api\/rooms\/([a-f0-9]{10})(?:\/(join|start|actions|chat))?$/i.exec(url.pathname);
+      const match = /^\/api\/rooms\/([a-f0-9]{10})(?:\/(join|start|actions|chat|events))?$/i.exec(url.pathname);
       if (!match) throw new RoomError(404, 'Маршрут не найден');
       const roomId = match[1];
       const route = match[2];
       if (method === 'POST' && route === 'join') {
         const body = await parseBody(request);
         respond(response, 201, service.join(roomId, body.name));
+        return;
+      }
+      if (method === 'GET' && route === 'events') {
+        streamRoom(request, response, service, roomId);
         return;
       }
       const token = bearerToken(request);
@@ -85,6 +134,10 @@ export function createOnlineServer(service = new RoomService()) {
       }
       throw new RoomError(404, 'Маршрут не найден');
     } catch (error) {
+      if (response.headersSent) {
+        response.destroy();
+        return;
+      }
       if (error instanceof RoomError) {
         respond(response, error.status, { error: error.message });
       } else {
