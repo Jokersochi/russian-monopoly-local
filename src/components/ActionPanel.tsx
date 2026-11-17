@@ -417,6 +417,7 @@ export const ActionPanel = () => {
             <Input
               type="number"
               placeholder={`Мин. ${minBid.toLocaleString('ru-RU')}`}
+              aria-label="Сумма ставки"
               value={bidAmount}
               onChange={e => setBidAmount(e.target.value)}
               className="flex-1"

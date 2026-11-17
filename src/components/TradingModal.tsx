@@ -227,6 +227,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                     <button
                       key={id}
                       onClick={() => toggleProp(id, 'offer')}
+                      aria-pressed={selected}
                       className={cn(
                         'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
                         selected
@@ -246,6 +247,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
             <Input
               type="number"
               placeholder="Деньги от вас (₽)"
+              aria-label="Деньги от вас (₽)"
               value={offerMoneyStr}
               onChange={e => {
                 setOfferMoneyStr(e.target.value);
@@ -273,6 +275,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                       <button
                         key={id}
                         onClick={() => toggleProp(id, 'request')}
+                        aria-pressed={selected}
                         className={cn(
                           'flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-all',
                           selected
@@ -292,6 +295,7 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
               <Input
                 type="number"
                 placeholder={`Деньги от ${pname(targetPlayer)} (₽)`}
+                aria-label={`Деньги от ${pname(targetPlayer)} (₽)`}
                 value={requestMoneyStr}
                 onChange={e => {
                   setRequestMoneyStr(e.target.value);
