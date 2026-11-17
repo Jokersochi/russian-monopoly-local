@@ -1,0 +1,3 @@
+## 2026-10-08 - Indexed Map Lookups for Board Cells in GameBoard
+**Learning:** Performing array searches (`players.find`, `players.filter`) across all 40 cells on every board re-render creates $O(C \times P)$ overhead. Using module-level constant fallbacks (`EMPTY_PLAYERS`, `EMPTY_HOUSES`) allows unconditional `useMemo` hooks for $O(1)$ `Map` lookups before early guard returns without violating React's Rules of Hooks or triggering ESLint dependency warnings.
+**Action:** Use unconditional `useMemo` hooks with module-level empty fallbacks for matrix/board cell lookup maps to eliminate repeated array scans on render.
