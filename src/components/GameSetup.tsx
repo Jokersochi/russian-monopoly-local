@@ -163,7 +163,6 @@ export const GameSetup = () => {
                   maxLength={20}
                   aria-label={t(`players.player${i + 1}`)}
                   className="h-9 text-sm bg-background/60"
-                  aria-label={t(`players.player${i + 1}`)}
                 />
               ))}
             </div>
