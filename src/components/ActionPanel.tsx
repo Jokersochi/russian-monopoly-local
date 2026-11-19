@@ -421,7 +421,6 @@ export const ActionPanel = () => {
               onChange={e => setBidAmount(e.target.value)}
               aria-label="Сумма ставки"
               className="flex-1"
-              aria-label="Сумма ставки"
             />
             <Button
               onClick={() => {
