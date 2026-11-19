@@ -253,7 +253,6 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
               }}
               aria-label="Предлагаемая сумма денег"
               className="h-8 text-sm mt-2"
-              aria-label="Деньги от вас"
             />
           </div>
 
@@ -300,7 +299,6 @@ export const TradingModal = ({ open, onClose }: TradingModalProps) => {
                 }}
                 aria-label={`Запрашиваемая сумма денег от ${pname(targetPlayer)}`}
                 className="h-8 text-sm mt-2"
-                aria-label={`Деньги от ${pname(targetPlayer)}`}
               />
             </div>
           )}
